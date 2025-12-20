@@ -3,18 +3,27 @@ import { GameLogEntry } from '../types';
 
 interface BattleLogProps {
   logs: GameLogEntry[];
+  isOpen?: boolean;
+  onToggle?: () => void;
 }
 
-export const BattleLog: React.FC<BattleLogProps> = ({ logs }) => {
-  const [isOpen, setIsOpen] = useState(true);
+export const BattleLog: React.FC<BattleLogProps> = ({ logs, isOpen: externalOpen, onToggle }) => {
+  const [internalOpen, setInternalOpen] = useState(true);
+  const isControlled = typeof externalOpen === 'boolean' && typeof onToggle === 'function';
+  const isOpen = isControlled ? externalOpen! : internalOpen;
+
+  const toggle = () => {
+    if (isControlled) return onToggle!();
+    setInternalOpen(v => !v);
+  };
 
   return (
-    <div className={`fixed right-0 top-1/2 -translate-y-1/2 z-40 transition-all duration-300 ${isOpen ? 'translate-x-0' : 'translate-x-[calc(100%-40px)]'}`}>
+    <div className={`fixed right-0 top-1/2 -translate-y-1/2 z-40 transition-all duration-300 ${isOpen ? 'translate-x-0' : 'translate-x-[calc(100%-40px)]'} ${isOpen ? '' : 'pointer-events-none'}`}>
       <div className="flex items-start">
         {/* Toggle Button */}
         <button 
-          onClick={() => setIsOpen(!isOpen)}
-          className="bg-slate-800 border-2 border-r-0 border-white/20 p-4 rounded-l-2xl shadow-2xl hover:bg-slate-700 transition-colors"
+          onClick={toggle}
+          className="bg-slate-800 border-2 border-r-0 border-white/20 p-4 rounded-l-2xl shadow-2xl hover:bg-slate-700 transition-colors pointer-events-auto"
         >
           <span className="text-2xl">{isOpen ? '👉' : '📜'}</span>
         </button>

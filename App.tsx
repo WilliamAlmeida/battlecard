@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Phase } from './types';
+import { Card, Phase, ElementType } from './types';
+import { GameRules } from './utils/gameRules';
+import { TypeTable } from './components/TypeTable';
 import { useGameLogic } from './hooks/useGameLogic';
 import { CardComponent } from './components/CardComponent';
 import { BattleLog } from './components/BattleLog';
@@ -16,6 +18,7 @@ export default function App() {
   const [cardsToSacrifice, setCardsToSacrifice] = useState<string[]>([]);
   const [pendingSummonCardId, setPendingSummonCardId] = useState<string | null>(null);
   const [attackMode, setAttackMode] = useState(false);
+  const [activeSidePanel, setActiveSidePanel] = useState<'log' | 'types' | null>('log');
 
   // Auto-start the game on mount to help debug blank screen in dev.
   useEffect(() => {
@@ -134,6 +137,7 @@ export default function App() {
              {floatingDamage?.targetId === 'npc-hp' && <div className="damage-popup right-0 top-0 text-5xl">-{floatingDamage.value}</div>}
           </div>
         </div>
+        {/* side panels are controlled via their own toggles — no header buttons here */}
         
         <div className="text-center bg-black/30 px-12 py-3 rounded-3xl border-2 border-white/10 shadow-2xl">
           <div className="text-4xl font-black text-yellow-500 tracking-tighter italic">TURNO {turnCount}</div>
@@ -253,8 +257,17 @@ export default function App() {
          </div>
       </footer>
 
-      {/* NOVO LOG LATERAL */}
-      <BattleLog logs={logs} />
+      {/* Painéis laterais: Log ou Tabela de Tipos (toggle) */}
+      <BattleLog
+        logs={logs}
+        isOpen={activeSidePanel === 'log'}
+        onToggle={() => setActiveSidePanel(v => v === 'log' ? null : 'log')}
+      />
+
+      <TypeTable
+        isOpen={activeSidePanel === 'types'}
+        onToggle={() => setActiveSidePanel(v => v === 'types' ? null : 'types')}
+      />
 
       {/* Tela de Fim de Jogo */}
       {gameOver && (
