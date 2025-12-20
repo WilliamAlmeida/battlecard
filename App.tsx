@@ -1,31 +1,55 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Phase, ElementType } from './types';
+import { Card, Phase, ElementType, AIDifficulty, GameMode } from './types';
 import { GameRules } from './utils/gameRules';
 import { TypeTable } from './components/TypeTable';
 import { useGameLogic } from './hooks/useGameLogic';
 import { CardComponent } from './components/CardComponent';
 import { BattleLog } from './components/BattleLog';
+import { MainMenu } from './components/MainMenu';
+import { CollectionView } from './components/CollectionView';
+import { AchievementsView } from './components/AchievementsView';
+import { StatsView } from './components/StatsView';
+import { AchievementNotification } from './components/AchievementNotification';
+import { DeckBuilderView } from './components/DeckBuilderView';
+import { achievementsService } from './services/achievementsService';
+import { campaignService } from './services/campaignService';
+import { soundService } from './services/soundService';
+import { getCardsByIds } from './constants';
+
+type AppView = 'menu' | 'game' | 'collection' | 'achievements' | 'stats' | 'deckbuilder';
 
 export default function App() {
   const {
     gameStarted, gameOver, winner, player, npc, turnCount, currentTurnPlayer, phase, logs,
-    isAIProcessing, attackingCardId, damagedCardId, floatingDamage,
-    startGame, setPhase, summonCard, executeAttack, endTurn, addLog
+    isAIProcessing, attackingCardId, damagedCardId, floatingDamage, difficulty, gameMode,
+    startGame, setPhase, summonCard, executeAttack, endTurn, addLog, resetGame
   } = useGameLogic();
 
+  const [currentView, setCurrentView] = useState<AppView>('menu');
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
   const [tributeSelectionMode, setTributeSelectionMode] = useState(false);
   const [cardsToSacrifice, setCardsToSacrifice] = useState<string[]>([]);
   const [pendingSummonCardId, setPendingSummonCardId] = useState<string | null>(null);
   const [attackMode, setAttackMode] = useState(false);
   const [activeSidePanel, setActiveSidePanel] = useState<'log' | 'types' | null>('log');
+  
+  // Achievement notification
+  const [achievementNotification, setAchievementNotification] = useState<{name: string, icon: string} | null>(null);
 
-  // Auto-start the game on mount to help debug blank screen in dev.
+  // Listen for achievement unlocks
   useEffect(() => {
-    if (!gameStarted) startGame();
-    // intentionally run once on mount
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    achievementsService.setOnUnlockCallback((achievement) => {
+      setAchievementNotification({ name: achievement.name, icon: achievement.icon });
+      soundService.playAchievement();
+    });
   }, []);
+
+  // When game ends, show game over then allow return to menu
+  useEffect(() => {
+    if (gameOver && currentView === 'game') {
+      // Game over screen is shown inline
+    }
+  }, [gameOver, currentView]);
 
   const isBusy = isAIProcessing || gameOver;
 
@@ -127,22 +151,124 @@ export default function App() {
     }
   };
 
-  if (!gameStarted) {
+  // Handle starting a game from menu
+  const handleStartGame = (mode: GameMode, difficulty: AIDifficulty, bossId?: string) => {
+    if (mode === GameMode.CAMPAIGN && bossId) {
+      const boss = campaignService.getBoss(bossId);
+      if (boss) {
+        // Build boss deck from their card IDs
+        const bossDeck = getCardsByIds(boss.deck);
+        console.log('Boss deck:', boss.deck, 'Cards found:', bossDeck.length, bossDeck.map(c => c.name));
+        startGame({
+          difficulty: boss.difficulty,
+          mode: mode,
+          npcHp: boss.hp,
+          npcDeck: bossDeck
+        });
+      }
+    } else {
+      startGame({
+        difficulty: difficulty,
+        mode: mode
+      });
+    }
+    setCurrentView('game');
+  };
+
+  // Return to menu
+  const handleBackToMenu = () => {
+    resetGame();
+    setCurrentView('menu');
+  };
+
+  // Render different views
+  if (currentView === 'menu') {
     return (
-      <div className="flex flex-col items-center justify-center h-screen bg-slate-900 px-4">
-        <h1 className="text-7xl md:text-9xl font-black mb-12 text-yellow-500 italic drop-shadow-2xl text-center select-none tracking-tighter">PokéCard Battle</h1>
-        <button onClick={startGame} className="bg-red-600 px-20 py-10 rounded-[2.5rem] text-4xl md:text-5xl font-black hover:bg-red-500 transition-all border-b-[16px] border-red-900 active:border-b-0 active:translate-y-4 shadow-2xl">JOGAR AGORA</button>
-        <p className="mt-12 text-slate-500 font-bold uppercase tracking-[0.5em] text-xl">Desktop Premium Edition</p>
-      </div>
+      <>
+        <MainMenu
+          onStartGame={handleStartGame}
+          onOpenCollection={() => setCurrentView('collection')}
+          onOpenDeckBuilder={() => setCurrentView('deckbuilder')}
+          onOpenAchievements={() => setCurrentView('achievements')}
+          onOpenStats={() => setCurrentView('stats')}
+        />
+        <AchievementNotification
+          achievement={achievementNotification}
+          onClose={() => setAchievementNotification(null)}
+        />
+      </>
     );
   }
 
+  if (currentView === 'collection') {
+    return (
+      <>
+        <CollectionView onBack={() => setCurrentView('menu')} />
+        <AchievementNotification
+          achievement={achievementNotification}
+          onClose={() => setAchievementNotification(null)}
+        />
+      </>
+    );
+  }
+
+  if (currentView === 'achievements') {
+    return (
+      <>
+        <AchievementsView onBack={() => setCurrentView('menu')} />
+        <AchievementNotification
+          achievement={achievementNotification}
+          onClose={() => setAchievementNotification(null)}
+        />
+      </>
+    );
+  }
+
+  if (currentView === 'stats') {
+    return (
+      <>
+        <StatsView onBack={() => setCurrentView('menu')} />
+        <AchievementNotification
+          achievement={achievementNotification}
+          onClose={() => setAchievementNotification(null)}
+        />
+      </>
+    );
+  }
+
+  if (currentView === 'deckbuilder') {
+    return (
+      <>
+        <DeckBuilderView onBack={() => setCurrentView('menu')} />
+        <AchievementNotification
+          achievement={achievementNotification}
+          onClose={() => setAchievementNotification(null)}
+        />
+      </>
+    );
+  }
+
+  // Game view
   return (
     <div className="flex flex-col h-screen bg-slate-900 text-white overflow-hidden relative font-sans select-none">
       
+      {/* Achievement notification overlay */}
+      <AchievementNotification
+        achievement={achievementNotification}
+        onClose={() => setAchievementNotification(null)}
+      />
+      
       {/* HUD Superior */}
       <header className="flex justify-between p-6 bg-slate-800/95 border-b-4 border-white/5 z-30 shadow-2xl">
-        <div className="flex items-center gap-6">
+        {/* Back to Menu Button */}
+        <button 
+          onClick={handleBackToMenu}
+          className="absolute top-4 left-4 z-40 bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-xl text-sm font-bold transition-colors"
+        >
+          ← Menu
+        </button>
+        
+        <div className="flex items-center gap-6 ml-20">
           <div className="w-20 h-20 bg-red-600 rounded-3xl border-4 border-white flex items-center justify-center text-5xl shadow-lg">🤖</div>
           <div className="relative">
              <div className="w-80 h-10 bg-black rounded-full border-2 border-white/20 overflow-hidden shadow-inner">
@@ -258,7 +384,7 @@ export default function App() {
          </div>
 
          {/* Mão do Jogador */}
-         <div className="flex gap-8 h-64 md:h-80 items-center justify-center pb-6 scrollbar-hide max-w-screen-2xl mx-auto -translate-y-32">
+         <div className="flex gap-8 h-64 md:h-80 items-center justify-center pb-6 scrollbar-hide max-w-screen-2xl w-fit mx-auto -translate-y-32">
             {player.hand.map((card, idx) => (
               <div 
                 key={card.uniqueId} 
@@ -287,10 +413,23 @@ export default function App() {
       {/* Tela de Fim de Jogo */}
       {gameOver && (
         <div className="absolute inset-0 bg-black/98 z-50 flex flex-col items-center justify-center animate-in fade-in zoom-in duration-700 backdrop-blur-3xl">
-           <div className={`text-[15rem] font-black italic mb-12 drop-shadow-[0_0_100px_rgba(255,255,255,0.2)] ${winner === 'player' ? 'text-yellow-500' : 'text-red-600'}`}>
+           <div className={`text-[10rem] md:text-[15rem] font-black italic mb-12 drop-shadow-[0_0_100px_rgba(255,255,255,0.2)] ${winner === 'player' ? 'text-yellow-500' : 'text-red-600'}`}>
               {winner === 'player' ? 'VITÓRIA!' : 'DERROTA!'}
            </div>
-           <button onClick={startGame} className="bg-white text-black px-32 py-10 rounded-full font-black text-5xl hover:scale-110 active:scale-95 transition-all shadow-[0_0_50px_rgba(255,255,255,0.3)]">REVANCHE</button>
+           <div className="flex gap-8">
+             <button 
+               onClick={() => startGame({ difficulty, mode: gameMode })} 
+               className="bg-white text-black px-24 py-8 rounded-full font-black text-4xl hover:scale-110 active:scale-95 transition-all shadow-[0_0_50px_rgba(255,255,255,0.3)]"
+             >
+               🔄 REVANCHE
+             </button>
+             <button 
+               onClick={handleBackToMenu} 
+               className="bg-slate-700 text-white px-16 py-8 rounded-full font-black text-4xl hover:scale-110 active:scale-95 transition-all shadow-[0_0_50px_rgba(0,0,0,0.3)]"
+             >
+               📋 MENU
+             </button>
+           </div>
         </div>
       )}
     </div>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, ElementType } from '../types';
+import { Card, ElementType, StatusEffect, CardType, Rarity } from '../types';
 
 interface CardProps {
   card: Card;
@@ -9,6 +9,7 @@ interface CardProps {
   canAttack?: boolean;
   isAttacking?: boolean;
   isDamaged?: boolean;
+  showDetails?: boolean;
 }
 
 const getTypeColor = (type: ElementType) => {
@@ -27,6 +28,9 @@ const getTypeColor = (type: ElementType) => {
   }
 };
 
+const getSpellColor = () => 'bg-gradient-to-br from-purple-600 to-indigo-800 border-purple-400';
+const getTrapColor = () => 'bg-gradient-to-br from-orange-600 to-red-800 border-orange-400';
+
 const getTypeIcon = (type: ElementType) => {
     switch(type) {
         case ElementType.GRASS: return '🌿';
@@ -40,9 +44,30 @@ const getTypeIcon = (type: ElementType) => {
         case ElementType.POISON: return '☠️';
         default: return '⚪';
     }
-}
+};
 
-export const CardComponent: React.FC<CardProps> = ({ card, compact, isOpponent, isActive, canAttack, isAttacking, isDamaged }) => {
+const getStatusIcon = (status: StatusEffect) => {
+  switch(status) {
+    case StatusEffect.BURN: return '🔥';
+    case StatusEffect.FREEZE: return '🧊';
+    case StatusEffect.PARALYZE: return '⚡';
+    case StatusEffect.POISON: return '☠️';
+    case StatusEffect.SLEEP: return '😴';
+    case StatusEffect.CONFUSE: return '😵';
+    default: return '';
+  }
+};
+
+const getRarityGlow = (rarity: Rarity) => {
+  switch(rarity) {
+    case Rarity.LEGENDARY: return 'shadow-[0_0_30px_rgba(234,179,8,0.5)]';
+    case Rarity.EPIC: return 'shadow-[0_0_20px_rgba(168,85,247,0.4)]';
+    case Rarity.RARE: return 'shadow-[0_0_15px_rgba(59,130,246,0.3)]';
+    default: return '';
+  }
+};
+
+export const CardComponent: React.FC<CardProps> = ({ card, compact, isOpponent, isActive, canAttack, isAttacking, isDamaged, showDetails }) => {
   let animationClass = '';
   if (isAttacking) {
     animationClass = isOpponent ? 'animate-attack-down' : 'animate-attack-up';
@@ -50,16 +75,28 @@ export const CardComponent: React.FC<CardProps> = ({ card, compact, isOpponent, 
     animationClass = 'animate-shake';
   }
 
+  // Determine card color based on type
+  const getCardColor = () => {
+    if (card.cardType === CardType.SPELL) return getSpellColor();
+    if (card.cardType === CardType.TRAP) return getTrapColor();
+    return getTypeColor(card.type);
+  };
+
+  const activeStatuses = card.statusEffects?.filter(s => s !== StatusEffect.NONE) || [];
+
   const baseClasses = `
     relative rounded-2xl border-[3px] shadow-2xl transition-all select-none
     flex flex-col text-white overflow-hidden cursor-pointer
-    ${getTypeColor(card.type)}
+    ${getCardColor()}
+    ${getRarityGlow(card.rarity)}
     ${isActive ? 'ring-8 ring-white -translate-y-4 z-10' : 'hover:brightness-110'}
     ${canAttack ? 'animate-pulse ring-8 ring-yellow-400 shadow-[0_0_30px_rgba(250,204,21,0.6)]' : ''}
     ${compact ? 'w-32 h-44 md:w-40 md:h-56 text-lg p-3' : 'w-44 h-64 md:w-56 md:h-80 p-5'}
     ${animationClass}
+    ${activeStatuses.length > 0 ? 'ring-4 ring-red-500' : ''}
   `;
 
+  // Opponent hidden card
   if (isOpponent) {
     return (
       <div className={`${compact ? 'w-32 h-44 md:w-40 md:h-56' : 'w-44 h-64 md:w-56 md:h-80'} ${animationClass} bg-gradient-to-br from-slate-700 to-slate-900 border-[3px] border-slate-500 rounded-2xl flex flex-col items-center justify-center shadow-2xl relative overflow-hidden group`}>
@@ -75,8 +112,68 @@ export const CardComponent: React.FC<CardProps> = ({ card, compact, isOpponent, 
     );
   }
 
+  // Spell Card
+  if (card.cardType === CardType.SPELL) {
+    return (
+      <div className={baseClasses}>
+        <div className="absolute top-2 right-2 text-2xl">🪄</div>
+        <div className="flex justify-between items-start mb-2">
+          <span className="font-black text-lg truncate leading-tight drop-shadow-lg">{card.name}</span>
+        </div>
+        <div className="flex-1 flex items-center justify-center">
+          <span className="text-6xl">✨</span>
+        </div>
+        <div className="bg-black/60 rounded-xl p-2 text-xs text-center">
+          <span className="text-purple-300">MAGIA</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Trap Card
+  if (card.cardType === CardType.TRAP) {
+    return (
+      <div className={baseClasses}>
+        <div className="absolute top-2 right-2 text-2xl">🪤</div>
+        <div className="flex justify-between items-start mb-2">
+          <span className="font-black text-lg truncate leading-tight drop-shadow-lg">{card.name}</span>
+        </div>
+        <div className="flex-1 flex items-center justify-center">
+          <span className="text-6xl">{card.isSet ? '❓' : '⚠️'}</span>
+        </div>
+        <div className="bg-black/60 rounded-xl p-2 text-xs text-center">
+          <span className="text-orange-300">{card.isSet ? 'SETADA' : 'ARMADILHA'}</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Pokemon Card
   return (
     <div className={baseClasses}>
+      {/* Status Effects */}
+      {activeStatuses.length > 0 && (
+        <div className="absolute top-2 right-2 flex gap-1">
+          {activeStatuses.map((status, i) => (
+            <span key={i} className="text-lg animate-pulse">{getStatusIcon(status)}</span>
+          ))}
+        </div>
+      )}
+
+      {/* Ability Indicator */}
+      {card.ability && (
+        <div className="absolute top-2 left-2 text-lg" title={card.ability.description}>
+          💫
+        </div>
+      )}
+
+      {/* Rarity indicator for legendaries */}
+      {card.rarity === Rarity.LEGENDARY && (
+        <div className="absolute -top-1 left-1/2 -translate-x-1/2">
+          <span className="text-yellow-400 text-sm animate-pulse">👑</span>
+        </div>
+      )}
+
       <div className="flex justify-between items-start mb-4">
         <span className="font-black text-xl md:text-2xl truncate leading-tight drop-shadow-lg tracking-tighter italic max-w-full overflow-hidden">{card.name}</span>
       </div>
@@ -91,10 +188,15 @@ export const CardComponent: React.FC<CardProps> = ({ card, compact, isOpponent, 
       </div>
 
       {!compact && (
-      <div className="flex-1 bg-black/20 rounded-2xl flex items-center justify-center mb-4 border-2 border-white/5 shadow-inner">
+      <div className="flex-1 bg-black/20 rounded-2xl flex flex-col items-center justify-center mb-4 border-2 border-white/5 shadow-inner">
          <span className={`font-black text-white/10 text-4xl italic`}>
             {card.name[0]}
          </span>
+         {card.ability && (
+           <div className="mt-2 px-2 py-1 bg-purple-900/50 rounded text-[10px] text-purple-300 text-center">
+             {card.ability.name}
+           </div>
+         )}
       </div>
       )}
 
