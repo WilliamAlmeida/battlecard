@@ -121,6 +121,7 @@ export const useGameLogic = () => {
       if (defender) {
         setDamagedCardId(targetId);
         const result = GameRules.resolveCombat(attacker, defender);
+        addLog(`${attacker.name} efetivo ${result.attackerEffective} (x${result.multiplier}) vs ${defender.name} efetivo ${result.defenderEffective}`, 'combat');
         
         if (result.damageToDefenderOwner > 0) {
           setFloatingDamage({ id: generateUniqueId(), value: result.damageToDefenderOwner, targetId: isPlayer ? 'npc-hp' : 'player-hp' });
