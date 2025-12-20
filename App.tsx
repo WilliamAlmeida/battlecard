@@ -15,6 +15,7 @@ import { achievementsService } from './services/achievementsService';
 import { campaignService } from './services/campaignService';
 import { soundService } from './services/soundService';
 import { getCardsByIds } from './constants';
+import { collectionService } from './services/collectionService';
 
 type AppView = 'menu' | 'game' | 'collection' | 'achievements' | 'stats' | 'deckbuilder';
 
@@ -32,6 +33,8 @@ export default function App() {
   const [pendingSummonCardId, setPendingSummonCardId] = useState<string | null>(null);
   const [attackMode, setAttackMode] = useState(false);
   const [activeSidePanel, setActiveSidePanel] = useState<'log' | 'types' | null>('log');
+  const [selectedDeckId, setSelectedDeckId] = useState<string | null>(null);
+  const [lastBossId, setLastBossId] = useState<string | null>(null);
   
   // Achievement notification
   const [achievementNotification, setAchievementNotification] = useState<{name: string, icon: string} | null>(null);
@@ -152,7 +155,24 @@ export default function App() {
   };
 
   // Handle starting a game from menu
-  const handleStartGame = (mode: GameMode, difficulty: AIDifficulty, bossId?: string) => {
+  const handleStartGame = (mode: GameMode, difficulty: AIDifficulty, bossId?: string, deckId?: string) => {
+    // Try to use the selected custom deck, or last one if not specified
+    const customDecks = collectionService.getCustomDecks();
+    let playerDeckBase = undefined;
+    
+    if (customDecks && customDecks.length > 0) {
+      const targetDeck = deckId 
+        ? customDecks.find(d => d.id === deckId)
+        : customDecks[customDecks.length - 1];
+      
+      if (targetDeck) {
+        playerDeckBase = getCardsByIds(targetDeck.cards);
+        console.log('Using player custom deck:', targetDeck.name, 'with', targetDeck.cards.length, 'cards');
+      }
+    } else {
+      console.log('No custom decks found, using default INITIAL_DECK');
+    }
+
     if (mode === GameMode.CAMPAIGN && bossId) {
       const boss = campaignService.getBoss(bossId);
       if (boss) {
@@ -163,14 +183,18 @@ export default function App() {
           difficulty: boss.difficulty,
           mode: mode,
           npcHp: boss.hp,
-          npcDeck: bossDeck
+          npcDeck: bossDeck,
+          customDeck: playerDeckBase
         });
+        setLastBossId(bossId);
       }
     } else {
       startGame({
         difficulty: difficulty,
-        mode: mode
+        mode: mode,
+        customDeck: playerDeckBase
       });
+      setLastBossId(null);
     }
     setCurrentView('game');
   };
@@ -191,6 +215,8 @@ export default function App() {
           onOpenDeckBuilder={() => setCurrentView('deckbuilder')}
           onOpenAchievements={() => setCurrentView('achievements')}
           onOpenStats={() => setCurrentView('stats')}
+          selectedDeckId={selectedDeckId}
+          onSelectDeck={setSelectedDeckId}
         />
         <AchievementNotification
           achievement={achievementNotification}
@@ -418,7 +444,7 @@ export default function App() {
            </div>
            <div className="flex gap-8">
              <button 
-               onClick={() => startGame({ difficulty, mode: gameMode })} 
+               onClick={() => handleStartGame(gameMode, difficulty, lastBossId || undefined, selectedDeckId || undefined)} 
                className="bg-white text-black px-24 py-8 rounded-full font-black text-4xl hover:scale-110 active:scale-95 transition-all shadow-[0_0_50px_rgba(255,255,255,0.3)]"
              >
                🔄 REVANCHE

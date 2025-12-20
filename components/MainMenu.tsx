@@ -7,11 +7,13 @@ import { achievementsService } from '../services/achievementsService';
 import { soundService } from '../services/soundService';
 
 interface MainMenuProps {
-  onStartGame: (mode: GameMode, difficulty: AIDifficulty, bossId?: string) => void;
+  onStartGame: (mode: GameMode, difficulty: AIDifficulty, bossId?: string, deckId?: string) => void;
   onOpenCollection: () => void;
   onOpenDeckBuilder: () => void;
   onOpenAchievements: () => void;
   onOpenStats: () => void;
+  selectedDeckId: string | null;
+  onSelectDeck: (deckId: string | null) => void;
 }
 
 export const MainMenu: React.FC<MainMenuProps> = ({ 
@@ -19,7 +21,9 @@ export const MainMenu: React.FC<MainMenuProps> = ({
   onOpenCollection, 
   onOpenDeckBuilder,
   onOpenAchievements,
-  onOpenStats 
+  onOpenStats,
+  selectedDeckId,
+  onSelectDeck
 }) => {
   const [selectedMode, setSelectedMode] = useState<GameMode | null>(null);
   const [difficulty, setDifficulty] = useState<AIDifficulty>(AIDifficulty.NORMAL);
@@ -45,26 +49,86 @@ export const MainMenu: React.FC<MainMenuProps> = ({
 
   const handleStartQuickBattle = () => {
     soundService.playSummon();
-    onStartGame(GameMode.QUICK_BATTLE, difficulty);
+    onStartGame(GameMode.QUICK_BATTLE, difficulty, undefined, selectedDeckId || undefined);
   };
 
   const handleStartCampaign = (bossId: string) => {
     soundService.playSummon();
     const boss = campaignService.getBoss(bossId);
     if (boss) {
-      onStartGame(GameMode.CAMPAIGN, boss.difficulty, bossId);
+      onStartGame(GameMode.CAMPAIGN, boss.difficulty, bossId, selectedDeckId || undefined);
     }
   };
 
   const handleStartSurvival = () => {
     soundService.playSummon();
-    onStartGame(GameMode.SURVIVAL, difficulty);
+    onStartGame(GameMode.SURVIVAL, difficulty, undefined, selectedDeckId || undefined);
   };
 
   const handleStartDraft = () => {
     soundService.playSummon();
-    onStartGame(GameMode.DRAFT, difficulty);
+    onStartGame(GameMode.DRAFT, difficulty, undefined, selectedDeckId || undefined);
   };
+
+  // Deck selector component (reusable)
+  const customDecks = collectionService.getCustomDecks();
+  const DeckSelector = () => (
+    <div className="bg-slate-800 p-8 rounded-3xl border-4 border-white/10 mb-8">
+      <h2 className="text-2xl font-bold mb-4 text-center">Selecione seu Deck</h2>
+      
+      {customDecks.length === 0 ? (
+        <div className="bg-red-900/30 border-2 border-red-500 rounded-xl p-6 text-center mb-4">
+          <p className="text-red-300 font-bold mb-2">⚠️ Nenhum deck personalizado encontrado!</p>
+          <p className="text-sm text-slate-300 mb-3">Você está usando o deck padrão. Crie seu deck no Deck Builder!</p>
+          <button
+            onClick={onOpenDeckBuilder}
+            className="bg-yellow-600 hover:bg-yellow-500 px-6 py-2 rounded-xl font-bold"
+          >
+            🔧 Abrir Deck Builder
+          </button>
+        </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 gap-3 mb-4">
+            {customDecks.map(deck => (
+              <button
+                key={deck.id}
+                onClick={() => {
+                  soundService.playClick();
+                  onSelectDeck(deck.id);
+                }}
+                className={`
+                  p-4 rounded-xl border-2 transition-all text-left
+                  ${selectedDeckId === deck.id
+                    ? 'bg-yellow-900/30 border-yellow-500'
+                    : 'bg-slate-700 border-slate-600 hover:border-slate-500'
+                  }
+                `}
+              >
+                <div className="font-bold">{deck.name}</div>
+                <div className="text-sm text-slate-400">{deck.cards.length} cartas</div>
+              </button>
+            ))}
+          </div>
+          <button
+            onClick={() => {
+              soundService.playClick();
+              onSelectDeck(null);
+            }}
+            className={`
+              w-full p-3 rounded-xl border-2 transition-all text-center text-sm
+              ${selectedDeckId === null
+                ? 'bg-slate-600 border-slate-400'
+                : 'bg-slate-700 border-slate-600 hover:border-slate-500'
+              }
+            `}
+          >
+            Usar Deck Padrão
+          </button>
+        </>
+      )}
+    </div>
+  );
 
   if (showCampaign) {
     return (
@@ -78,6 +142,10 @@ export const MainMenu: React.FC<MainMenuProps> = ({
 
         <h1 className="text-5xl font-black text-yellow-500 italic mb-2 mt-8">CAMPANHA</h1>
         <p className="text-slate-400 mb-8">Progresso: {campaignProgress.defeated}/{campaignProgress.total} bosses derrotados</p>
+
+        <div className="max-w-2xl mb-8">
+          <DeckSelector />
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl">
           {campaignService.getBosses().map(boss => (
@@ -148,6 +216,8 @@ export const MainMenu: React.FC<MainMenuProps> = ({
           {selectedMode === GameMode.QUICK_BATTLE ? 'BATALHA RÁPIDA' : 'MODO DRAFT'}
         </h1>
 
+        <DeckSelector />
+
         <div className="bg-slate-800 p-8 rounded-3xl border-4 border-white/10 mb-8">
           <h2 className="text-2xl font-bold mb-6 text-center">Selecione a Dificuldade</h2>
           
@@ -195,6 +265,8 @@ export const MainMenu: React.FC<MainMenuProps> = ({
 
         <h1 className="text-5xl font-black text-yellow-500 italic mb-4">MODO SURVIVAL</h1>
         <p className="text-slate-400 mb-8">Vença o máximo de batalhas seguidas! Seu recorde: <span className="text-yellow-400 font-bold">{stats.survivalBestWave} ondas</span></p>
+
+        <DeckSelector />
 
         <div className="bg-slate-800 p-8 rounded-3xl border-4 border-white/10 mb-8 text-center">
           <h2 className="text-xl font-bold mb-4">Como funciona:</h2>
