@@ -18,7 +18,7 @@ const Tooltip: React.FC<TooltipProps> = ({ content, width = 'w-64', children }) 
   const hideTimer = useRef<number | null>(null);
 
   // delays (ms)
-  const delayShow = 500; // increased delay per user request
+  const delayShow = 300; // increased delay per user request
   const delayHide = 100;
   const fadeDuration = 180; // ms for fade-out before unmount
 

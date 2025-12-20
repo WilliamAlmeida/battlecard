@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Card, CardType, Rarity, ElementType } from '../types';
 import { collectionService } from '../services/collectionService';
+import Tooltip from './Tooltip';
 import { INITIAL_DECK, SPELL_CARDS, TRAP_CARDS } from '../constants';
 import { soundService } from '../services/soundService';
 
@@ -255,6 +256,20 @@ export const CollectionView: React.FC<CollectionViewProps> = ({ onClose, onBack 
                 
                 <div className="text-3xl mb-2 text-center">{getTypeIcon(card.type)}</div>
                 <div className="font-bold text-sm text-center truncate">{card.name}</div>
+
+                {card.cardType === CardType.POKEMON && card.ability && (
+                  <div className="text-center text-xs text-purple-300 mt-1">
+                    <Tooltip content={(
+                      <div>
+                        <div className="font-black text-sm">{card.ability.name}</div>
+                        <div className="text-xs mt-1">{card.ability.description}</div>
+                        <div className="text-xs mt-1 opacity-80">Trigger: <span className="font-mono">{card.ability.trigger}</span></div>
+                      </div>
+                    )}>
+                      <span className="cursor-help">💫 {card.ability.name}</span>
+                    </Tooltip>
+                  </div>
+                )}
                 
                 {card.cardType === CardType.POKEMON && (
                   <div className="flex justify-between text-xs mt-2">
@@ -264,11 +279,29 @@ export const CollectionView: React.FC<CollectionViewProps> = ({ onClose, onBack 
                 )}
                 
                 {card.cardType === CardType.SPELL && (
-                  <div className="text-center text-xs text-purple-400 mt-2">🪄 Magia</div>
+                  <div className="text-center text-xs text-purple-400 mt-2">
+                    <Tooltip content={(
+                      <div>
+                        <div className="font-black text-sm">{card.name}</div>
+                        <div className="text-xs mt-1">{card.spellEffect ? String(card.spellEffect.type) + (card.spellEffect.value ? ` (${card.spellEffect.value})` : '') : 'Efeito desconhecido'}</div>
+                      </div>
+                    )}>
+                      <span className="cursor-help">🪄 Magia</span>
+                    </Tooltip>
+                  </div>
                 )}
                 
                 {card.cardType === CardType.TRAP && (
-                  <div className="text-center text-xs text-orange-400 mt-2">🪤 Armadilha</div>
+                  <div className="text-center text-xs text-orange-400 mt-2">
+                    <Tooltip content={(
+                      <div>
+                        <div className="font-black text-sm">{card.name}</div>
+                        <div className="text-xs mt-1">{card.trapEffect ? String(card.trapEffect.type) + (card.trapEffect.value ? ` (${card.trapEffect.value})` : '') : 'Efeito desconhecido'}</div>
+                      </div>
+                    )}>
+                      <span className="cursor-help">🪤 Armadilha</span>
+                    </Tooltip>
+                  </div>
                 )}
                 
                 <div className="text-center mt-2">
