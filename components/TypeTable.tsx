@@ -89,7 +89,7 @@ export const TypeTable: React.FC<TypeTableProps> = ({ isOpen: externalOpen, onTo
               </thead>
               <tbody>
                 {Object.values(ElementType).map((atk) => (
-                  <tr key={atk} className="border-t border-white/5 hover:bg-slate-800/60 transition-colors">
+                  <tr key={atk} className="border-t border-white/5">
                     <td className="p-2 font-bold text-slate-100 sticky left-0">
                       <div className={`inline-flex items-center gap-2 px-2 py-1 rounded ${getTypeColor(atk as ElementType)}`}>
                         <span className="text-sm">{getTypeIcon(atk as ElementType)}</span>
