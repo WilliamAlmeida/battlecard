@@ -1,0 +1,5 @@
+{
+  "name": "PokéCard Battle Gen1",
+  "description": "Um jogo de cartas estratégico 2D com tema Pokémon. Enfrente a CPU usando os clássicos da primeira geração com mecânicas de sacrifício e batalha.",
+  "requestFramePermissions": []
+}

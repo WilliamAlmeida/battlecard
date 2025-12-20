@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PokéCard Battle Gen1</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      /* Custom scrollbar for game logs */
+      .scrollbar-hide::-webkit-scrollbar { display: none; }
+      .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+      /* Animations */
+      @keyframes attack-up {
+        0% { transform: translateY(0) scale(1); }
+        30% { transform: translateY(20px); }
+        60% { transform: translateY(-180px) scale(1.1); z-index: 100; }
+        100% { transform: translateY(0) scale(1); }
+      }
+      @keyframes attack-down {
+        0% { transform: translateY(0) scale(1); }
+        30% { transform: translateY(-20px); }
+        60% { transform: translateY(180px) scale(1.1); z-index: 100; }
+        100% { transform: translateY(0) scale(1); }
+      }
+      @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        20%, 60% { transform: translateX(-8px); filter: brightness(2) red; }
+        40%, 80% { transform: translateX(8px); }
+      }
+      @keyframes float-damage {
+        0% { opacity: 0; transform: translateY(0); }
+        20% { opacity: 1; transform: translateY(-20px); }
+        80% { opacity: 1; transform: translateY(-40px); }
+        100% { opacity: 0; transform: translateY(-60px); }
+      }
+
+      .animate-attack-up { animation: attack-up 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+      .animate-attack-down { animation: attack-down 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+      .animate-shake { animation: shake 0.4s ease-in-out; }
+      .damage-popup {
+        position: absolute;
+        color: #ff4444;
+        font-weight: 900;
+        font-size: 1.5rem;
+        text-shadow: 2px 2px 0 #000;
+        pointer-events: none;
+        z-index: 200;
+        animation: float-damage 1s forwards;
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0"
+  }
+}
+</script>
+</head>
+  <body class="bg-slate-900 text-slate-100 overflow-hidden selection:bg-red-500 selection:text-white">
+    <div id="root"></div>
+  </body>
+</html>
