@@ -114,6 +114,21 @@ export default function App() {
 
     // Clique no Campo
     if (location === 'field') {
+      // Se estamos em modo de seleção (spell alvo) e a carta selecionada é uma SPELL com alvo SINGLE_ALLY,
+      // aplicar o spell no aliado clicado.
+      if (attackMode && selectedCardId) {
+        const selectedSpell = player.hand.find(c => c.uniqueId === selectedCardId);
+        if (selectedSpell?.cardType === 'SPELL') {
+          const effect = selectedSpell.spellEffect;
+          if (effect?.target === 'SINGLE_ALLY') {
+            useSpell('player', selectedCardId, card.uniqueId);
+            setAttackMode(false);
+            setSelectedCardId(null);
+            return;
+          }
+        }
+      }
+
       if (phase === Phase.BATTLE) {
         if (!card.hasAttacked) {
           setSelectedCardId(card.uniqueId);
@@ -401,9 +416,16 @@ export default function App() {
            {attackMode && phase === Phase.BATTLE && npc.field.length === 0 && player.field.some(c => c.uniqueId === selectedCardId) && (
              <button onClick={handleDirectAttack} className="bg-gradient-to-r from-red-600 to-orange-600 px-16 py-6 rounded-full font-black text-3xl animate-bounce shadow-[0_0_80px_rgba(220,38,38,0.7)] border-4 border-white transition-all hover:scale-110 active:scale-90">⚔️ ATAQUE DIRETO!</button>
            )}
-           {attackMode && npc.field.length > 0 && (
-             <div className="bg-yellow-500 text-black px-10 py-3 rounded-full font-black text-2xl animate-pulse shadow-2xl border-4 border-black">SELECIONE UM POKÉMON INIMIGO</div>
-           )}
+           {attackMode && (() => {
+             const selectedSpell = player.hand.find(c => c.uniqueId === selectedCardId);
+             if (selectedSpell?.cardType === 'SPELL') {
+               const t = selectedSpell.spellEffect?.target;
+               if (t === 'SINGLE_ALLY') return (<div className="bg-yellow-500 text-black px-10 py-3 rounded-full font-black text-2xl animate-pulse shadow-2xl border-4 border-black">SELECIONE UM POKÉMON ALIADO</div>);
+               if (t === 'SINGLE_ENEMY') return (<div className="bg-yellow-500 text-black px-10 py-3 rounded-full font-black text-2xl animate-pulse shadow-2xl border-4 border-black">SELECIONE UM POKÉMON INIMIGO</div>);
+             }
+             if (npc.field.length > 0) return (<div className="bg-yellow-500 text-black px-10 py-3 rounded-full font-black text-2xl animate-pulse shadow-2xl border-4 border-black">SELECIONE UM POKÉMON INIMIGO</div>);
+             return null;
+           })()}
         </div>
 
         {/* Campo Player */}
