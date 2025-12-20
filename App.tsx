@@ -31,11 +31,19 @@ export default function App() {
 
     // Lógica de Sacrifício
     if (tributeSelectionMode) {
+      const required = player.hand.find(c => c.uniqueId === pendingSummonCardId)?.sacrificeRequired || 0;
       if (card.uniqueId === pendingSummonCardId) {
         addLog("Você não pode sacrificar o próprio Pokémon que está tentando invocar!");
         return;
       }
-      setCardsToSacrifice(prev => prev.includes(card.uniqueId) ? prev.filter(id => id !== card.uniqueId) : [...prev, card.uniqueId]);
+      setCardsToSacrifice(prev => {
+        if (prev.includes(card.uniqueId)) return prev.filter(id => id !== card.uniqueId);
+        if (prev.length >= required) {
+          addLog(`Você já selecionou ${required} sacrifício(s). Remova um para selecionar outro.`);
+          return prev;
+        }
+        return [...prev, card.uniqueId];
+      });
       return;
     }
 
@@ -176,7 +184,11 @@ export default function App() {
         {/* Campo Player */}
         <div className="flex gap-12 min-h-[260px] items-center">
            {player.field.map(card => (
-             <div key={card.uniqueId} onClick={() => handleCardClick(card, 'field')} className={`transition-all duration-300 ${selectedCardId === card.uniqueId ? 'ring-[12px] ring-yellow-400 -translate-y-12 shadow-[0_50px_100px_rgba(250,204,21,0.4)]' : ''}`}>
+             <div
+               key={card.uniqueId}
+               onClick={() => handleCardClick(card, 'field')}
+               className={`transition-all duration-300 ${selectedCardId === card.uniqueId ? 'ring-[12px] ring-yellow-400 -translate-y-12 shadow-[0_50px_100px_rgba(250,204,21,0.4)]' : ''} ${cardsToSacrifice.includes(card.uniqueId) ? 'opacity-30 scale-95 grayscale' : ''}`}
+             >
                <CardComponent 
                  card={card} 
                  isAttacking={attackingCardId === card.uniqueId} 
@@ -212,7 +224,7 @@ export default function App() {
               <div className="flex gap-6 bg-red-950/40 p-6 rounded-3xl border-2 border-red-500/50 animate-pulse">
                  <div className="flex flex-col justify-center mr-8">
                     <span className="text-sm font-bold text-red-400 uppercase tracking-widest">Aguardando Sacrifícios</span>
-                    <span className="text-lg font-black">Selecione {player.hand.find(c => c.uniqueId === pendingSummonCardId)?.sacrificeRequired || 0} no campo</span>
+                    <span className="text-lg font-black">Selecione {player.hand.find(c => c.uniqueId === pendingSummonCardId)?.sacrificeRequired || 0} cartas (mão ou campo)</span>
                  </div>
                  <button onClick={() => {
                    const card = player.hand.find(c => c.uniqueId === pendingSummonCardId);
