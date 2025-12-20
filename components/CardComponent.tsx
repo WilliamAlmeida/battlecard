@@ -1,5 +1,6 @@
 import React from 'react';
 import { Card, ElementType, StatusEffect, CardType, Rarity } from '../types';
+import Tooltip from './Tooltip';
 
 interface CardProps {
   card: Card;
@@ -84,6 +85,18 @@ export const CardComponent: React.FC<CardProps> = ({ card, compact, isOpponent, 
 
   const activeStatuses = card.statusEffects?.filter(s => s !== StatusEffect.NONE) || [];
 
+  const renderEffect = (effect: any) => {
+    if (!effect) return 'Nenhum';
+    const parts: string[] = [];
+    parts.push(effect.type);
+    if (typeof effect.value !== 'undefined') parts.push(`value: ${effect.value}`);
+    if (effect.statusEffect) parts.push(`status: ${effect.statusEffect}`);
+    if (effect.target) parts.push(`target: ${effect.target}`);
+    if (effect.specialId) parts.push(`${effect.specialId}`);
+    if (effect.duration) parts.push(`duration: ${effect.duration}`);
+    return parts.join(' | ');
+  };
+
   const baseClasses = `
     relative rounded-2xl border-[3px] shadow-2xl transition-all select-none
     flex flex-col text-white overflow-hidden cursor-pointer
@@ -116,7 +129,16 @@ export const CardComponent: React.FC<CardProps> = ({ card, compact, isOpponent, 
   if (card.cardType === CardType.SPELL) {
     return (
       <div className={baseClasses}>
-        <div className="absolute top-2 right-2 text-2xl">🪄</div>
+        <div className="absolute top-2 right-2 text-2xl">
+          <Tooltip content={(
+            <div>
+              <div className="font-black text-base">{card.name}</div>
+              <div className="text-sm mt-1 leading-tight">{card.spellEffect ? renderEffect(card.spellEffect) : 'Efeito desconhecido'}</div>
+            </div>
+          )}>
+            <span className="cursor-help">🪄</span>
+          </Tooltip>
+        </div>
         <div className="flex justify-between items-start mb-2">
           <span className="font-black text-lg truncate leading-tight drop-shadow-lg">{card.name}</span>
         </div>
@@ -134,7 +156,16 @@ export const CardComponent: React.FC<CardProps> = ({ card, compact, isOpponent, 
   if (card.cardType === CardType.TRAP) {
     return (
       <div className={baseClasses}>
-        <div className="absolute top-2 right-2 text-2xl">🪤</div>
+        <div className="absolute top-2 right-2 text-2xl">
+          <Tooltip content={(
+            <div>
+              <div className="font-black text-base">{card.name}</div>
+              <div className="text-sm mt-1 leading-tight">{card.trapEffect ? renderEffect(card.trapEffect) : 'Efeito desconhecido'}</div>
+            </div>
+          )}>
+            <span className="cursor-help">🪤</span>
+          </Tooltip>
+        </div>
         <div className="flex justify-between items-start mb-2">
           <span className="font-black text-lg truncate leading-tight drop-shadow-lg">{card.name}</span>
         </div>
@@ -162,8 +193,17 @@ export const CardComponent: React.FC<CardProps> = ({ card, compact, isOpponent, 
 
       {/* Ability Indicator */}
       {card.ability && (
-        <div className="absolute top-2 left-2 text-lg" title={card.ability.description}>
-          💫
+        <div className="absolute top-2 left-2 text-lg">
+          <Tooltip content={(
+            <div>
+              <div className="font-black text-base">{card.ability.name}</div>
+              <div className="text-sm mt-1 leading-tight">{card.ability.description}</div>
+              <div className="text-sm mt-2 opacity-80">Trigger: <span className="font-mono">{card.ability.trigger}</span></div>
+              <div className="text-sm mt-1 opacity-80">Effect: <span className="font-mono">{renderEffect(card.ability.effect)}</span></div>
+            </div>
+          )}>
+            <span className="cursor-help">💫</span>
+          </Tooltip>
         </div>
       )}
 
@@ -179,7 +219,9 @@ export const CardComponent: React.FC<CardProps> = ({ card, compact, isOpponent, 
       </div>
 
       <div className="flex justify-between items-center px-4 py-2 mb-4 bg-black/30 rounded-2xl border border-white/10">
-         <span className="text-3xl">{getTypeIcon(card.type)}</span>
+         <Tooltip content={(<div className="text-sm">Tipo: <span className="font-mono">{card.type}</span></div>)}>
+           <span className="text-3xl cursor-help">{getTypeIcon(card.type)}</span>
+         </Tooltip>
          <div className="flex space-x-1">
            {Array.from({length: card.level}).map((_, i) => (
              <span key={i} className="text-yellow-300 text-lg drop-shadow-[0_0_5px_rgba(0,0,0,0.5)]">★</span>
