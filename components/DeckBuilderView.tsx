@@ -97,7 +97,12 @@ export const DeckBuilderView: React.FC<DeckBuilderViewProps> = ({ onBack, onClos
     if (selectedDeckId) {
       collectionService.updateDeck(selectedDeckId, deckName, deckCards);
     } else {
-      collectionService.createDeck(deckName, deckCards);
+      const newDeck = collectionService.createDeck(deckName, deckCards);
+      // If there is no selected deck persisted yet, mark this new deck as selected
+      if (!collectionService.getSelectedDeckId()) {
+        collectionService.setSelectedDeckId(newDeck.id);
+        setSelectedDeckId(newDeck.id);
+      }
     }
 
     soundService.playAchievement();
