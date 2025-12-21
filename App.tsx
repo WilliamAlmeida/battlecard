@@ -410,17 +410,18 @@ export default function App() {
         >
           ← Menu
         </button>
-        
+
         <div className="flex items-center gap-6 ml-20">
-          <div className="w-20 h-20 bg-red-600 rounded-3xl border-4 border-white flex items-center justify-center text-5xl shadow-lg">🤖</div>
-          <div className="relative">
+          <div className="relative text-right">
              <div className="w-80 h-10 bg-black rounded-full border-2 border-white/20 overflow-hidden shadow-inner">
-                <div className="h-full bg-gradient-to-r from-red-600 to-red-400 transition-all duration-700" style={{width: `${(npc.hp/8000)*100}%`}}></div>
+                <div className="h-full bg-gradient-to-r from-blue-600 to-blue-400 transition-all duration-700" style={{width: `${(player.hp/8000)*100}%`}}></div>
              </div>
-             <span className="absolute inset-0 flex items-center justify-center text-lg font-black drop-shadow-md">{npc.hp} / 8000 LP</span>
-             {floatingDamage?.targetId === 'npc-hp' && <div className="damage-popup right-0 top-0 text-5xl">-{floatingDamage.value}</div>}
+             <span className="absolute inset-0 flex items-center justify-center text-lg font-black drop-shadow-md">{player.hp} / 8000 LP</span>
+             {floatingDamage?.targetId === 'player-hp' && <div className="damage-popup left-0 top-0 text-5xl">-{floatingDamage.value}</div>}
           </div>
+          <div className="w-20 h-20 bg-blue-600 rounded-3xl border-4 border-white flex items-center justify-center text-5xl shadow-lg">👤</div>
         </div>
+        
         {/* side panels are controlled via their own toggles — no header buttons here */}
         
         <div className="text-center bg-black/30 px-12 py-3 rounded-3xl border-2 border-white/10 shadow-2xl">
@@ -431,14 +432,14 @@ export default function App() {
         </div>
 
         <div className="flex items-center gap-6">
-          <div className="relative text-right">
+          <div className="w-20 h-20 bg-red-600 rounded-3xl border-4 border-white flex items-center justify-center text-5xl shadow-lg">🤖</div>
+          <div className="relative">
              <div className="w-80 h-10 bg-black rounded-full border-2 border-white/20 overflow-hidden shadow-inner">
-                <div className="h-full bg-gradient-to-r from-blue-600 to-blue-400 transition-all duration-700" style={{width: `${(player.hp/8000)*100}%`}}></div>
+                <div className="h-full bg-gradient-to-r from-red-600 to-red-400 transition-all duration-700" style={{width: `${(npc.hp/8000)*100}%`}}></div>
              </div>
-             <span className="absolute inset-0 flex items-center justify-center text-lg font-black drop-shadow-md">{player.hp} / 8000 LP</span>
-             {floatingDamage?.targetId === 'player-hp' && <div className="damage-popup left-0 top-0 text-5xl">-{floatingDamage.value}</div>}
+             <span className="absolute inset-0 flex items-center justify-center text-lg font-black drop-shadow-md">{npc.hp} / 8000 LP</span>
+             {floatingDamage?.targetId === 'npc-hp' && <div className="damage-popup right-0 top-0 text-5xl">-{floatingDamage.value}</div>}
           </div>
-          <div className="w-20 h-20 bg-blue-600 rounded-3xl border-4 border-white flex items-center justify-center text-5xl shadow-lg">👤</div>
         </div>
       </header>
 
