@@ -402,43 +402,43 @@ export default function App() {
       />
       
       {/* HUD Superior */}
-      <header className="flex justify-between p-6 bg-slate-800/95 border-b-4 border-white/5 z-30 shadow-2xl">
+      <header className="flex flex-wrap justify-between items-center p-2 md:p-6 bg-slate-800/95 border-b-4 border-white/5 z-30 shadow-2xl gap-2 md:gap-6">
         {/* Back to Menu Button */}
         <button 
           onClick={handleBackToMenu}
-          className="absolute top-4 left-4 z-40 bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-xl text-sm font-bold transition-colors"
+          className="md:absolute md:top-4 md:left-4 z-40 bg-slate-700 hover:bg-slate-600 px-3 md:px-4 py-2 rounded-xl text-xs md:text-sm font-bold transition-colors"
         >
           ← Menu
         </button>
 
-        <div className="flex items-center gap-6 ml-20">
+        <div className="flex items-center gap-2 md:gap-6 md:ml-20 flex-1 md:flex-none order-1 md:order-none justify-start">
           <div className="relative text-right">
-             <div className="w-80 h-10 bg-black rounded-full border-2 border-white/20 overflow-hidden shadow-inner">
+             <div className="w-40 md:w-80 h-8 md:h-10 bg-black rounded-full border-2 border-white/20 overflow-hidden shadow-inner">
                 <div className="h-full bg-gradient-to-r from-blue-600 to-blue-400 transition-all duration-700" style={{width: `${(player.hp/8000)*100}%`}}></div>
              </div>
-             <span className="absolute inset-0 flex items-center justify-center text-lg font-black drop-shadow-md">{player.hp} / 8000 LP</span>
-             {floatingDamage?.targetId === 'player-hp' && <div className="damage-popup left-0 top-0 text-5xl">-{floatingDamage.value}</div>}
+             <span className="absolute inset-0 flex items-center justify-center text-xs md:text-lg font-black drop-shadow-md">{player.hp} / 8000 LP</span>
+             {floatingDamage?.targetId === 'player-hp' && <div className="damage-popup left-0 top-0 text-3xl md:text-5xl">-{floatingDamage.value}</div>}
           </div>
-          <div className="w-20 h-20 bg-blue-600 rounded-3xl border-4 border-white flex items-center justify-center text-5xl shadow-lg">👤</div>
+          <div className="w-12 md:w-20 h-12 md:h-20 bg-blue-600 rounded-3xl border-4 border-white flex items-center justify-center text-2xl md:text-5xl shadow-lg flex-shrink-0">👤</div>
         </div>
         
         {/* side panels are controlled via their own toggles — no header buttons here */}
         
-        <div className="text-center bg-black/30 px-12 py-3 rounded-3xl border-2 border-white/10 shadow-2xl">
-          <div className="text-4xl font-black text-yellow-500 tracking-tighter italic">TURNO {turnCount}</div>
-          <div className={`text-xl font-black uppercase tracking-widest ${currentTurnPlayer === 'player' ? 'text-blue-400 animate-pulse' : 'text-red-400'}`}>
+        <div className="text-center bg-black/30 px-4 md:px-12 py-2 md:py-3 rounded-3xl border-2 border-white/10 shadow-2xl order-3 md:order-none flex-1 md:flex-none">
+          <div className="text-2xl md:text-4xl font-black text-yellow-500 tracking-tighter italic">TURNO {turnCount}</div>
+          <div className={`text-xs md:text-xl font-black uppercase tracking-widest ${currentTurnPlayer === 'player' ? 'text-blue-400 animate-pulse' : 'text-red-400'}`}>
             {currentTurnPlayer === 'player' ? 'SEU TURNO' : 'CPU JOGANDO'}
           </div>
         </div>
 
-        <div className="flex items-center gap-6">
-          <div className="w-20 h-20 bg-red-600 rounded-3xl border-4 border-white flex items-center justify-center text-5xl shadow-lg">🤖</div>
+        <div className="flex items-center gap-2 md:gap-6 flex-1 md:flex-none order-2 md:order-none justify-end">
+          <div className="w-12 md:w-20 h-12 md:h-20 bg-red-600 rounded-3xl border-4 border-white flex items-center justify-center text-2xl md:text-5xl shadow-lg flex-shrink-0">🤖</div>
           <div className="relative">
-             <div className="w-80 h-10 bg-black rounded-full border-2 border-white/20 overflow-hidden shadow-inner">
+             <div className="w-40 md:w-80 h-8 md:h-10 bg-black rounded-full border-2 border-white/20 overflow-hidden shadow-inner">
                 <div className="h-full bg-gradient-to-r from-red-600 to-red-400 transition-all duration-700" style={{width: `${(npc.hp/8000)*100}%`}}></div>
              </div>
-             <span className="absolute inset-0 flex items-center justify-center text-lg font-black drop-shadow-md">{npc.hp} / 8000 LP</span>
-             {floatingDamage?.targetId === 'npc-hp' && <div className="damage-popup right-0 top-0 text-5xl">-{floatingDamage.value}</div>}
+             <span className="absolute inset-0 flex items-center justify-center text-xs md:text-lg font-black drop-shadow-md">{npc.hp} / 8000 LP</span>
+             {floatingDamage?.targetId === 'npc-hp' && <div className="damage-popup right-0 top-0 text-3xl md:text-5xl">-{floatingDamage.value}</div>}
           </div>
         </div>
       </header>
