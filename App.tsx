@@ -393,7 +393,7 @@ export default function App() {
 
   // Game view
   return (
-    <div className="flex flex-col h-screen bg-slate-900 text-white overflow-hidden relative font-sans select-none">
+    <div className="flex flex-col h-screen bg-slate-900 text-white sm:overflow-hidden relative font-sans select-none">
       
       {/* Achievement notification overlay */}
       <AchievementNotification
@@ -408,7 +408,7 @@ export default function App() {
           onClick={handleBackToMenu}
           className="md:absolute md:top-3 md:left-2 z-40 bg-slate-700 hover:bg-slate-600 px-3 md:px-4 py-2 rounded-xl text-xs md:text-sm font-bold transition-colors flex-grow"
         >
-          ← Menu
+          📋 Menu
         </button>
 
         <div className="flex items-center gap-2 md:gap-6 flex-1 md:flex-none order-1 md:order-none justify-start">
@@ -447,7 +447,7 @@ export default function App() {
       <main className="flex-1 flex flex-col items-center justify-center gap-y-10 gap-x-20 relative p-8 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-slate-800 to-slate-900">
         
         {/* Campo Oponente */}
-        <div className="flex gap-12 min-h-[260px] items-center">
+        <div className="flex gap-2 sm:gap-12 min-h-[100px] sm:min-h-[260px] items-center">
            {npc.field.map(card => (
              <div key={card.uniqueId} onClick={() => handleEnemyClick(card)} className={`cursor-pointer transition-transform ${attackMode ? 'hover:scale-110' : ''}`}>
                <CardComponent 
@@ -458,11 +458,11 @@ export default function App() {
                />
              </div>
            ))}
-           {npc.field.length === 0 && <div className="text-white/5 font-black text-8xl uppercase tracking-tighter italic opacity-20">Oponente Limpo</div>}
+           {npc.field.length === 0 && <div className="text-white/5 font-black text-4xl sm:text-8xl uppercase tracking-tighter italic opacity-20">Oponente Limpo</div>}
         </div>
 
         {/* Linha de Combate */}
-        <div className="w-full h-1 bg-white/5 flex items-center justify-center relative">
+        <div className="w-full h-1 bg-white/5 flex items-center justify-center relative z-10">
            {attackMode && phase === Phase.BATTLE && npc.field.length === 0 && player.field.some(c => c.uniqueId === selectedCardId) && (
              <button onClick={handleDirectAttack} className="bg-gradient-to-r from-red-600 to-orange-600 px-8 py-3 sm:px-16 sm:py-6 rounded-full font-black sm:text-3xl animate-bounce shadow-[0_0_80px_rgba(220,38,38,0.7)] border-4 border-white transition-all hover:scale-110 active:scale-90">⚔️ ATAQUE DIRETO!</button>
            )}
@@ -479,7 +479,7 @@ export default function App() {
         </div>
 
         {/* Campo Player */}
-        <div className="flex gap-12 min-h-[260px] items-center">
+        <div className="flex gap-2 sm:gap-12 min-h-[100px] sm:min-h-[260px] items-center">
            {player.field.map(card => (
              <div
                key={card.uniqueId}
@@ -495,7 +495,7 @@ export default function App() {
                />
              </div>
            ))}
-           {player.field.length === 0 && <div className="text-white/5 font-black text-8xl uppercase tracking-tighter italic opacity-20">Seu Campo Limpo</div>}
+           {player.field.length === 0 && <div className="text-white/5 font-black text-4xl sm:text-8xl uppercase tracking-tighter italic opacity-20">Seu Campo Limpo</div>}
         </div>
 
         {/* Trap Zone (Player) */}
@@ -511,18 +511,18 @@ export default function App() {
       </main>
 
       {/* Footer / Mão */}
-      <footer className="bg-slate-950 p-10 border-t-8 border-white/5 z-30 shadow-[0_-30px_60px_rgba(0,0,0,0.6)] min-h-[400px]">
+      <footer className="bg-slate-950 p-5 border-t-8 border-white/5 z-30 shadow-[0_-30px_60px_rgba(0,0,0,0.6)] min-h-[400px]">
          <div className="flex justify-between items-center mb-10">
-            <div className="flex gap-5 items-center">
+            <div className="flex gap-5 items-start sm:items-center">
                <div className="flex flex-col bg-slate-900/50 p-4 rounded-2xl border border-white/5">
                   <span className="text-sm font-black uppercase tracking-[0.3em] text-slate-500 mb-2">Fase Atual</span>
-                  <span className="text-3xl font-black uppercase text-yellow-500 drop-shadow-md">{phase} PHASE</span>
+                  <span className="text-lg sm:text-3xl font-black uppercase text-yellow-500 drop-shadow-md">{phase} PHASE</span>
                </div>
                
                {currentTurnPlayer === 'player' && !isBusy && (
                  <button 
                   onClick={handlePhaseButton}
-                  className="bg-gradient-to-b from-yellow-400 to-orange-600 px-8 py-6 rounded-3xl text-3xl font-black uppercase hover:scale-110 active:scale-95 transition-all shadow-2xl border-b-8 border-orange-900 text-black italic tracking-tighter"
+                  className="bg-gradient-to-b from-yellow-400 to-orange-600 text-nowrap px-3 py-2 sm:px-8 sm:py-6 rounded-lg sm:rounded-3xl sm:text-3xl font-black uppercase hover:scale-110 active:scale-95 transition-all shadow-2xl border-b-8 border-orange-900 text-black italic tracking-tighter"
                  >
                    {phase === Phase.MAIN ? '➔ Batalhar!' : '➔ Encerrar'}
                  </button>
@@ -550,12 +550,12 @@ export default function App() {
          </div>
 
          {/* Mão do Jogador */}
-         <div className="flex gap-8 h-64 md:h-80 items-center justify-center pb-6 scrollbar-hide max-w-screen-2xl w-fit mx-auto -translate-y-36">
+         <div className="absolute left-1/2 -translate-x-1/2 flex gap-2 sm:gap-4 h-64 md:h-80 items-center pb-3 scrollbar-hide overflow-x-auto sm:overflow-visible max-w-[95vw] sm:max-w-screen-2xl w-fit mx-auto -translate-y-16 sm:-translate-y-36">
             {player.hand.map((card, idx) => (
               <div 
                 key={card.uniqueId} 
                 onClick={() => handleCardClick(card, 'hand')} 
-                className={`shrink-0 transition-all duration-500 cursor-pointer hover:-translate-y-20 hover:scale-125 hover:z-50 ${cardsToSacrifice.includes(card.uniqueId) ? 'opacity-10 scale-50 grayscale blur-sm' : ''} ${tributeSelectionMode && pendingSummonCardId === card.uniqueId ? 'ring-8 ring-yellow-400 shadow-[0_0_30px_rgba(250,204,21,0.6)] rounded-2xl' : ''}`}
+                className={`shrink-0 transition-all duration-500 cursor-pointer hover:-translate-y-5 hover:sm:-translate-y-20 hover:scale-125 hover:z-50 ${cardsToSacrifice.includes(card.uniqueId) ? 'opacity-10 scale-50 grayscale blur-sm' : ''} ${tributeSelectionMode && pendingSummonCardId === card.uniqueId ? 'ring-8 ring-yellow-400 shadow-[0_0_30px_rgba(250,204,21,0.6)] rounded-2xl' : ''}`}
                 style={{ zIndex: 10 + idx }}
               >
                 <CardComponent card={card} compact />
