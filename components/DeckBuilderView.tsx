@@ -191,7 +191,12 @@ export const DeckBuilderView: React.FC<DeckBuilderViewProps> = ({ onBack, onClos
                 >
                   <div className="flex justify-between items-start">
                     <div>
-                      <div className="font-bold">{deck.name}</div>
+                      <div className="font-bold flex items-center gap-2">
+                        {deck.name}
+                        {customDecks[0]?.id === deck.id && (
+                          <span className="ml-2 px-2 py-0.5 rounded-full bg-yellow-500 text-xs text-black font-bold">Padrão</span>
+                        )}
+                      </div>
                       <div className="text-sm text-slate-400">{deck.cards.length} cartas</div>
                     </div>
                     <button
