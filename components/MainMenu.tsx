@@ -184,13 +184,13 @@ export const MainMenu: React.FC<MainMenuProps> = ({
             onClick={() => setShowCampaign(false)}
             className="absolute top-8 left-8 bg-slate-700 px-6 py-3 rounded-xl font-bold hover:bg-slate-600 transition-colors"
           >
-            ← Voltar
+            👈 Voltar
           </button>
 
           <h1 className="text-4xl font-black text-yellow-500 italic mb-2 mt-24 sm:mt-12">CAMPANHA</h1>
           <p className="text-slate-400 mb-8">Progresso: {campaignProgress.defeated}/{campaignProgress.total} bosses derrotados</p>
 
-          <div className="max-w-2xl mb-8">
+          <div className="max-w-2xl ">
             <DeckSelector />
           </div>
 
@@ -264,7 +264,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
           onClick={() => setSelectedMode(null)}
           className="absolute top-8 left-8 bg-slate-700 px-6 py-3 rounded-xl font-bold hover:bg-slate-600 transition-colors"
         >
-          ← Voltar
+          👈 Voltar
         </button>
 
         <h1 className="text-4xl font-black text-yellow-500 italic mb-4 sm:mb-8">
@@ -317,7 +317,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
           onClick={() => setShowSurvival(false)}
           className="absolute top-8 left-8 bg-slate-700 px-6 py-3 rounded-xl font-bold hover:bg-slate-600 transition-colors"
         >
-          ← Voltar
+          👈 Voltar
         </button>
 
         <h1 className="text-4xl font-black text-yellow-500 italic mb-4">MODO SURVIVAL</h1>
