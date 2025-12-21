@@ -86,7 +86,7 @@ const Tooltip: React.FC<TooltipProps> = ({ content, width = 'w-64', children }) 
     <div
       ref={tipRef}
       style={pos ? { position: 'fixed', left: pos.left + 'px', top: pos.top + 'px' } : { position: 'fixed', left: '-9999px', top: '-9999px' }}
-      className={`z-50 ${width}`}
+      className={`z-50 ${width} select-none`}
     >
       <div
         className={`pointer-events-auto bg-black/90 text-white text-xs p-3 rounded-lg shadow-lg border border-white/10 transform transition-all duration-150 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-1'}`}
