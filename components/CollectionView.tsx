@@ -137,7 +137,7 @@ export const CollectionView: React.FC<CollectionViewProps> = ({ onClose, onBack 
   }
 
   return (
-    <div className="fixed inset-0 bg-slate-900 z-50 overflow-y-auto">
+    <div className="fixed inset-0 bg-slate-900 z-50 overflow-y-auto select-none">
       <div className="p-8">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
