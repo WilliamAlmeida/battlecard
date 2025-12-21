@@ -579,23 +579,23 @@ export default function App() {
       {/* Tela de Fim de Jogo */}
       {gameOver && (
         <div className="absolute inset-0 bg-black/98 z-50 flex flex-col items-center justify-center animate-in fade-in zoom-in duration-700 backdrop-blur-3xl">
-           <div className={`text-[10rem] md:text-[15rem] font-black italic mb-12 drop-shadow-[0_0_100px_rgba(255,255,255,0.2)] ${winner === 'player' ? 'text-yellow-500' : 'text-red-600'}`}>
-              {winner === 'player' ? 'VITÓRIA!' : 'DERROTA!'}
-           </div>
-           <div className="flex gap-8">
-             <button 
-               onClick={() => handleStartGame(gameMode, difficulty, lastBossId || undefined, selectedDeckId || undefined)} 
-               className="bg-white text-black px-24 py-8 rounded-full font-black text-4xl hover:scale-110 active:scale-95 transition-all shadow-[0_0_50px_rgba(255,255,255,0.3)]"
-             >
-               🔄 REVANCHE
-             </button>
-             <button 
-               onClick={handleBackToMenu} 
-               className="bg-slate-700 text-white px-16 py-8 rounded-full font-black text-4xl hover:scale-110 active:scale-95 transition-all shadow-[0_0_50px_rgba(0,0,0,0.3)]"
-             >
-               📋 MENU
-             </button>
-           </div>
+          <div className={`text-[10rem] md:text-[15rem] font-black italic mb-12 drop-shadow-[0_0_100px_rgba(255,255,255,0.2)] ${winner === 'player' ? 'text-yellow-500' : 'text-red-600'}`}>
+            {winner === 'player' ? 'VITÓRIA!' : 'DERROTA!'}
+          </div>
+          <div className="flex gap-8">
+            <button 
+              onClick={() => handleStartGame(gameMode, difficulty, lastBossId || undefined, selectedDeckId || undefined)} 
+              className="bg-white text-black px-24 py-8 rounded-full font-black text-4xl hover:scale-110 active:scale-95 transition-all shadow-[0_0_50px_rgba(255,255,255,0.3)]"
+            >
+              🔄 REVANCHE
+            </button>
+            <button 
+              onClick={handleBackToMenu} 
+              className="bg-slate-700 text-white px-16 py-8 rounded-full font-black text-4xl hover:scale-110 active:scale-95 transition-all shadow-[0_0_50px_rgba(0,0,0,0.3)]"
+            >
+              📋 MENU
+            </button>
+          </div>
         </div>
       )}
     </div>
