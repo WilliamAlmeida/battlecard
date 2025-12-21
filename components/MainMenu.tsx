@@ -259,7 +259,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
           ← Voltar
         </button>
 
-        <h1 className="text-3xl sm:text-5xl font-black text-yellow-500 italic mb-4 sm:mb-8 mt-12 sm:mt-0">
+        <h1 className="text-3xl sm:text-5xl font-black text-yellow-500 italic mb-4 sm:mb-8">
           {selectedMode === GameMode.QUICK_BATTLE ? 'BATALHA RÁPIDA' : 'MODO DRAFT'}
         </h1>
 
@@ -292,7 +292,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
 
         <button
           onClick={selectedMode === GameMode.QUICK_BATTLE ? handleStartQuickBattle : handleStartDraft}
-          className="bg-gradient-to-r from-red-600 to-orange-600 px-16 py-6 rounded-full text-lg sm:text-3xl font-black hover:scale-110 transition-all shadow-2xl border-b-8 border-red-900"
+          className="bg-gradient-to-r from-red-600 to-orange-600 px-8 py-3 sm:px-16 sm:py-6 rounded-full text-lg sm:text-3xl font-black hover:scale-110 transition-all shadow-2xl border-b-8 border-red-900"
         >
           {selectedMode === GameMode.QUICK_BATTLE ? '⚔️ INICIAR BATALHA!' : '🎴 INICIAR DRAFT!'}
         </button>
@@ -312,7 +312,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
           ← Voltar
         </button>
 
-        <h1 className="text-5xl font-black text-yellow-500 italic mb-4">MODO SURVIVAL</h1>
+        <h1 className="text-5xl font-black text-yellow-500 italic mb-4 mt-12 sm:mt-0">MODO SURVIVAL</h1>
         <p className="text-slate-400 mb-8">Vença o máximo de batalhas seguidas! Seu recorde: <span className="text-yellow-400 font-bold">{stats.survivalBestWave} ondas</span></p>
 
         <DeckSelector />
@@ -329,7 +329,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
 
         <button
           onClick={handleStartSurvival}
-          className="bg-gradient-to-r from-purple-600 to-pink-600 px-16 py-6 rounded-full text-3xl font-black hover:scale-110 transition-all shadow-2xl border-b-8 border-purple-900"
+          className="bg-gradient-to-r from-purple-600 to-pink-600 px-8 py-3 sm:px-16 sm:py-6 rounded-full text-lg sm:text-3xl font-black hover:scale-110 transition-all shadow-2xl border-b-8 border-purple-900"
         >
           🛡️ INICIAR SURVIVAL!
         </button>
