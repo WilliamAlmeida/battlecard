@@ -513,7 +513,7 @@ export default function App() {
       {/* Footer / Mão */}
       <footer className="bg-slate-950 p-10 border-t-8 border-white/5 z-30 shadow-[0_-30px_60px_rgba(0,0,0,0.6)] min-h-[400px]">
          <div className="flex justify-between items-center mb-10">
-            <div className="flex gap-10 items-center">
+            <div className="flex gap-5 items-center">
                <div className="flex flex-col bg-slate-900/50 p-4 rounded-2xl border border-white/5">
                   <span className="text-sm font-black uppercase tracking-[0.3em] text-slate-500 mb-2">Fase Atual</span>
                   <span className="text-3xl font-black uppercase text-yellow-500 drop-shadow-md">{phase} PHASE</span>
@@ -522,9 +522,9 @@ export default function App() {
                {currentTurnPlayer === 'player' && !isBusy && (
                  <button 
                   onClick={handlePhaseButton}
-                  className="bg-gradient-to-b from-yellow-400 to-orange-600 px-16 py-6 rounded-3xl text-3xl font-black uppercase hover:scale-110 active:scale-95 transition-all shadow-2xl border-b-8 border-orange-900 text-black italic tracking-tighter"
+                  className="bg-gradient-to-b from-yellow-400 to-orange-600 px-8 py-6 rounded-3xl text-3xl font-black uppercase hover:scale-110 active:scale-95 transition-all shadow-2xl border-b-8 border-orange-900 text-black italic tracking-tighter"
                  >
-                   {phase === Phase.MAIN ? '➔ Batalhar!' : '➔ Encerrar Turno'}
+                   {phase === Phase.MAIN ? '➔ Batalhar!' : '➔ Encerrar'}
                  </button>
                )}
             </div>
@@ -579,19 +579,19 @@ export default function App() {
       {/* Tela de Fim de Jogo */}
       {gameOver && (
         <div className="absolute inset-0 bg-black/98 z-50 flex flex-col items-center justify-center animate-in fade-in zoom-in duration-700 backdrop-blur-3xl">
-          <div className={`text-[10rem] md:text-[15rem] font-black italic mb-12 drop-shadow-[0_0_100px_rgba(255,255,255,0.2)] ${winner === 'player' ? 'text-yellow-500' : 'text-red-600'}`}>
+          <div className={`text-8xl sm:text-[10rem] md:text-[15rem] font-black italic mb-12 drop-shadow-[0_0_100px_rgba(255,255,255,0.2)] ${winner === 'player' ? 'text-yellow-500' : 'text-red-600'}`}>
             {winner === 'player' ? 'VITÓRIA!' : 'DERROTA!'}
           </div>
-          <div className="flex gap-8">
+          <div className="flex flex-col sm:flex-row gap-8">
             <button 
               onClick={() => handleStartGame(gameMode, difficulty, lastBossId || undefined, selectedDeckId || undefined)} 
-              className="bg-white text-black px-24 py-8 rounded-full font-black text-4xl hover:scale-110 active:scale-95 transition-all shadow-[0_0_50px_rgba(255,255,255,0.3)]"
+              className="bg-white text-black px-12 py-4 sm:px-24 sm:py-8 rounded-full font-black text-2xl sm:text-4xl hover:scale-110 active:scale-95 transition-all shadow-[0_0_50px_rgba(255,255,255,0.3)]"
             >
               🔄 REVANCHE
             </button>
             <button 
               onClick={handleBackToMenu} 
-              className="bg-slate-700 text-white px-16 py-8 rounded-full font-black text-4xl hover:scale-110 active:scale-95 transition-all shadow-[0_0_50px_rgba(0,0,0,0.3)]"
+              className="bg-slate-700 text-white px-12 py-4 sm:px-24 sm:py-8 rounded-full font-black text-2xl sm:text-4xl hover:scale-110 active:scale-95 transition-all shadow-[0_0_50px_rgba(0,0,0,0.3)]"
             >
               📋 MENU
             </button>
