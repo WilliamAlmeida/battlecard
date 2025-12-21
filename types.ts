@@ -224,6 +224,8 @@ export interface PlayerCollection {
   coins: number;
   packs: number;
   customDecks: CustomDeck[];
+  // Id do deck atualmente selecionado pelo jogador (opcional)
+  selectedDeckId?: string | null;
 }
 
 export interface CustomDeck {

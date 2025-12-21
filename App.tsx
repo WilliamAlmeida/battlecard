@@ -36,6 +36,17 @@ export default function App() {
   const [activeSidePanel, setActiveSidePanel] = useState<'log' | 'types' | null>('log');
   const [selectedDeckId, setSelectedDeckId] = useState<string | null>(null);
   const [lastBossId, setLastBossId] = useState<string | null>(null);
+  // Load saved selected deck from collectionService on mount
+  useEffect(() => {
+    const saved = collectionService.getSelectedDeckId();
+    if (saved) setSelectedDeckId(saved);
+  }, []);
+
+  // Persist selection when changed via UI
+  const handleSelectDeck = (deckId: string | null) => {
+    setSelectedDeckId(deckId);
+    collectionService.setSelectedDeckId(deckId);
+  };
   
   // Achievement notification
   const [achievementNotification, setAchievementNotification] = useState<{name: string, icon: string} | null>(null);
@@ -285,7 +296,7 @@ export default function App() {
           onOpenAchievements={() => setCurrentView('achievements')}
           onOpenStats={() => setCurrentView('stats')}
           selectedDeckId={selectedDeckId}
-          onSelectDeck={setSelectedDeckId}
+          onSelectDeck={handleSelectDeck}
         />
         <AchievementNotification
           achievement={achievementNotification}

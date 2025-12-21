@@ -18,7 +18,8 @@ class CollectionService {
     cards: [],
     coins: 500,
     packs: 1,
-    customDecks: []
+    customDecks: [],
+    selectedDeckId: null
   };
 
   constructor() {
@@ -51,7 +52,8 @@ class CollectionService {
       })),
       coins: 500,
       packs: 1,
-      customDecks: []
+      customDecks: [],
+      selectedDeckId: null
     };
     
     this.saveCollection();
@@ -182,6 +184,16 @@ class CollectionService {
   // Custom Decks
   getCustomDecks(): CustomDeck[] {
     return [...this.collection.customDecks];
+  }
+
+  // Selected deck persistence
+  getSelectedDeckId(): string | null {
+    return this.collection.selectedDeckId ?? null;
+  }
+
+  setSelectedDeckId(deckId: string | null) {
+    this.collection.selectedDeckId = deckId;
+    this.saveCollection();
   }
 
   createDeck(name: string, cards: string[]): CustomDeck {
