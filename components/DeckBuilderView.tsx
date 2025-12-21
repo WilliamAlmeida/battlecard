@@ -3,6 +3,7 @@ import { Card, CardType, Rarity, ElementType } from '../types';
 import { collectionService } from '../services/collectionService';
 import { INITIAL_DECK, SPELL_CARDS, TRAP_CARDS, MIN_DECK_SIZE, MAX_DECK_SIZE } from '../constants';
 import { soundService } from '../services/soundService';
+import Tooltip from './Tooltip';
 
 interface DeckBuilderViewProps {
   onBack?: () => void;
@@ -26,12 +27,22 @@ const getTypeIcon = (type: ElementType) => {
 
 const getRarityColor = (rarity: Rarity) => {
   switch (rarity) {
-    case Rarity.COMMON: return 'border-slate-500';
-    case Rarity.UNCOMMON: return 'border-green-500';
-    case Rarity.RARE: return 'border-blue-500';
-    case Rarity.EPIC: return 'border-purple-500';
-    case Rarity.LEGENDARY: return 'border-yellow-500';
+    case Rarity.COMMON: return 'border-slate-500 bg-slate-800';
+    case Rarity.UNCOMMON: return 'border-green-500 bg-green-900/30';
+    case Rarity.RARE: return 'border-blue-500 bg-blue-900/30';
+    case Rarity.EPIC: return 'border-purple-500 bg-purple-900/30';
+    case Rarity.LEGENDARY: return 'border-yellow-500 bg-yellow-900/30 animate-pulse';
     default: return 'border-slate-500';
+  }
+};
+
+const getRarityLabel = (rarity: Rarity) => {
+  switch (rarity) {
+    case Rarity.COMMON: return '⚪ Comum';
+    case Rarity.UNCOMMON: return '🟢 Incomum';
+    case Rarity.RARE: return '🔵 Raro';
+    case Rarity.EPIC: return '🟣 Épico';
+    case Rarity.LEGENDARY: return '🌟 Lendário';
   }
 };
 
@@ -300,12 +311,42 @@ export const DeckBuilderView: React.FC<DeckBuilderViewProps> = ({ onBack, onClos
                               const firstIndex = deckCards.indexOf(cardId);
                               if (firstIndex !== -1) handleRemoveCard(firstIndex);
                             }}
-                            className="relative p-2 bg-slate-800 rounded-lg border-2 cursor-pointer hover:border-red-400 transition-all select-none"
+                            className={`p-3 rounded-xl border-2 transition-all relative cursor-pointer select-none ${getRarityColor(card.rarity)}`}
                           >
-                            <div className="text-2xl text-center">{getTypeIcon(card.type)}</div>
-                            <div className="text-xs text-center truncate">{card.name}</div>
-                            <div className="absolute -top-2 -right-2 bg-yellow-500 text-black w-5 h-5 rounded-full flex items-center justify-center font-bold text-xs">
-                              {count}
+                            {count > 1 && (
+                              <div className="absolute -top-2 -right-2 bg-yellow-500 text-black w-6 h-6 rounded-full flex items-center justify-center font-bold text-sm">
+                                {count}
+                              </div>
+                            )}
+
+                            <div className="text-2xl mb-1 text-center">{getTypeIcon(card.type)}</div>
+                            <div className="font-bold text-sm text-center truncate">{card.name}</div>
+
+                            {card.cardType === CardType.POKEMON && card.ability && (
+                              <div className="text-center text-xs text-purple-300 mt-1">
+                                <Tooltip content={(
+                                  <div>
+                                    <div className="font-black text-sm">{card.ability.name}</div>
+                                    <div className="text-xs mt-1">{card.ability.description}</div>
+                                    <div className="text-xs mt-1 opacity-80">Trigger: <span className="font-mono">{card.ability.trigger}</span></div>
+                                  </div>
+                                )}>
+                                  <span className="cursor-help">💫 {card.ability.name}</span>
+                                </Tooltip>
+                              </div>
+                            )}
+
+                            {card.cardType === CardType.POKEMON && (
+                              <div className="flex justify-between text-xs mt-2">
+                                <span className="text-red-400">⚔️ {card.attack}</span>
+                                <span className="text-blue-400">🛡️ {card.defense}</span>
+                              </div>
+                            )}
+
+                            <div className="text-center mt-2">
+                              {Array.from({ length: card.level }).map((_, i) => (
+                                <span key={i} className="text-yellow-400 text-xs">★</span>
+                              ))}
                             </div>
                           </div>
                         );
@@ -357,20 +398,69 @@ export const DeckBuilderView: React.FC<DeckBuilderViewProps> = ({ onBack, onClos
                     <div
                       key={card.id}
                       onClick={() => canAdd && handleAddCard(card.id)}
-                      className={`
-                        relative p-2 bg-slate-800 rounded-lg border-2 transition-all select-none
-                        ${getRarityColor(card.rarity)}
-                        ${canAdd ? 'cursor-pointer hover:scale-105' : 'opacity-50 cursor-not-allowed'}
-                      `}
+                      className={`p-3 rounded-xl border-2 transition-all relative select-none ${getRarityColor(card.rarity)} ${canAdd ? 'cursor-pointer hover:scale-105' : 'opacity-50 cursor-not-allowed'}`}
                     >
-                      <div className="text-2xl text-center">{getTypeIcon(card.type)}</div>
-                      <div className="text-xs text-center truncate">{card.name}</div>
-                      
                       {inDeckCount > 0 && (
-                        <div className="absolute -top-2 -right-2 bg-blue-500 text-white w-5 h-5 rounded-full flex items-center justify-center font-bold text-xs">
+                        <div className="absolute -top-2 -right-2 bg-blue-500 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-sm">
                           {inDeckCount}
                         </div>
                       )}
+
+                      <div className="text-2xl mb-1 text-center">{getTypeIcon(card.type)}</div>
+                      <div className="font-bold text-sm text-center truncate">{card.name}</div>
+
+                      {card.cardType === CardType.POKEMON && card.ability && (
+                        <div className="text-center text-xs text-purple-300 mt-1">
+                          <Tooltip content={(
+                            <div>
+                              <div className="font-black text-sm">{card.ability.name}</div>
+                              <div className="text-xs mt-1">{card.ability.description}</div>
+                              <div className="text-xs mt-1 opacity-80">Trigger: <span className="font-mono">{card.ability.trigger}</span></div>
+                            </div>
+                          )}>
+                            <span className="cursor-help">💫 {card.ability.name}</span>
+                          </Tooltip>
+                        </div>
+                      )}
+
+                      {card.cardType === CardType.POKEMON && (
+                        <div className="flex justify-between text-xs mt-2">
+                          <span className="text-red-400">⚔️ {card.attack}</span>
+                          <span className="text-blue-400">🛡️ {card.defense}</span>
+                        </div>
+                      )}
+
+                      {card.cardType === CardType.SPELL && (
+                        <div className="text-center text-xs text-purple-400 mt-2">
+                          <Tooltip content={(
+                            <div>
+                              <div className="font-black text-sm">{card.name}</div>
+                              <div className="text-xs mt-1">{card.spellEffect ? String(card.spellEffect.type) + (card.spellEffect.value ? ` (${card.spellEffect.value})` : '') : 'Efeito desconhecido'}</div>
+                            </div>
+                          )}>
+                            <span className="cursor-help">🪄 Magia</span>
+                          </Tooltip>
+                        </div>
+                      )}
+
+                      {card.cardType === CardType.TRAP && (
+                        <div className="text-center text-xs text-orange-400 mt-2">
+                          <Tooltip content={(
+                            <div>
+                              <div className="font-black text-sm">{card.name}</div>
+                              <div className="text-xs mt-1">{card.trapEffect ? String(card.trapEffect.type) + (card.trapEffect.value ? ` (${card.trapEffect.value})` : '') : 'Efeito desconhecido'}</div>
+                            </div>
+                          )}>
+                            <span className="cursor-help">🪤 Armadilha</span>
+                          </Tooltip>
+                        </div>
+                      )}
+
+                      <div className="text-center mt-2">
+                        {Array.from({ length: card.level }).map((_, i) => (
+                          <span key={i} className="text-yellow-400 text-xs">★</span>
+                        ))}
+                      </div>
                     </div>
                   );
                 })}
