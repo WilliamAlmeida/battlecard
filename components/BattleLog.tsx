@@ -35,12 +35,11 @@ export const BattleLog: React.FC<BattleLogProps> = ({ logs, isOpen: externalOpen
             <span className="text-xs font-bold text-slate-500">{logs.length} eventos</span>
           </div>
           
-          <div className="flex-1 overflow-y-auto p-4 space-y-3 scrollbar-hide flex flex-col-reverse">
+          <div className="flex-1 overflow-y-auto p-4 scrollbar-hide flex flex-col-reverse gap-y-3">
             {logs.map((log) => (
               <div 
                 key={log.id} 
-                className={`
-                  p-4 rounded-xl text-sm md:text-base font-bold shadow-md border-l-8 animate-in slide-in-from-right-10 duration-300
+                className={`p-4 rounded-xl text-sm md:text-base font-bold shadow-md border-l-8 animate-in slide-in-from-right-10 duration-300
                   ${log.type === 'combat' ? 'bg-red-950/40 border-red-500 text-red-100' : ''}
                   ${log.type === 'effect' ? 'bg-purple-950/40 border-purple-500 text-purple-100' : ''}
                   ${log.type === 'info' ? 'bg-blue-950/40 border-blue-500 text-blue-100' : ''}
