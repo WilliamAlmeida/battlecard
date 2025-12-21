@@ -36,6 +36,7 @@ export default function App() {
   const [activeSidePanel, setActiveSidePanel] = useState<'log' | 'types' | null>('log');
   const [selectedDeckId, setSelectedDeckId] = useState<string | null>(null);
   const [lastBossId, setLastBossId] = useState<string | null>(null);
+  const [showNeedDeckModal, setShowNeedDeckModal] = useState(false);
   // Load saved selected deck from collectionService on mount
   useEffect(() => {
     const saved = collectionService.getSelectedDeckId();
@@ -251,6 +252,7 @@ export default function App() {
       }
     } else {
       console.log('No custom decks found, using default INITIAL_DECK');
+      setShowNeedDeckModal(true);
       return;
     }
 
@@ -303,6 +305,32 @@ export default function App() {
           achievement={achievementNotification}
           onClose={() => setAchievementNotification(null)}
         />
+        {showNeedDeckModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
+            <div className="bg-slate-800 p-8 rounded-3xl border-2 border-white/10 max-w-lg text-center">
+              <h2 className="text-2xl font-bold mb-2">Deck necessário</h2>
+              <p className="text-slate-300 mb-6">Você precisa criar ou selecionar um deck antes de iniciar a batalha.</p>
+              <div className="flex justify-center gap-4">
+                <button
+                  onClick={() => {
+                    soundService.playClick();
+                    setShowNeedDeckModal(false);
+                    setCurrentView('deckbuilder');
+                  }}
+                  className="bg-yellow-600 hover:bg-yellow-500 px-4 py-2 rounded-xl font-bold"
+                >
+                  Criar / Selecionar Deck
+                </button>
+                <button
+                  onClick={() => { soundService.playClick(); setShowNeedDeckModal(false); }}
+                  className="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-xl"
+                >
+                  Fechar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </>
     );
   }
