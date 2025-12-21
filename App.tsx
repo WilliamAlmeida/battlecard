@@ -444,7 +444,7 @@ export default function App() {
       </header>
 
       {/* Campo Central */}
-      <main className="flex-1 flex flex-col items-center justify-center gap-20 relative p-8 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-slate-800 to-slate-900">
+      <main className="flex-1 flex flex-col items-center justify-center gap-y-10 gap-x-20 relative p-8 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-slate-800 to-slate-900">
         
         {/* Campo Oponente */}
         <div className="flex gap-12 min-h-[260px] items-center">
@@ -454,6 +454,7 @@ export default function App() {
                  card={card} 
                  isAttacking={attackingCardId === card.uniqueId} 
                  isDamaged={damagedCardId === card.uniqueId}
+                 compact
                />
              </div>
            ))}
@@ -463,16 +464,16 @@ export default function App() {
         {/* Linha de Combate */}
         <div className="w-full h-1 bg-white/5 flex items-center justify-center relative">
            {attackMode && phase === Phase.BATTLE && npc.field.length === 0 && player.field.some(c => c.uniqueId === selectedCardId) && (
-             <button onClick={handleDirectAttack} className="bg-gradient-to-r from-red-600 to-orange-600 px-16 py-6 rounded-full font-black text-3xl animate-bounce shadow-[0_0_80px_rgba(220,38,38,0.7)] border-4 border-white transition-all hover:scale-110 active:scale-90">⚔️ ATAQUE DIRETO!</button>
+             <button onClick={handleDirectAttack} className="bg-gradient-to-r from-red-600 to-orange-600 px-8 py-3 sm:px-16 sm:py-6 rounded-full font-black sm:text-3xl animate-bounce shadow-[0_0_80px_rgba(220,38,38,0.7)] border-4 border-white transition-all hover:scale-110 active:scale-90">⚔️ ATAQUE DIRETO!</button>
            )}
            {attackMode && (() => {
              const selectedSpell = player.hand.find(c => c.uniqueId === selectedCardId);
              if (selectedSpell?.cardType === 'SPELL') {
                const t = selectedSpell.spellEffect?.target;
-               if (t === 'SINGLE_ALLY') return (<div className="bg-yellow-500 text-black px-10 py-3 rounded-full font-black text-2xl animate-pulse shadow-2xl border-4 border-black">SELECIONE UM POKÉMON ALIADO</div>);
-               if (t === 'SINGLE_ENEMY') return (<div className="bg-yellow-500 text-black px-10 py-3 rounded-full font-black text-2xl animate-pulse shadow-2xl border-4 border-black">SELECIONE UM POKÉMON INIMIGO</div>);
+               if (t === 'SINGLE_ALLY') return (<div className="bg-yellow-500 text-black px-2 sm:px-10 py-3 rounded-full font-black text-base sm:text-2xl animate-pulse shadow-2xl border-4 border-black">SELECIONE UM POKÉMON ALIADO</div>);
+               if (t === 'SINGLE_ENEMY') return (<div className="bg-yellow-500 text-black px-2 sm:px-10 py-3 rounded-full font-black text-base sm:text-2xl animate-pulse shadow-2xl border-4 border-black">SELECIONE UM POKÉMON INIMIGO</div>);
              }
-             if (npc.field.length > 0) return (<div className="bg-yellow-500 text-black px-10 py-3 rounded-full font-black text-2xl animate-pulse shadow-2xl border-4 border-black">SELECIONE UM POKÉMON INIMIGO</div>);
+             if (npc.field.length > 0) return (<div className="bg-yellow-500 text-black px-2 sm:px-10 py-3 rounded-full font-black text-base sm:text-2xl animate-pulse shadow-2xl border-4 border-black">SELECIONE UM POKÉMON INIMIGO</div>);
              return null;
            })()}
         </div>
@@ -490,6 +491,7 @@ export default function App() {
                  isAttacking={attackingCardId === card.uniqueId} 
                  isDamaged={damagedCardId === card.uniqueId}
                  canAttack={!card.hasAttacked && phase === Phase.BATTLE && currentTurnPlayer === 'player'}
+                 compact
                />
              </div>
            ))}
