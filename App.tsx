@@ -540,9 +540,11 @@ export default function App() {
                    if (card && cardsToSacrifice.length === card.sacrificeRequired) {
                      summonCard('player', pendingSummonCardId!, cardsToSacrifice);
                      setTributeSelectionMode(false);
+                     setCardsToSacrifice([]);
+                     setPendingSummonCardId(null);
                    } else { addLog(`Erro: Escolha exatamente ${card?.sacrificeRequired} Pokémon.`); }
                  }} className="bg-green-600 px-12 py-5 rounded-2xl font-black text-xl hover:bg-green-500 transition-colors shadow-2xl border-b-4 border-green-800">CONFIRMAR</button>
-                 <button onClick={() => setTributeSelectionMode(false)} className="bg-slate-700 px-12 py-5 rounded-2xl font-black text-xl hover:bg-slate-600 transition-colors">CANCELAR</button>
+                 <button onClick={() => { setTributeSelectionMode(false); setCardsToSacrifice([]); setPendingSummonCardId(null); }} className="bg-slate-700 px-12 py-5 rounded-2xl font-black text-xl hover:bg-slate-600 transition-colors">CANCELAR</button>
               </div>
             )}
          </div>
