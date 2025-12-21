@@ -251,6 +251,7 @@ export default function App() {
       }
     } else {
       console.log('No custom decks found, using default INITIAL_DECK');
+      return;
     }
 
     if (mode === GameMode.CAMPAIGN && bossId) {
