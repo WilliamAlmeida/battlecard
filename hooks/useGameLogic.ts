@@ -855,7 +855,7 @@ export const useGameLogic = () => {
     }
     else if (effect.type === 'BUFF') {
       const buffAmount = effect.value || 500;
-      // Validar target: SINGLE_ALLY precisa de targetId, OWNER/SELF aplica ao próprio dono
+      // Validar target: SINGLE_ALLY/SELF precisa de targetId; ALL_ALLIES aplica a todo o campo do dono
       if ((effect.target === 'SINGLE_ALLY' || effect.target === 'SELF') && targetId) {
         const target = state.field.find(c => c.uniqueId === targetId);
         if (target) {
@@ -867,9 +867,15 @@ export const useGameLogic = () => {
         } else {
           addLog(`Alvo inválido para ${card.name}!`, 'effect');
         }
-      } else if (effect.target === 'OWNER') {
-        // Buff no owner (não implementado - poderia dar buff global)
-        addLog(`${card.name} tentou buffar o dono, mas não há implementação!`, 'effect');
+      } else if (effect.target === 'ALL_ALLIES') {
+        // Apply buff to all allied cards on field
+        setFn(p => ({
+          ...p,
+          field: p.field.map(c => ({ ...c, attack: c.attack + buffAmount }))
+        }));
+        addLog(`${ownerName} aplicou +${buffAmount} ATK a todos os aliados!`, 'effect');
+      } else {
+        addLog(`Alvo inválido para ${card.name}!`, 'effect');
       }
     }
     else if (effect.type === 'DRAW') {
