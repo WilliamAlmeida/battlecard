@@ -72,16 +72,20 @@ export default function App() {
     if (gameOver && winner === 'player' && gameMode === GameMode.CAMPAIGN && lastBossId) {
       const boss = campaignService.getBoss(lastBossId);
       if (boss) {
-        // Grant rewards
-        if (boss.reward?.coins) collectionService.addCoins(boss.reward.coins);
-        if (boss.reward?.packs) collectionService.addPack(boss.reward.packs);
-        if (boss.reward?.cards) boss.reward.cards.forEach(cardId => collectionService.addCard(cardId));
+        // Only grant rewards if the boss wasn't already defeated
+        if (!boss.defeated) {
+          if (boss.reward?.coins) collectionService.addCoins(boss.reward.coins);
+          if (boss.reward?.packs) collectionService.addPack(boss.reward.packs);
+          if (boss.reward?.cards) boss.reward.cards.forEach(cardId => collectionService.addCard(cardId));
 
-        // Mark boss defeated and record stats
-        campaignService.defeatBoss(lastBossId);
-        statsService.recordBossDefeated(lastBossId);
+          // Mark boss defeated and record stats
+          campaignService.defeatBoss(lastBossId);
+          statsService.recordBossDefeated(lastBossId);
 
-        addLog(`${boss.name} derrotado! Recebido: ${boss.reward?.coins || 0} moedas, ${boss.reward?.packs || 0} pacotes.`, 'info');
+          addLog(`${boss.name} derrotado! Recebido: ${boss.reward?.coins || 0} moedas, ${boss.reward?.packs || 0} pacotes.`, 'info');
+        } else {
+          addLog(`${boss.name} já havia sido derrotado anteriormente — sem recompensas.`, 'info');
+        }
       }
     }
   }, [gameOver, winner, gameMode, lastBossId, addLog]);
