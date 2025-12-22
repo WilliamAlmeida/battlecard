@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, Phase, ElementType, AIDifficulty, GameMode } from './types';
 import { GameRules } from './utils/gameRules';
 import { TypeTable } from './components/TypeTable';
+import { Graveyard } from './components/Graveyard';
 import { useGameLogic } from './hooks/useGameLogic';
 import { CardComponent } from './components/CardComponent';
 import { BattleLog } from './components/BattleLog';
@@ -33,7 +34,7 @@ export default function App() {
   const [cardsToSacrifice, setCardsToSacrifice] = useState<string[]>([]);
   const [pendingSummonCardId, setPendingSummonCardId] = useState<string | null>(null);
   const [attackMode, setAttackMode] = useState(false);
-  const [activeSidePanel, setActiveSidePanel] = useState<'log' | 'types' | null>('log');
+  const [activeSidePanel, setActiveSidePanel] = useState<'log' | 'types' | 'grave' | null>('log');
   const [selectedDeckId, setSelectedDeckId] = useState<string | null>(null);
   const [lastBossId, setLastBossId] = useState<string | null>(null);
   const [showNeedDeckModal, setShowNeedDeckModal] = useState(false);
@@ -606,6 +607,15 @@ export default function App() {
       <TypeTable
         isOpen={activeSidePanel === 'types'}
         onToggle={() => setActiveSidePanel(v => v === 'types' ? null : 'types')}
+      />
+
+      <Graveyard
+        playerGrave={player.graveyard}
+        npcGrave={npc.graveyard}
+        isOpen={activeSidePanel === 'grave'}
+        onToggle={() => setActiveSidePanel(v => v === 'grave' ? null : 'grave')}
+        // For now PvP restriction is disabled; set to true when enabling PvP flows
+        restrictToMine={false}
       />
 
       {/* Tela de Fim de Jogo */}
