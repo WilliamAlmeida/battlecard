@@ -99,12 +99,12 @@ export const CardComponent: React.FC<CardProps> = ({ card, compact, isOpponent, 
 
   const baseClasses = `
     relative rounded-2xl border-[3px] shadow-2xl transition-all select-none
-    flex flex-col text-white overflow-hidden cursor-pointer
+    flex flex-col justify-around text-white overflow-hidden cursor-pointer
     ${getCardColor()}
     ${getRarityGlow(card.rarity)}
-    ${isActive ? 'ring-8 ring-white -translate-y-4 z-10' : 'hover:brightness-110'}
-    ${canAttack ? 'animate-pulse ring-8 ring-yellow-400 shadow-[0_0_30px_rgba(250,204,21,0.6)]' : ''}
-    ${compact ? 'w-32 h-44 md:w-40 md:h-56 text-lg p-3' : 'w-44 h-64 md:w-56 md:h-80 p-5'}
+    ${isActive ? 'ring-4 ring-white -translate-y-4 z-10' : 'hover:brightness-110'}
+    ${canAttack ? 'animate-pulse ring-[3px] sm:ring-4 ring-yellow-400 shadow-[0_0_30px_rgba(250,204,21,0.6)]' : ''}
+    ${compact ? 'w-[110px] h-[155px] md:w-32 md:h-[180px] text-lg p-2 sm:p-3' : 'w-32 h-44 md:w-40 md:h-56 text-lg p-3'}
     ${animationClass}
     ${activeStatuses.length > 0 ? 'ring-4 ring-red-500' : ''}
   `;
@@ -112,7 +112,7 @@ export const CardComponent: React.FC<CardProps> = ({ card, compact, isOpponent, 
   // Opponent hidden card
   if (isOpponent) {
     return (
-      <div className={`${compact ? 'w-32 h-44 md:w-40 md:h-56' : 'w-44 h-64 md:w-56 md:h-80'} ${animationClass} bg-gradient-to-br from-slate-700 to-slate-900 border-[3px] border-slate-500 rounded-2xl flex flex-col items-center justify-center shadow-2xl relative overflow-hidden group`}>
+      <div className={`${compact ? 'w-32 h-44 md:w-40 md:h-56' : 'w-32 h-44 md:w-40 md:h-56'} ${animationClass} bg-gradient-to-br from-slate-700 to-slate-900 border-[3px] border-slate-500 rounded-2xl flex flex-col items-center justify-center shadow-2xl relative overflow-hidden group`}>
          <div className="w-24 h-24 rounded-full bg-slate-800 flex items-center justify-center border-2 border-slate-600 shadow-inner group-hover:scale-125 transition-transform duration-500">
             <span className="text-6xl filter grayscale opacity-30">⚡</span>
          </div>
@@ -209,16 +209,16 @@ export const CardComponent: React.FC<CardProps> = ({ card, compact, isOpponent, 
 
       {/* Rarity indicator for legendaries */}
       {card.rarity !== Rarity.LEGENDARY && (
-        <div className="absolute -bottom-1 sm:bottom-0 left-1/2 -translate-x-1/2 pointer-events-none">
-          <span className="text-yellow-400 text-sm animate-pulse">👑</span>
+        <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 pointer-events-none">
+          <span className="text-yellow-400 text-sm sm:text-lg animate-pulse">👑</span>
         </div>
       )}
 
-      <div className="flex justify-between items-start mb-4 pointer-events-none">
-        <span className="font-semibold sm:font-bold text-lg md:text-2xl truncate leading-tight drop-shadow-lg tracking-tighter italic max-w-full overflow-hidden">{card.name}</span>
+      <div className="flex justify-between items-start pointer-events-none">
+        <span className="font-semibold sm:font-bold text-s md:text-lg truncate leading-tight drop-shadow-lg tracking-tighter italic max-w-full overflow-hidden">{card.name}</span>
       </div>
 
-      <div className="flex justify-between items-center px-4 py-2 mb-4 bg-black/30 rounded-2xl border border-white/10">
+      <div className="flex justify-between items-center px-2 py-1 sm:py-2 bg-black/30 rounded-lg sm:rounded-xl border border-white/10">
          <Tooltip width="w-auto" content={(<div className="text-sm">Tipo: <span className="font-mono">{card.type}</span></div>)}>
            <span className="sm:text-3xl cursor-help">{getTypeIcon(card.type)}</span>
          </Tooltip>
@@ -236,20 +236,20 @@ export const CardComponent: React.FC<CardProps> = ({ card, compact, isOpponent, 
          )}
       </div>
 
-      <div className="bg-black/60 rounded-2xl py-2 px-1 flex gap-x-1 justify-around text-xl md:text-2xl font-mono font-black border-2 border-white/10 shadow-lg">
+      <div className="bg-black/60 rounded-lg sm:rounded-xl py-1 sm:py-2 px-1 flex gap-x-1 justify-around font-mono font-black border-2 border-white/10 shadow-lg">
         <div className="text-red-400 flex flex-col items-center justify-center">
             <span className="text-[10px] md:text-xs uppercase opacity-60 font-sans tracking-widest leading-none">ATK</span>
-            <span className={`drop-shadow-sm ${compact ? 'text-sm' : ''}`}>{card.attack}</span>
+            <span className={`drop-shadow-sm ${compact ? 'text-sm' : 'text-sm'}`}>{card.attack}</span>
         </div>
         <div className="text-blue-400 flex flex-col items-center justify-center">
              <span className="text-[10px] md:text-xs uppercase opacity-60 font-sans tracking-widest leading-none">DEF</span>
-             <span className={`drop-shadow-sm ${compact ? 'text-sm' : ''}`}>{card.defense}</span>
+             <span className={`drop-shadow-sm ${compact ? 'text-sm' : 'text-sm'}`}>{card.defense}</span>
         </div>
       </div>
       
       {card.hasAttacked && (
         <div className="absolute inset-0 bg-black/70 flex items-center justify-center pointer-events-none backdrop-blur-[2px] z-20">
-            <span className={`${compact ? 'text-sm px-2 py-1 border-4' : 'text-xl px-6 py-3 border-8'} font-black text-white/80 uppercase -rotate-12 border-white/30 rounded-2xl scale-125 tracking-tighter italic shadow-2xl`}>EXAUSTO</span>
+            <span className={`${compact ? 'text-sm px-2 py-1 border-4' : 'text-sm px-2 py-1 border-4'} font-black text-white/80 uppercase -rotate-12 border-white/30 rounded-2xl scale-125 tracking-tighter italic shadow-2xl`}>EXAUSTO</span>
         </div>
       )}
     </div>
