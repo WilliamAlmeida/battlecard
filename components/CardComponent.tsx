@@ -99,12 +99,12 @@ export const CardComponent: React.FC<CardProps> = ({ card, compact, isOpponent, 
 
   const baseClasses = `
     relative rounded-2xl border-[3px] shadow-2xl transition-all select-none
-    flex flex-col justify-around text-white overflow-hidden cursor-pointer
+    flex flex-col text-white overflow-hidden cursor-pointer
     ${getCardColor()}
     ${getRarityGlow(card.rarity)}
     ${isActive ? 'ring-4 ring-white -translate-y-4 z-10' : 'hover:brightness-110'}
     ${canAttack ? 'animate-pulse ring-[3px] sm:ring-4 ring-yellow-400 shadow-[0_0_30px_rgba(250,204,21,0.6)]' : ''}
-    ${compact ? 'w-[110px] h-[155px] md:w-32 md:h-[180px] text-lg p-2 sm:p-3' : 'w-32 h-44 md:w-40 md:h-56 text-lg p-3'}
+    ${compact ? 'w-[110px] h-[155px] md:w-32 md:h-[180px] text-lg p-2 sm:px-3' : 'w-32 h-44 md:w-40 md:h-56 text-lg p-3'}
     ${animationClass}
     ${activeStatuses.length > 0 ? 'ring-4 ring-red-500' : ''}
   `;
@@ -184,25 +184,34 @@ export const CardComponent: React.FC<CardProps> = ({ card, compact, isOpponent, 
     <div className={baseClasses}>
       {/* Status Effects */}
       {activeStatuses.length > 0 && (
-        <div className="absolute top-2 right-1 flex gap-1">
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 flex items-center">
           {activeStatuses.map((status, i) => (
-            <span key={i} className="text-lg animate-pulse">{getStatusIcon(status)}</span>
+            <span key={i} className="text-base animate-pulse">{getStatusIcon(StatusEffect.POISON)}</span>
+          ))}
+          {activeStatuses.map((status, i) => (
+            <span key={i} className="text-base animate-pulse">{getStatusIcon(status)}</span>
+          ))}
+          {activeStatuses.map((status, i) => (
+            <span key={i} className="text-base animate-pulse">{getStatusIcon(StatusEffect.BURN)}</span>
+          ))}
+          {activeStatuses.map((status, i) => (
+            <span key={i} className="text-base animate-pulse">{getStatusIcon(StatusEffect.PARALYZE)}</span>
           ))}
         </div>
       )}
 
-      {/* Rarity indicator for legendaries */}
-      {card.rarity === Rarity.LEGENDARY && (
-        <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 pointer-events-none">
-          <span className="text-yellow-400 text-sm sm:text-lg animate-pulse">👑</span>
-        </div>
-      )}
-
-      <div className="flex justify-between items-start pointer-events-none">
+      <div className="flex justify-between items-start pointer-events-none mt-1">
         <span className="font-semibold sm:font-bold text-s md:text-lg truncate leading-tight drop-shadow-lg tracking-tighter italic max-w-full overflow-hidden">{card.name}</span>
       </div>
 
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 pointer-events-none">
+      {/* Rarity indicator for legendaries */}
+      {card.rarity === Rarity.LEGENDARY && (
+        <div className="absolute top-0 left-0 rotate-[-30deg] pointer-events-none">
+          <span className="text-yellow-400 text-sm sm:text-lg">👑</span>
+        </div>
+      )}
+
+      <div className="absolute top-0 right-2 pointer-events-none">
         {!compact ? (
           <div className="flex items-center space-x-1">
             <span className="text-yellow-300 text-lg drop-shadow-[0_0_5px_rgba(0,0,0,0.5)]">★</span>
@@ -217,10 +226,10 @@ export const CardComponent: React.FC<CardProps> = ({ card, compact, isOpponent, 
         )}
       </div>
 
-      <div className="flex justify-between items-center px-2 py-1 sm:py-2 bg-black/30 rounded-lg sm:rounded-xl border border-white/10">
-         <Tooltip width="w-auto" content={(<div className="text-sm">Tipo: <span className="font-mono">{card.type}</span></div>)}>
-           <span className="sm:text-3xl cursor-help">{getTypeIcon(card.type)}</span>
-         </Tooltip>
+      <div className="flex justify-between items-center px-2 py-1 sm:py-2 bg-black/30 rounded-lg sm:rounded-xl border border-white/10 mb-1">
+        <Tooltip width="w-auto" content={(<div className="text-sm">Tipo: <span className="font-mono">{card.type}</span></div>)}>
+          <span className="sm:text-3xl cursor-help">{getTypeIcon(card.type)}</span>
+        </Tooltip>
 
         {/* Ability Indicator */}
         {card.ability ? (
