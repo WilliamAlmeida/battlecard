@@ -300,6 +300,8 @@ export default function App() {
           mode: mode,
           npcHp: boss.hp,
           npcDeck: bossDeck,
+          npcName: boss.name,
+          npcAvatar: boss.avatar,
           customDeck: playerDeckBase,
           sacrificeStrategy: boss.sacrificeStrategy
         });
