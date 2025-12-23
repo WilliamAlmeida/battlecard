@@ -98,6 +98,13 @@ export const CardComponent: React.FC<CardProps> = ({ card, compact, isOpponent, 
     if (effect.target) parts.push(`target: ${effect.target}`);
     if (effect.specialId) parts.push(`${effect.specialId}`);
     if (effect.duration) parts.push(`duration: ${effect.duration}`);
+    if (typeof effect.stat !== 'undefined') {
+      const s = effect.stat === 'DEFENSE' ? 'DEF' : effect.stat === 'ATTACK' ? 'ATK' : effect.stat;
+      parts.push(`stat: ${s}`);
+    } else if (effect.type === 'BUFF' || effect.type === 'DEBUFF') {
+      // when stat not provided, it affects both
+      parts.push(`stat: ATK/DEF`);
+    }
     return parts.join(' | ');
   };
 

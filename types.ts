@@ -82,6 +82,7 @@ export interface AbilityEffect {
   statusEffect?: StatusEffect;
   target?: 'SELF' | 'ENEMY' | 'ALL_ENEMIES' | 'ALL_ALLIES' | 'RANDOM_ENEMY' | 'OWNER';
   duration?: number;
+  stat?: 'ATTACK' | 'DEFENSE';
 }
 
 // Condições de Trap
@@ -99,6 +100,7 @@ export interface SpellEffect {
   statusEffect?: StatusEffect;
   duration?: number;
   specialId?: string;
+  stat?: 'ATTACK' | 'DEFENSE';
 }
 
 export interface Card {

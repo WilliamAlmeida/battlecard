@@ -127,13 +127,13 @@ const checkAndActivateTraps = (
   context: { attacker?: Card, defender?: Card, summoned?: Card, destroyed?: Card, attackerOwner?: 'player' | 'npc' },
   setPlayer: (value: Player | ((prev: Player) => Player)) => void,
   setNpc: (value: Player | ((prev: Player) => Player)) => void
-): { activatedTraps: Card[], damageToOpponentPlayer: number, statusEffects: Array<{target: Card, status: StatusEffect}>, destroyTargets: string[], logs: string[], debuffTargets: Array<{targetId: string, value: number}>, negateAttack: boolean, surviveTrap: boolean } => {
+): { activatedTraps: Card[], damageToOpponentPlayer: number, statusEffects: Array<{target: Card, status: StatusEffect}>, destroyTargets: string[], logs: string[], debuffTargets: Array<{targetId: string, value: number, stat?: 'ATTACK' | 'DEFENSE'}>, negateAttack: boolean, surviveTrap: boolean } => {
   const activatedTraps: Card[] = [];
   let totalDamageToOpponentPlayer = 0;
   const logs: string[] = [];
   const statusEffects: Array<{target: Card, status: StatusEffect}> = [];
   const destroyTargets: string[] = [];
-  const debuffTargets: Array<{targetId: string, value: number}> = [];
+  const debuffTargets: Array<{targetId: string, value: number, stat?: 'ATTACK' | 'DEFENSE'}> = [];
   let negateAttack = false;
   let surviveTrap = false;
 
@@ -188,15 +188,18 @@ const checkAndActivateTraps = (
           }
         }
         else if (effect.type === 'DEBUFF' && effect.value) {
+          const statToDecrease = effect.stat; // if undefined => apply to both
+          const statName = statToDecrease ? (statToDecrease === 'DEFENSE' ? 'DEF' : 'ATK') : 'ATK/DEF';
+
           if (effect.target === 'SINGLE_ENEMY' && context.attacker) {
-            debuffTargets.push({ targetId: context.attacker.uniqueId, value: effect.value });
-            logs.push(`${trap.name} reduziu ${Math.abs(effect.value)} ATK de ${context.attacker.name}!`);
+            debuffTargets.push({ targetId: context.attacker.uniqueId, value: effect.value, stat: statToDecrease });
+            logs.push(`${trap.name} reduziu ${Math.abs(effect.value)} ${statName} de ${context.attacker.name}!`);
           }
           else if (effect.target === 'ALL_ENEMIES') {
             opponent.field.forEach(card => {
-              debuffTargets.push({ targetId: card.uniqueId, value: effect.value! });
+              debuffTargets.push({ targetId: card.uniqueId, value: effect.value!, stat: statToDecrease });
             });
-            logs.push(`${trap.name} reduziu ${Math.abs(effect.value)} ATK de todos os inimigos!`);
+            logs.push(`${trap.name} reduziu ${Math.abs(effect.value)} ${statName} de todos os inimigos!`);
           }
         }
         else if (effect.type === 'SPECIAL') {
@@ -470,7 +473,15 @@ export const useGameLogic = () => {
         ...p,
         field: p.field.map(c => {
           const debuff = trapResult.debuffTargets.find(d => d.targetId === c.uniqueId);
-          return debuff ? { ...c, attack: Math.max(0, c.attack + debuff.value) } : c;
+          if (debuff) {
+            if (debuff.stat) {
+              const statToDecrease = debuff.stat.toLowerCase() as 'attack' | 'defense';
+              return { ...c, [statToDecrease]: Math.max(0, c[statToDecrease] + debuff.value) };
+            } else {
+              return { ...c, attack: Math.max(0, c.attack + debuff.value), defense: Math.max(0, c.defense + debuff.value) };
+            }
+          }
+          return c;
         })
       }));
     }
@@ -778,7 +789,15 @@ export const useGameLogic = () => {
           ...p,
           field: p.field.map(c => {
             const debuff = trapResult.debuffTargets.find(d => d.targetId === c.uniqueId);
-            return debuff ? { ...c, attack: Math.max(0, c.attack + debuff.value) } : c;
+            if (debuff) {
+              if (debuff.stat) {
+                const statToDecrease = debuff.stat.toLowerCase() as 'attack' | 'defense';
+                return { ...c, [statToDecrease]: Math.max(0, c[statToDecrease] + debuff.value) };
+              } else {
+                return { ...c, attack: Math.max(0, c.attack + debuff.value), defense: Math.max(0, c.defense + debuff.value) };
+              }
+            }
+            return c;
           })
         }));
       }
@@ -884,15 +903,21 @@ export const useGameLogic = () => {
     }
     else if (effect.type === 'BUFF') {
       const buffAmount = effect.value || 500;
+      const statToIncrease = effect.stat; // undefined => apply to both
+      const statName = statToIncrease ? (statToIncrease === 'DEFENSE' ? 'DEF' : 'ATK') : 'ATK/DEF';
+
       // Validar target: SINGLE_ALLY/SELF precisa de targetId; ALL_ALLIES aplica a todo o campo do dono
       if ((effect.target === 'SINGLE_ALLY' || effect.target === 'SELF') && targetId) {
         const target = state.field.find(c => c.uniqueId === targetId);
         if (target) {
           setFn(p => ({
             ...p,
-            field: p.field.map(c => c.uniqueId === targetId ? { ...c, attack: c.attack + buffAmount } : c)
+            field: p.field.map(c => c.uniqueId === targetId ? (
+              statToIncrease ? { ...c, [statToIncrease.toLowerCase()]: c[statToIncrease.toLowerCase() as 'attack' | 'defense'] + buffAmount }
+              : { ...c, attack: c.attack + buffAmount, defense: c.defense + buffAmount }
+            ) : c)
           }));
-          addLog(`${target.name} ganhou +${buffAmount} ATK!`, 'effect');
+          addLog(`${target.name} ganhou +${buffAmount} ${statName}!`, 'effect');
         } else {
           addLog(`Alvo inválido para ${card.name}!`, 'effect');
         }
@@ -900,9 +925,12 @@ export const useGameLogic = () => {
         // Apply buff to all allied cards on field
         setFn(p => ({
           ...p,
-          field: p.field.map(c => ({ ...c, attack: c.attack + buffAmount }))
+          field: p.field.map(c => (
+            statToIncrease ? { ...c, [statToIncrease.toLowerCase()]: c[statToIncrease.toLowerCase() as 'attack' | 'defense'] + buffAmount }
+            : { ...c, attack: c.attack + buffAmount, defense: c.defense + buffAmount }
+          ))
         }));
-        addLog(`${ownerName} aplicou +${buffAmount} ATK a todos os aliados!`, 'effect');
+        addLog(`${ownerName} aplicou +${buffAmount} ${statName} a todos os aliados!`, 'effect');
       } else {
         addLog(`Alvo inválido para ${card.name}!`, 'effect');
       }

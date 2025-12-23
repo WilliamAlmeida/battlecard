@@ -98,6 +98,24 @@ export const CollectionView: React.FC<CollectionViewProps> = ({ onClose, onBack 
     }
   };
 
+  // Dev helper: give all missing cards (visible only in dev)
+  const handleGiveMissingCards = () => {
+    const allCardsList = allCards;
+    let addedAny = false;
+    allCardsList.forEach(card => {
+      if (!collectionService.hasCard(card.id)) {
+        collectionService.addCard(card.id, 1);
+        addedAny = true;
+      }
+    });
+    if (addedAny) {
+      soundService.playAchievement();
+      setCollection(collectionService.getCollection());
+    } else {
+      soundService.playError();
+    }
+  };
+
   if (openingPack) {
     return (
       <div className="fixed inset-0 bg-black z-50 flex flex-col items-center justify-center">
@@ -190,6 +208,14 @@ export const CollectionView: React.FC<CollectionViewProps> = ({ onClose, onBack 
             >
               Comprar (💰 200)
             </button>
+            {(import.meta as any).env?.DEV && (
+              <button
+                onClick={handleGiveMissingCards}
+                className="px-6 py-3 rounded-xl font-bold text-lg bg-indigo-600 hover:bg-indigo-500 text-white"
+              >
+                Dar cartas faltantes (dev)
+              </button>
+            )}
           </div>
         </div>
 

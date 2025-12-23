@@ -93,11 +93,11 @@ export const SPELL_CARDS: CardBase[] = [
   createSpell('spell_full_restore', 'Restauração Total', { type: 'HEAL', value: 5000, target: 'OWNER' }, Rarity.EPIC),
   
   // Buff
-  createSpell('spell_x_attack', 'X-Attack', { type: 'BUFF', value: 500, target: 'SINGLE_ALLY' }, Rarity.COMMON),
-  createSpell('spell_x_defense', 'X-Defense', { type: 'BUFF', value: 500, target: 'SINGLE_ALLY' }, Rarity.COMMON),
-  createSpell('spell_rare_candy', 'Rare Candy', { type: 'BUFF', value: 800, target: 'SINGLE_ALLY' }, Rarity.UNCOMMON),
-  createSpell('spell_protein', 'Proteína', { type: 'BUFF', value: 1000, target: 'SINGLE_ALLY' }, Rarity.RARE),
-  createSpell('spell_mass_protein', 'Proteína em Massa', { type: 'BUFF', value: 500, target: 'ALL_ALLIES' }, Rarity.RARE),
+  createSpell('spell_x_attack', 'X-Attack', { type: 'BUFF', value: 500, target: 'SINGLE_ALLY', stat: 'ATTACK' }, Rarity.COMMON),
+  createSpell('spell_x_defense', 'X-Defense', { type: 'BUFF', value: 500, target: 'SINGLE_ALLY', stat: 'DEFENSE'}, Rarity.COMMON),
+  createSpell('spell_rare_candy', 'Rare Candy', { type: 'BUFF', value: 800, target: 'SINGLE_ALLY', stat: 'ATTACK' }, Rarity.UNCOMMON),
+  createSpell('spell_protein', 'Proteína', { type: 'BUFF', value: 800, target: 'SINGLE_ALLY', stat: 'DEFENSE' }, Rarity.RARE),
+  createSpell('spell_mass_protein', 'Proteína em Massa', { type: 'BUFF', value: 500, target: 'ALL_ALLIES', stat: 'ATTACK' }, Rarity.RARE),
   
   // Dano
   createSpell('spell_thunder', 'Trovão', { type: 'DAMAGE', value: 800, target: 'SINGLE_ENEMY' }, Rarity.UNCOMMON),
@@ -156,9 +156,9 @@ export const TRAP_CARDS: CardBase[] = [
   
   // Debuff
   createTrap('trap_scary_face', 'Cara Assustadora', TrapCondition.ON_SUMMON,
-    { type: 'DEBUFF', value: -400, target: 'ALL_ENEMIES' }, Rarity.UNCOMMON),
+    { type: 'DEBUFF', value: -400, target: 'ALL_ENEMIES', stat: 'ATTACK' }, Rarity.UNCOMMON),
   createTrap('trap_intimidate', 'Intimidar', TrapCondition.ON_ATTACK,
-    { type: 'DEBUFF', value: -600, target: 'SINGLE_ENEMY' }, Rarity.RARE),
+    { type: 'DEBUFF', value: -600, target: 'SINGLE_ENEMY', stat: 'ATTACK' }, Rarity.RARE),
 ];
 
 // === HELPER FUNCTIONS ===
