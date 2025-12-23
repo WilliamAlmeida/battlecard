@@ -94,7 +94,7 @@ export const CAMPAIGN_BOSSES: CampaignBoss[] = [
     unlocked: false,
     defeated: false,
     difficulty: AIDifficulty.HARD,
-    sacrificeStrategy: SacrificeStrategy.SCORE_BASED,
+    sacrificeStrategy: SacrificeStrategy.SMART_HYBRID,
     specialRules: [
       { id: 'psychic_boost', name: 'Telepatia', description: 'Pokémon PSYCHIC têm +400 ATK', effect: 'TYPE_BOOST', value: 400, elementType: ElementType.PSYCHIC }
     ]

@@ -151,7 +151,7 @@ export class AIController {
 
     let sacrifices: string[] = [];
     if (toSummon.sacrificeRequired > 0) {
-      sacrifices = this.selectSacrifices(npc, toSummon);
+      sacrifices = this.selectSacrifices(npc, toSummon, opponent);
       if (sacrifices.length < toSummon.sacrificeRequired) {
         return { type: 'GO_TO_BATTLE' };
       }
@@ -168,7 +168,7 @@ export class AIController {
   // ESTRATÉGIAS DE SACRIFÍCIO
   // ============================================
 
-  private static selectSacrifices(npc: Player, toSummon: Card): string[] {
+  private static selectSacrifices(npc: Player, toSummon: Card, opponent?: Player): string[] {
     const required = toSummon.sacrificeRequired;
     const fieldCandidates = [...npc.field].filter(c => c.uniqueId !== toSummon.uniqueId);
     const handCandidates = npc.hand.filter(c => c.uniqueId !== toSummon.uniqueId && c.cardType === CardType.POKEMON);
@@ -190,7 +190,7 @@ export class AIController {
       case SacrificeStrategy.SMART_HYBRID:
         return this.sacrificeSmartHybrid(npc, fieldCandidates, handCandidates, required);
       case SacrificeStrategy.SCORE_BASED:
-        return this.sacrificeScoreBased(fieldCandidates, handCandidates, required);
+        return this.sacrificeScoreBased(fieldCandidates, handCandidates, required, opponent?.field);
       default:
         return this.sacrificeSmartHybrid(npc, fieldCandidates, handCandidates, required);
     }
@@ -258,12 +258,25 @@ export class AIController {
   }
 
   // Estratégia 5: SCORE_BASED (híbrido com pontuação)
-  private static sacrificeScoreBased(field: Card[], hand: Card[], required: number): string[] {
+  private static sacrificeScoreBased(field: Card[], hand: Card[], required: number, enemyField?: Card[]): string[] {
     const scoreCard = (card: Card, isOnField: boolean): number => {
       let score = card.attack + (card.defense || 0);
       if (card.ability) score += 300; // Habilidades são valiosas
       if (isOnField && card.hasAttacked) score -= 200; // Já atacou = menos útil agora
       if (isOnField) score += 150; // Bonus moderado por estar no campo (pressão)
+      
+      // Considerar vantagem de tipo contra o campo inimigo
+      if (enemyField && enemyField.length > 0) {
+        let typeBonus = 0;
+        enemyField.forEach(enemy => {
+          const advantage = this.getTypeAdvantage(card, enemy);
+          if (advantage === 1.5) typeBonus += 300; // Vantagem forte = não sacrificar
+          else if (advantage === 0.5) typeBonus -= 150; // Desvantagem = pode sacrificar
+          else if (advantage === 0) typeBonus -= 250; // Imune = sacrificar
+        });
+        score += typeBonus;
+      }
+      
       return score;
     };
 

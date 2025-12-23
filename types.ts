@@ -54,7 +54,7 @@ export enum SacrificeStrategy {
   FIELD_FIRST = 'FIELD_FIRST',           // Prioriza campo
   HAND_FIRST = 'HAND_FIRST',             // Prioriza mão
   SMART_HYBRID = 'SMART_HYBRID',         // Mão se possível, campo se necessário
-  SCORE_BASED = 'SCORE_BASED',           // Score híbrido (atk+def+habilidade)
+  SCORE_BASED = 'SCORE_BASED',           // Score híbrido (atk+def+habilidade+tipo)
   AUTO = 'AUTO'                          // Automático por dificuldade
 }
 
