@@ -594,12 +594,13 @@ export const useGameLogic = () => {
                 const ownerSetFn = isPlayer ? setNpc : setPlayer;
                 ownerSetFn(p => ({ ...p, hp: 1 }));
                 addLog(`${defender.name} foi salvo pela armadilha e o dono permaneceu com 1 HP!`, 'trap');
-              } else {
-                // If the defender's owner would have died from the damage earlier, finish the game now
-                if (typeof defenderWouldDie !== 'undefined' && defenderWouldDie) {
-                  finishGame(isPlayer ? 'player' : 'npc', 'combat_defender_dead');
-                }
               }
+            }
+
+            // Check if defender's owner would have died from the damage (outside trap block)
+            // Only finish if no surviveTrap was activated
+            if (typeof defenderWouldDie !== 'undefined' && defenderWouldDie && !destroyTrapResult.surviveTrap) {
+              finishGame(isPlayer ? 'player' : 'npc', 'combat_defender_dead');
             }
           }
           if (!result.attackerSurvived) {
