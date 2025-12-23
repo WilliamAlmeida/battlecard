@@ -199,24 +199,27 @@ export default function App() {
         return;
       }
 
-      // Verificar limite de campo
-      if (player.field.length >= 3) {
-        addLog("CAMPO CHEIO! Você não pode ter mais de 3 Pokémon simultâneos.");
+      // Verificar limite de campo — bloquear apenas se não houver sacrifício que libere espaço
+      if (card.sacrificeRequired === 0 && player.field.length >= GameRules.MAX_FIELD_SIZE) {
+        addLog(`CAMPO CHEIO! Você não pode ter mais de ${GameRules.MAX_FIELD_SIZE} Pokémon simultâneos.`);
         return;
       }
 
       if (card.sacrificeRequired === 0) {
         summonCard('player', card.uniqueId, []);
       } else {
-        const availableTotal = player.field.length;
+        // Contar pokémons disponíveis para sacrificar (mão + campo), exceto a carta sendo invocada
+        const pokemonsInHand = player.hand.filter(c => c.cardType === 'POKEMON' && c.uniqueId !== card.uniqueId).length;
+        const availableTotal = pokemonsInHand + player.field.length;
         if (availableTotal < card.sacrificeRequired) {
-          addLog(`Sacrifícios insuficientes! ${card.name} exige ${card.sacrificeRequired} Pokémon no campo.`);
+          addLog(`Sacrifícios insuficientes! ${card.name} exige ${card.sacrificeRequired} Pokémon entre mão e campo.`);
           return;
         }
+        // Entrar em modo sacrifício mesmo que o campo esteja cheio — jogador selecionará as cartas a sacrificar
         setPendingSummonCardId(card.uniqueId);
         setTributeSelectionMode(true);
         setCardsToSacrifice([]);
-        addLog(`MODO SACRIFÍCIO: Selecione ${card.sacrificeRequired} Pokémon no campo para invocar ${card.name}.`);
+        addLog(`MODO SACRIFÍCIO: Selecione ${card.sacrificeRequired} Pokémon no campo ou na mão para invocar ${card.name}.`);
       }
     }
   };
