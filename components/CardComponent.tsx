@@ -184,31 +184,15 @@ export const CardComponent: React.FC<CardProps> = ({ card, compact, isOpponent, 
     <div className={baseClasses}>
       {/* Status Effects */}
       {activeStatuses.length > 0 && (
-        <div className="absolute top-2 right-2 flex gap-1">
+        <div className="absolute top-2 right-1 flex gap-1">
           {activeStatuses.map((status, i) => (
             <span key={i} className="text-lg animate-pulse">{getStatusIcon(status)}</span>
           ))}
         </div>
       )}
 
-      {/* Ability Indicator */}
-      {card.ability && (
-        <div className="absolute top-2 left-2 text-lg">
-          <Tooltip content={(
-            <div>
-              <div className="font-black text-base">{card.ability.name}</div>
-              <div className="text-sm mt-1 leading-tight">{card.ability.description}</div>
-              <div className="text-sm mt-2 opacity-80">Trigger: <span className="font-mono">{card.ability.trigger}</span></div>
-              <div className="text-sm mt-1 opacity-80">Effect: <span className="font-mono">{renderEffect(card.ability.effect)}</span></div>
-            </div>
-          )}>
-            <span className="cursor-help">💫</span>
-          </Tooltip>
-        </div>
-      )}
-
       {/* Rarity indicator for legendaries */}
-      {card.rarity !== Rarity.LEGENDARY && (
+      {card.rarity === Rarity.LEGENDARY && (
         <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 pointer-events-none">
           <span className="text-yellow-400 text-sm sm:text-lg animate-pulse">👑</span>
         </div>
@@ -218,22 +202,43 @@ export const CardComponent: React.FC<CardProps> = ({ card, compact, isOpponent, 
         <span className="font-semibold sm:font-bold text-s md:text-lg truncate leading-tight drop-shadow-lg tracking-tighter italic max-w-full overflow-hidden">{card.name}</span>
       </div>
 
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 pointer-events-none">
+        {!compact ? (
+          <div className="flex items-center space-x-1">
+            <span className="text-yellow-300 text-lg drop-shadow-[0_0_5px_rgba(0,0,0,0.5)]">★</span>
+            <span className="text-yellow-100 text-lg font-bold">{card.level}</span>
+          </div>
+        ) : (
+          <div className="flex space-x-1">
+          {Array.from({length: card.level}).map((_, i) => (
+            <span key={i} className="text-yellow-300 text-sm drop-shadow-[0_0_5px_rgba(0,0,0,0.5)]">★</span>
+          ))}
+          </div>
+        )}
+      </div>
+
       <div className="flex justify-between items-center px-2 py-1 sm:py-2 bg-black/30 rounded-lg sm:rounded-xl border border-white/10">
          <Tooltip width="w-auto" content={(<div className="text-sm">Tipo: <span className="font-mono">{card.type}</span></div>)}>
            <span className="sm:text-3xl cursor-help">{getTypeIcon(card.type)}</span>
          </Tooltip>
-         {compact ? (
-           <div className="flex items-center space-x-1">
-           <span className="text-yellow-300 text-lg drop-shadow-[0_0_5px_rgba(0,0,0,0.5)]">★</span>
-           <span className="text-yellow-100 text-lg font-bold">{card.level}</span>
-           </div>
-         ) : (
-           <div className="flex space-x-1">
-           {Array.from({length: card.level}).map((_, i) => (
-             <span key={i} className="text-yellow-300 text-lg drop-shadow-[0_0_5px_rgba(0,0,0,0.5)]">★</span>
-           ))}
-           </div>
-         )}
+
+        {/* Ability Indicator */}
+        {card.ability ? (
+          <div>
+            <Tooltip content={(
+              <div>
+                <div className="font-black text-base">{card.ability.name}</div>
+                <div className="text-sm mt-1 leading-tight">{card.ability.description}</div>
+                <div className="text-sm mt-2 opacity-80">Trigger: <span className="font-mono">{card.ability.trigger}</span></div>
+                <div className="text-sm mt-1 opacity-80">Effect: <span className="font-mono">{renderEffect(card.ability.effect)}</span></div>
+              </div>
+            )}>
+              <span className="cursor-help text-2xl">💫</span>
+            </Tooltip>
+          </div>
+        ) : (
+            <span className="grayscale text-2xl opacity-35 pointer-events-none">💫</span>
+        )}
       </div>
 
       <div className="bg-black/60 rounded-lg sm:rounded-xl py-1 sm:py-2 px-1 flex gap-x-1 justify-around font-mono font-black border-2 border-white/10 shadow-lg">
