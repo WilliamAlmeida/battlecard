@@ -7,11 +7,19 @@ export const GameRules = {
   MAX_HP: 8000,
 
   canSummon: (player: Player, card: Card): boolean => {
-    if (player.field.length >= GameRules.MAX_FIELD_SIZE) return false;
     // Contar apenas Pokémons disponíveis para sacrifício (mão + campo), excluindo a carta sendo invocada
     const pokemonsInHand = player.hand.filter(c => c.cardType === 'POKEMON' && c.uniqueId !== card.uniqueId).length;
     const availableSacrifices = pokemonsInHand + player.field.length;
-    return availableSacrifices >= card.sacrificeRequired;
+
+    // Se não há sacrifícios suficientes, não é possível invocar
+    if (availableSacrifices < card.sacrificeRequired) return false;
+
+    // Calcular quantos sacrifícios podem vir do campo (liberam espaço)
+    const fieldSacrifices = Math.min(player.field.length, card.sacrificeRequired);
+    const resultingFieldSize = player.field.length - fieldSacrifices + 1; // +1 pelo monstro que será invocado
+
+    // Permitir invocação apenas se, após sacrificar (preferencialmente do campo), couber no campo
+    return resultingFieldSize <= GameRules.MAX_FIELD_SIZE;
   },
 
   // Tabela de multiplicadores semelhante ao estilo Pokémon (2, 0.5, 0)

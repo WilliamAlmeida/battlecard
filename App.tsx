@@ -289,12 +289,19 @@ export default function App() {
         // Build boss deck from their card IDs
         const bossDeck = getCardsByIds(boss.deck);
         console.log('Boss deck:', boss.deck, 'Cards found:', bossDeck.length, bossDeck.map(c => c.name));
+        
+        // Apply boss-specific sacrifice strategy if defined
+        if (boss.sacrificeStrategy) {
+          console.log('Boss using sacrifice strategy:', boss.sacrificeStrategy);
+        }
+        
         startGame({
           difficulty: boss.difficulty,
           mode: mode,
           npcHp: boss.hp,
           npcDeck: bossDeck,
-          customDeck: playerDeckBase
+          customDeck: playerDeckBase,
+          sacrificeStrategy: boss.sacrificeStrategy
         });
         setLastBossId(bossId);
       }

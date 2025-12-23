@@ -48,6 +48,16 @@ export enum AIDifficulty {
   EXPERT = 'EXPERT'
 }
 
+// Estratégias de Sacrifício da IA
+export enum SacrificeStrategy {
+  RANDOM = 'RANDOM',                     // Aleatório (EASY)
+  FIELD_FIRST = 'FIELD_FIRST',           // Prioriza campo
+  HAND_FIRST = 'HAND_FIRST',             // Prioriza mão
+  SMART_HYBRID = 'SMART_HYBRID',         // Mão se possível, campo se necessário
+  SCORE_BASED = 'SCORE_BASED',           // Score híbrido (atk+def+habilidade)
+  AUTO = 'AUTO'                          // Automático por dificuldade
+}
+
 // Modos de Jogo
 export enum GameMode {
   QUICK_BATTLE = 'QUICK_BATTLE',
@@ -200,6 +210,7 @@ export interface CampaignBoss {
   unlocked: boolean;
   defeated: boolean;
   difficulty: AIDifficulty;
+  sacrificeStrategy?: SacrificeStrategy;
 }
 
 export interface CampaignReward {

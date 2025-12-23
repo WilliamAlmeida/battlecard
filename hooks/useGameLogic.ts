@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Player, Card, Phase, GameLogEntry, ElementType, StatusEffect, AIDifficulty, GameMode, AbilityTrigger, CardType, TrapCondition } from '../types';
+import { Player, Card, Phase, GameLogEntry, ElementType, StatusEffect, AIDifficulty, GameMode, AbilityTrigger, CardType, TrapCondition, SacrificeStrategy } from '../types';
 import { INITIAL_DECK, SPELL_CARDS, TRAP_CARDS } from '../constants';
 import { ABILITIES } from '../pokemons/abilities';
 import { GameRules } from '../utils/gameRules';
@@ -349,12 +349,20 @@ export const useGameLogic = () => {
     addLog(`${isPlayer ? 'Você' : 'Oponente'} comprou uma carta.`);
   }, [addLog, processFieldStatusEffects, allowDeckOut]);
 
-  const startGame = (options?: { difficulty?: AIDifficulty, mode?: GameMode, customDeck?: CardBase[], npcDeck?: CardBase[], npcHp?: number }) => {
+  const startGame = (options?: { difficulty?: AIDifficulty, mode?: GameMode, customDeck?: CardBase[], npcDeck?: CardBase[], npcHp?: number, sacrificeStrategy?: SacrificeStrategy }) => {
     const diff = options?.difficulty || AIDifficulty.NORMAL;
     const mode = options?.mode || GameMode.QUICK_BATTLE;
     
     setDifficulty(diff);
     setGameMode(mode);
+    
+    // Configure AI difficulty and sacrifice strategy
+    AIController.setDifficulty(diff);
+    if (options?.sacrificeStrategy) {
+      AIController.setSacrificeStrategy(options.sacrificeStrategy);
+    } else {
+      AIController.setSacrificeStrategy(SacrificeStrategy.AUTO);
+    }
     
     const fullDeck = options?.customDeck || INITIAL_DECK.map(c => ({ ...c }));
     const npDeck = options?.npcDeck || INITIAL_DECK.map(c => ({ ...c }));

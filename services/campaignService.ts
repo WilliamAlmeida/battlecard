@@ -1,5 +1,5 @@
 // Campaign Data - Sistema de campanha com bosses temáticos
-import { CampaignBoss, AIDifficulty, SpecialRule, ElementType } from '../types';
+import { CampaignBoss, AIDifficulty, SpecialRule, ElementType, SacrificeStrategy } from '../types';
 
 export const CAMPAIGN_BOSSES: CampaignBoss[] = [
   // Liga Pokémon - 8 Líderes de Ginásio
@@ -14,6 +14,7 @@ export const CAMPAIGN_BOSSES: CampaignBoss[] = [
     unlocked: true,
     defeated: false,
     difficulty: AIDifficulty.EASY,
+    sacrificeStrategy: SacrificeStrategy.FIELD_FIRST,
     specialRules: [
       { id: 'rock_boost', name: 'Força da Pedra', description: 'Pokémon GROUND têm +200 ATK', effect: 'TYPE_BOOST', value: 200, elementType: ElementType.GROUND }
     ]
@@ -29,6 +30,7 @@ export const CAMPAIGN_BOSSES: CampaignBoss[] = [
     unlocked: false,
     defeated: false,
     difficulty: AIDifficulty.EASY,
+    sacrificeStrategy: SacrificeStrategy.HAND_FIRST,
     specialRules: [
       { id: 'water_boost', name: 'Torrente', description: 'Pokémon WATER têm +200 ATK', effect: 'TYPE_BOOST', value: 200, elementType: ElementType.WATER }
     ]
@@ -44,6 +46,7 @@ export const CAMPAIGN_BOSSES: CampaignBoss[] = [
     unlocked: false,
     defeated: false,
     difficulty: AIDifficulty.NORMAL,
+    sacrificeStrategy: SacrificeStrategy.SMART_HYBRID,
     specialRules: [
       { id: 'electric_boost', name: 'Descarga', description: 'Pokémon ELECTRIC têm +300 ATK', effect: 'TYPE_BOOST', value: 300, elementType: ElementType.ELECTRIC }
     ]
@@ -59,6 +62,7 @@ export const CAMPAIGN_BOSSES: CampaignBoss[] = [
     unlocked: false,
     defeated: false,
     difficulty: AIDifficulty.NORMAL,
+    sacrificeStrategy: SacrificeStrategy.HAND_FIRST,
     specialRules: [
       { id: 'grass_boost', name: 'Fotossíntese', description: 'Pokémon GRASS têm +200 ATK e curam 100 HP/turno', effect: 'TYPE_BOOST', value: 200, elementType: ElementType.GRASS }
     ]
@@ -74,6 +78,7 @@ export const CAMPAIGN_BOSSES: CampaignBoss[] = [
     unlocked: false,
     defeated: false,
     difficulty: AIDifficulty.NORMAL,
+    sacrificeStrategy: SacrificeStrategy.SMART_HYBRID,
     specialRules: [
       { id: 'poison_boost', name: 'Veneno Mortal', description: 'Pokémon POISON causam envenenamento ao atacar', effect: 'TYPE_BOOST', value: 0, elementType: ElementType.POISON }
     ]
@@ -89,6 +94,7 @@ export const CAMPAIGN_BOSSES: CampaignBoss[] = [
     unlocked: false,
     defeated: false,
     difficulty: AIDifficulty.HARD,
+    sacrificeStrategy: SacrificeStrategy.SCORE_BASED,
     specialRules: [
       { id: 'psychic_boost', name: 'Telepatia', description: 'Pokémon PSYCHIC têm +400 ATK', effect: 'TYPE_BOOST', value: 400, elementType: ElementType.PSYCHIC }
     ]
@@ -104,6 +110,7 @@ export const CAMPAIGN_BOSSES: CampaignBoss[] = [
     unlocked: false,
     defeated: false,
     difficulty: AIDifficulty.HARD,
+    sacrificeStrategy: SacrificeStrategy.SCORE_BASED,
     specialRules: [
       { id: 'fire_boost', name: 'Inferno', description: 'Pokémon FIRE têm +400 ATK e queimam ao atacar', effect: 'TYPE_BOOST', value: 400, elementType: ElementType.FIRE }
     ]
@@ -119,6 +126,7 @@ export const CAMPAIGN_BOSSES: CampaignBoss[] = [
     unlocked: false,
     defeated: false,
     difficulty: AIDifficulty.HARD,
+    sacrificeStrategy: SacrificeStrategy.SCORE_BASED,
     specialRules: [
       { id: 'ground_boost', name: 'Terremoto', description: 'Pokémon GROUND têm +500 ATK', effect: 'TYPE_BOOST', value: 500, elementType: ElementType.GROUND },
       { id: 'extra_hp', name: 'Líder Supremo', description: 'Giovanni começa com +1000 HP', effect: 'HP_MODIFIER', value: 1000 }
@@ -137,6 +145,7 @@ export const CAMPAIGN_BOSSES: CampaignBoss[] = [
     unlocked: false,
     defeated: false,
     difficulty: AIDifficulty.HARD,
+    sacrificeStrategy: SacrificeStrategy.SCORE_BASED,
     specialRules: [
       { id: 'ice_boost', name: 'Era Glacial', description: 'Inimigos têm 20% chance de congelar ao atacar', effect: 'TYPE_BOOST', value: 0, elementType: ElementType.WATER }
     ]
@@ -152,6 +161,7 @@ export const CAMPAIGN_BOSSES: CampaignBoss[] = [
     unlocked: false,
     defeated: false,
     difficulty: AIDifficulty.HARD,
+    sacrificeStrategy: SacrificeStrategy.SCORE_BASED,
     specialRules: [
       { id: 'fighting_boost', name: 'Poder Bruto', description: 'Pokémon FIGHTING têm +500 ATK', effect: 'TYPE_BOOST', value: 500, elementType: ElementType.FIGHTING }
     ]
@@ -167,6 +177,7 @@ export const CAMPAIGN_BOSSES: CampaignBoss[] = [
     unlocked: false,
     defeated: false,
     difficulty: AIDifficulty.EXPERT,
+    sacrificeStrategy: SacrificeStrategy.SCORE_BASED,
     specialRules: [
       { id: 'ghost_boost', name: 'Maldição', description: 'Pokémon PSYCHIC têm 25% de reviver ao morrer', effect: 'TYPE_BOOST', value: 0, elementType: ElementType.PSYCHIC }
     ]
@@ -182,6 +193,7 @@ export const CAMPAIGN_BOSSES: CampaignBoss[] = [
     unlocked: false,
     defeated: false,
     difficulty: AIDifficulty.EXPERT,
+    sacrificeStrategy: SacrificeStrategy.SCORE_BASED,
     specialRules: [
       { id: 'dragon_boost', name: 'Fúria Dracônica', description: 'Todos Pokémon de Lance têm +600 ATK', effect: 'TYPE_BOOST', value: 600, elementType: ElementType.PSYCHIC }
     ]
@@ -199,6 +211,7 @@ export const CAMPAIGN_BOSSES: CampaignBoss[] = [
     unlocked: false,
     defeated: false,
     difficulty: AIDifficulty.EXPERT,
+    sacrificeStrategy: SacrificeStrategy.SCORE_BASED,
     specialRules: [
       { id: 'champion_boost', name: 'Campeão', description: 'Todos Pokémon do Campeão têm +800 ATK', effect: 'TYPE_BOOST', value: 800 },
       { id: 'champion_field', name: 'Campo Expandido', description: 'Campeão pode ter 4 Pokémon no campo', effect: 'FIELD_SIZE', value: 4 },
@@ -218,6 +231,7 @@ export const CAMPAIGN_BOSSES: CampaignBoss[] = [
     unlocked: false,
     defeated: false,
     difficulty: AIDifficulty.EXPERT,
+    sacrificeStrategy: SacrificeStrategy.SCORE_BASED,
     specialRules: [
       { id: 'mewtwo_power', name: 'Poder Absoluto', description: 'Mewtwo tem +1000 ATK em todos Pokémon', effect: 'TYPE_BOOST', value: 1000 },
       { id: 'mewtwo_psychic', name: 'Mente Superior', description: 'Pokémon PSYCHIC são imunes a status', effect: 'TYPE_BOOST', value: 0, elementType: ElementType.PSYCHIC }

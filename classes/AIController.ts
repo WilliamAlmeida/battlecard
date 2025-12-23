@@ -1,9 +1,10 @@
 
-import { Player, Card, Phase, AIAction, AIActionType, AIDifficulty, CardType } from '../types';
+import { Player, Card, Phase, AIAction, AIActionType, AIDifficulty, CardType, SacrificeStrategy } from '../types';
 import { GameRules } from '../utils/gameRules';
 
 export class AIController {
   private static difficulty: AIDifficulty = AIDifficulty.NORMAL;
+  private static sacrificeStrategy: SacrificeStrategy = SacrificeStrategy.AUTO;
 
   static setDifficulty(diff: AIDifficulty) {
     this.difficulty = diff;
@@ -11,6 +12,14 @@ export class AIController {
 
   static getDifficulty(): AIDifficulty {
     return this.difficulty;
+  }
+
+  static setSacrificeStrategy(strategy: SacrificeStrategy) {
+    this.sacrificeStrategy = strategy;
+  }
+
+  static getSacrificeStrategy(): SacrificeStrategy {
+    return this.sacrificeStrategy;
   }
 
   // Chance de cometer erro baseado na dificuldade
@@ -119,8 +128,8 @@ export class AIController {
     const playableHand = npc.hand.filter(c => 
       c.cardType === CardType.POKEMON && GameRules.canSummon(npc, c)
     );
-    
-    if (npc.field.length >= GameRules.MAX_FIELD_SIZE || playableHand.length === 0) {
+
+    if (playableHand.length === 0) {
       return { type: 'GO_TO_BATTLE' };
     }
 
@@ -142,12 +151,8 @@ export class AIController {
 
     let sacrifices: string[] = [];
     if (toSummon.sacrificeRequired > 0) {
-      const candidates = [...npc.hand.filter(c => c.uniqueId !== toSummon.uniqueId && c.cardType === CardType.POKEMON), ...npc.field];
-      candidates.sort((a, b) => a.attack - b.attack);
-      
-      if (candidates.length >= toSummon.sacrificeRequired) {
-        sacrifices = candidates.slice(0, toSummon.sacrificeRequired).map(c => c.uniqueId);
-      } else {
+      sacrifices = this.selectSacrifices(npc, toSummon);
+      if (sacrifices.length < toSummon.sacrificeRequired) {
         return { type: 'GO_TO_BATTLE' };
       }
     }
@@ -158,6 +163,122 @@ export class AIController {
       sacrifices
     };
   }
+
+  // ============================================
+  // ESTRATÉGIAS DE SACRIFÍCIO
+  // ============================================
+
+  private static selectSacrifices(npc: Player, toSummon: Card): string[] {
+    const required = toSummon.sacrificeRequired;
+    const fieldCandidates = [...npc.field].filter(c => c.uniqueId !== toSummon.uniqueId);
+    const handCandidates = npc.hand.filter(c => c.uniqueId !== toSummon.uniqueId && c.cardType === CardType.POKEMON);
+
+    let strategy = this.sacrificeStrategy;
+    
+    // AUTO: selecionar estratégia baseada na dificuldade
+    if (strategy === SacrificeStrategy.AUTO) {
+      strategy = this.getAutoStrategy();
+    }
+
+    switch (strategy) {
+      case SacrificeStrategy.RANDOM:
+        return this.sacrificeRandom(fieldCandidates, handCandidates, required);
+      case SacrificeStrategy.FIELD_FIRST:
+        return this.sacrificeFieldFirst(fieldCandidates, handCandidates, required);
+      case SacrificeStrategy.HAND_FIRST:
+        return this.sacrificeHandFirst(fieldCandidates, handCandidates, required);
+      case SacrificeStrategy.SMART_HYBRID:
+        return this.sacrificeSmartHybrid(npc, fieldCandidates, handCandidates, required);
+      case SacrificeStrategy.SCORE_BASED:
+        return this.sacrificeScoreBased(fieldCandidates, handCandidates, required);
+      default:
+        return this.sacrificeSmartHybrid(npc, fieldCandidates, handCandidates, required);
+    }
+  }
+
+  private static getAutoStrategy(): SacrificeStrategy {
+    switch (this.difficulty) {
+      case AIDifficulty.EASY:
+        return SacrificeStrategy.RANDOM;
+      case AIDifficulty.NORMAL:
+        return SacrificeStrategy.SMART_HYBRID;
+      case AIDifficulty.HARD:
+      case AIDifficulty.EXPERT:
+        return SacrificeStrategy.SCORE_BASED;
+      default:
+        return SacrificeStrategy.SMART_HYBRID;
+    }
+  }
+
+  // Estratégia 1: RANDOM (para IA fácil)
+  private static sacrificeRandom(field: Card[], hand: Card[], required: number): string[] {
+    const all = [...field, ...hand];
+    const shuffled = all.sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, required).map(c => c.uniqueId);
+  }
+
+  // Estratégia 2: FIELD_FIRST (prioriza campo, mais fracos primeiro)
+  private static sacrificeFieldFirst(field: Card[], hand: Card[], required: number): string[] {
+    field.sort((a, b) => a.attack - b.attack);
+    hand.sort((a, b) => a.attack - b.attack);
+    const candidates = [...field, ...hand];
+    return candidates.slice(0, required).map(c => c.uniqueId);
+  }
+
+  // Estratégia 3: HAND_FIRST (prioriza mão, mais fracos primeiro)
+  private static sacrificeHandFirst(field: Card[], hand: Card[], required: number): string[] {
+    field.sort((a, b) => a.attack - b.attack);
+    hand.sort((a, b) => a.attack - b.attack);
+    const candidates = [...hand, ...field];
+    return candidates.slice(0, required).map(c => c.uniqueId);
+  }
+
+  // Estratégia 4: SMART_HYBRID (mantém campo quando possível)
+  private static sacrificeSmartHybrid(npc: Player, field: Card[], hand: Card[], required: number): string[] {
+    hand.sort((a, b) => a.attack - b.attack);
+    field.sort((a, b) => a.attack - b.attack);
+
+    // Se campo não está cheio, tentar pegar todos da mão
+    if (npc.field.length < GameRules.MAX_FIELD_SIZE) {
+      if (hand.length >= required) {
+        // Pode sacrificar só da mão
+        return hand.slice(0, required).map(c => c.uniqueId);
+      } else {
+        // Pega o que tem na mão + complementa com campo
+        const fromHand = hand.map(c => c.uniqueId);
+        const needFromField = required - hand.length;
+        const fromField = field.slice(0, needFromField).map(c => c.uniqueId);
+        return [...fromHand, ...fromField];
+      }
+    } else {
+      // Campo cheio: DEVE sacrificar do campo primeiro
+      const candidates = [...field, ...hand];
+      return candidates.slice(0, required).map(c => c.uniqueId);
+    }
+  }
+
+  // Estratégia 5: SCORE_BASED (híbrido com pontuação)
+  private static sacrificeScoreBased(field: Card[], hand: Card[], required: number): string[] {
+    const scoreCard = (card: Card, isOnField: boolean): number => {
+      let score = card.attack + (card.defense || 0);
+      if (card.ability) score += 300; // Habilidades são valiosas
+      if (isOnField && card.hasAttacked) score -= 200; // Já atacou = menos útil agora
+      if (isOnField) score += 150; // Bonus moderado por estar no campo (pressão)
+      return score;
+    };
+
+    const allCandidates = [
+      ...field.map(c => ({ card: c, score: scoreCard(c, true) })),
+      ...hand.map(c => ({ card: c, score: scoreCard(c, false) }))
+    ];
+
+    allCandidates.sort((a, b) => a.score - b.score); // Menor score = sacrificar primeiro
+    return allCandidates.slice(0, required).map(c => c.card.uniqueId);
+  }
+
+  // ============================================
+  // FIM DAS ESTRATÉGIAS DE SACRIFÍCIO
+  // ============================================
 
   private static handleBattlePhase(npc: Player, opponent: Player): AIAction {
     const validAttackers = npc.field.filter(c => !c.hasAttacked);
