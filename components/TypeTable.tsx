@@ -67,7 +67,7 @@ export const TypeTable: React.FC<TypeTableProps> = ({ isOpen: externalOpen, onTo
           <div className="flex items-center justify-between px-4 border-b border-white/5">
             <div className="font-black text-lg text-slate-100">Tabela de Efeitos</div>
             <div className="flex items-center gap-2">
-              <div className="text-sm text-slate-300 mr-2">Multiplicadores: <span className="font-semibold text-emerald-300">x2</span> / <span className="font-semibold text-amber-300">x0.5</span> / <span className="font-semibold text-red-300">x0</span></div>
+              <div className="text-sm text-slate-300 mr-2">Multiplicadores: <span className="font-semibold text-emerald-300">x1.5</span> / <span className="font-semibold text-amber-300">x0.5</span> / <span className="font-semibold text-red-300">x0</span></div>
             </div>
           </div>
 
