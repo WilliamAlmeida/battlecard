@@ -42,6 +42,7 @@ const getTypeIcon = (type: ElementType) => {
     case ElementType.GROUND: return '🏜️';
     case ElementType.BUG: return '🐛';
     case ElementType.POISON: return '☠️';
+    case ElementType.DRAGON: return '🐉';
     default: return '⚪';
   }
 };

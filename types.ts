@@ -3,6 +3,7 @@ export enum ElementType {
   FIRE = 'FIRE',
   WATER = 'WATER',
   ELECTRIC = 'ELECTRIC',
+  DRAGON = 'DRAGON',
   NORMAL = 'NORMAL',
   BUG = 'BUG',
   POISON = 'POISON',

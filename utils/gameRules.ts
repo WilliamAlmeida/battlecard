@@ -21,6 +21,7 @@ export const GameRules = {
       FIRE:   { GRASS: 1.5, BUG: 1.5, WATER: 0.5, GROUND: 0.5 },
       WATER:  { FIRE: 1.5, GROUND: 1.5, GRASS: 0.5, ELECTRIC: 0.5 },
       ELECTRIC: { WATER: 1.5, GRASS: 0.5, GROUND: 0 },
+      DRAGON: { DRAGON: 1.5},
       NORMAL: {},
       BUG:    { GRASS: 1.5, PSYCHIC: 1.5, FIRE: 0.5, FIGHTING: 0.5, POISON: 0.5 },
       POISON: { GRASS: 1.5, POISON: 0.5 },

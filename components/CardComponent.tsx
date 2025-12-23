@@ -19,6 +19,7 @@ const getTypeColor = (type: ElementType) => {
     case ElementType.FIRE: return 'bg-red-600 border-red-800';
     case ElementType.WATER: return 'bg-blue-600 border-blue-800';
     case ElementType.ELECTRIC: return 'bg-yellow-500 border-yellow-700';
+    case ElementType.DRAGON: return 'bg-violet-700 border-violet-900';
     case ElementType.BUG: return 'bg-lime-600 border-lime-800';
     case ElementType.NORMAL: return 'bg-stone-400 border-stone-600';
     case ElementType.POISON: return 'bg-purple-600 border-purple-800';
@@ -38,6 +39,7 @@ const getTypeIcon = (type: ElementType) => {
         case ElementType.FIRE: return '🔥';
         case ElementType.WATER: return '💧';
         case ElementType.ELECTRIC: return '⚡';
+        case ElementType.DRAGON: return '🐉';
         case ElementType.PSYCHIC: return '🔮';
         case ElementType.FIGHTING: return '🥊';
         case ElementType.GROUND: return '🏜️';

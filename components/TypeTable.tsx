@@ -32,6 +32,7 @@ export const TypeTable: React.FC<TypeTableProps> = ({ isOpen: externalOpen, onTo
       case ElementType.WATER: return 'bg-blue-600 border-blue-800 text-white';
       case ElementType.ELECTRIC: return 'bg-yellow-500 border-yellow-700 text-black';
       case ElementType.BUG: return 'bg-lime-600 border-lime-800 text-white';
+      case ElementType.DRAGON: return 'bg-violet-700 border-violet-900 text-white';
       case ElementType.NORMAL: return 'bg-stone-400 border-stone-600 text-black';
       case ElementType.POISON: return 'bg-purple-600 border-purple-800 text-white';
       case ElementType.GROUND: return 'bg-amber-700 border-amber-900 text-black';
@@ -52,6 +53,7 @@ export const TypeTable: React.FC<TypeTableProps> = ({ isOpen: externalOpen, onTo
       case ElementType.GROUND: return '🏜️';
       case ElementType.BUG: return '🐛';
       case ElementType.POISON: return '☠️';
+      case ElementType.DRAGON: return '🐉';
       default: return '⚪';
     }
   };
