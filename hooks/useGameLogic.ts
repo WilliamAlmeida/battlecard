@@ -349,7 +349,7 @@ export const useGameLogic = () => {
     addLog(`${isPlayer ? 'Você' : 'Oponente'} comprou uma carta.`);
   }, [addLog, processFieldStatusEffects, allowDeckOut]);
 
-  const startGame = (options?: { difficulty?: AIDifficulty, mode?: GameMode, customDeck?: CardBase[], npcDeck?: CardBase[], npcHp?: number, sacrificeStrategy?: SacrificeStrategy }) => {
+  const startGame = (options?: { difficulty?: AIDifficulty, mode?: GameMode, customDeck?: CardBase[], npcDeck?: CardBase[], npcHp?: number, npcName?: string, npcAvatar?: string, sacrificeStrategy?: SacrificeStrategy }) => {
     const diff = options?.difficulty || AIDifficulty.NORMAL;
     const mode = options?.mode || GameMode.QUICK_BATTLE;
     
@@ -372,8 +372,8 @@ export const useGameLogic = () => {
 
     const npcHp = options?.npcHp || 8000;
 
-    setPlayer({ id: 'player', hp: 8000, hand: playerDeck.splice(0, 5), deck: playerDeck, field: [], graveyard: [], trapZone: [] });
-    setNpc({ id: 'npc', hp: npcHp, hand: npcDeckShuffled.splice(0, 5), deck: npcDeckShuffled, field: [], graveyard: [], trapZone: [] });
+    setPlayer({ id: 'player', name: 'Player', avatar: '👤', hp: 8000, hand: playerDeck.splice(0, 5), deck: playerDeck, field: [], graveyard: [], trapZone: [] });
+    setNpc({ id: 'npc', name: options?.npcName || 'CPU', avatar: options?.npcAvatar || '🤖', hp: npcHp, hand: npcDeckShuffled.splice(0, 5), deck: npcDeckShuffled, field: [], graveyard: [], trapZone: [] });
     setTurnCount(1);
     // Escolher aleatoriamente quem inicia (50% player, 50% npc)
     const starterChoice: 'player' | 'npc' = Math.random() < 0.5 ? 'player' : 'npc';

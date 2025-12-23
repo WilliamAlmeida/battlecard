@@ -440,7 +440,7 @@ export default function App() {
         </button>
 
         <div className="flex items-center gap-2 md:gap-2 flex-1 md:flex-none">
-          <div className="w-12 md:w-20 h-12 md:h-20 bg-blue-600 rounded-3xl border-4 border-white flex items-center justify-center text-2xl md:text-5xl shadow-lg flex-shrink-0">👤</div>
+          <div className="w-12 md:w-20 h-12 md:h-20 bg-blue-600 rounded-3xl border-4 border-white flex items-center justify-center text-2xl md:text-5xl shadow-lg flex-shrink-0">{player.avatar || '👤'}</div>
           <div className="flex flex-col">
             <div className="font-black text-xs sm:text-lg drop-shadow-md">{player.name || 'Player'}</div>
             <div className="relative">
@@ -475,7 +475,7 @@ export default function App() {
               {floatingDamage?.targetId === 'npc-hp' && <div className="damage-popup right-0 top-0 text-3xl md:text-5xl">-{floatingDamage.value}</div>}
             </div>
           </div>
-          <div className="w-12 md:w-20 h-12 md:h-20 bg-red-600 rounded-3xl border-4 border-white flex items-center justify-center text-2xl md:text-5xl shadow-lg flex-shrink-0">🤖</div>
+          <div className="w-12 md:w-20 h-12 md:h-20 bg-red-600 rounded-3xl border-4 border-white flex items-center justify-center text-2xl md:text-5xl shadow-lg flex-shrink-0">{npc.avatar || '🤖'}</div>
         </div>
       </header>
 
