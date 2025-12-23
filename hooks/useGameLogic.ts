@@ -241,6 +241,8 @@ export const useGameLogic = () => {
   // Game settings
   const [difficulty, setDifficulty] = useState<AIDifficulty>(AIDifficulty.NORMAL);
   const [gameMode, setGameMode] = useState<GameMode>(GameMode.QUICK_BATTLE);
+  // If true, running out of deck ends the game. If false, empty deck only prevents drawing.
+  const [allowDeckOut, setAllowDeckOut] = useState<boolean>(false);
 
   // Stats tracking
   const [totalDamageDealt, setTotalDamageDealt] = useState(0);
@@ -325,9 +327,16 @@ export const useGameLogic = () => {
     // Process status effects at start of turn
     processFieldStatusEffects();
     
-    if (cur.deck.length === 0) { 
-      finishGame(isPlayer ? 'npc' : 'player', 'deck_out'); 
-      return; 
+    if (cur.deck.length === 0) {
+      if (allowDeckOut) {
+        finishGame(isPlayer ? 'npc' : 'player', 'deck_out');
+        return;
+      } else {
+        addLog(`${isPlayer ? 'Você' : 'Oponente'} não tem cartas no deck. Nenhuma carta comprada.`, 'info');
+        // Stay in MAIN phase (no draw) — end draw phase early
+        setPhase(Phase.MAIN);
+        return;
+      }
     }
     
     const newDeck = [...cur.deck];
@@ -338,7 +347,7 @@ export const useGameLogic = () => {
     soundService.playDraw();
     setPhase(Phase.MAIN);
     addLog(`${isPlayer ? 'Você' : 'Oponente'} comprou uma carta.`);
-  }, [addLog, processFieldStatusEffects]);
+  }, [addLog, processFieldStatusEffects, allowDeckOut]);
 
   const startGame = (options?: { difficulty?: AIDifficulty, mode?: GameMode, customDeck?: CardBase[], npcDeck?: CardBase[], npcHp?: number }) => {
     const diff = options?.difficulty || AIDifficulty.NORMAL;
@@ -879,20 +888,38 @@ export const useGameLogic = () => {
             }));
             addLog(`${card.name} destruiu ${target.name}!`, 'combat');
           } else {
+            // Subtract defense from the single target (do not remove other cards)
+            opponentSetFn(p => ({
+              ...p,
+              field: p.field.map(c => c.uniqueId === targetId ? { ...c, defense: Math.max(0, c.defense - damage) } : c)
+            }));
             addLog(`${card.name} causou ${damage} de dano em ${target.name}!`, 'combat');
           }
         }
       }
       else if (effect.target === 'ALL_ENEMIES') {
-        opponentSetFn(p => {
-          const survived = p.field.filter(c => c.defense > damage);
-          const destroyed = p.field.filter(c => c.defense <= damage);
-          return {
-            ...p,
-            field: survived,
-            graveyard: [...p.graveyard, ...destroyed.map(c => ({ ...c, destroyedAt: Date.now() }))]
-          };
+        // Apply damage to each enemy: subtract from defense, destroy if <= 0
+        const affected = opponent.field || [];
+        const destroyed: Card[] = [];
+        const damaged: Card[] = [];
+
+        affected.forEach(c => {
+          if (c.defense <= damage) {
+            destroyed.push(c);
+          } else {
+            damaged.push({ ...c, defense: Math.max(0, c.defense - damage) });
+          }
         });
+
+        opponentSetFn(p => ({
+          ...p,
+          field: damaged,
+          graveyard: [...p.graveyard, ...destroyed.map(c => ({ ...c, destroyedAt: Date.now() }))]
+        }));
+
+        // Logs per target for clarity
+        destroyed.forEach(d => addLog(`${card.name} destruiu ${d.name}!`, 'combat'));
+        damaged.forEach(d => addLog(`${card.name} causou ${damage} de dano em ${d.name}!`, 'combat'));
         addLog(`${card.name} causou ${damage} de dano em todos os inimigos!`, 'combat');
       }
       else if (effect.target === 'OWNER') {
@@ -975,21 +1002,44 @@ export const useGameLogic = () => {
           ? { ...toRevive, hasAttacked: false }
           : { ...toRevive, attack: Math.floor(toRevive.attack / 2), hasAttacked: false };
 
-        // If there's space on the field (max 3), place revived on field, otherwise return to hand
-        if (state.field.length < 3) {
-          setFn(p => ({
-            ...p,
-            field: [...p.field, revivedCard],
-            graveyard: p.graveyard.slice(0, -1)
-          }));
+        // Only Pokémons may be placed on the field. Other card types go to the hand.
+        if (toRevive.cardType === CardType.POKEMON && state.field.length < 3) {
+          const revivedId = toRevive.uniqueId;
+          setFn(p => {
+            // remove only the first matching entry by uniqueId to avoid race conditions
+            const newGrave: typeof p.graveyard = [];
+            let removed = false;
+            for (const g of p.graveyard) {
+              if (!removed && g.uniqueId === revivedId) { removed = true; continue; }
+              newGrave.push(g);
+            }
+            return {
+              ...p,
+              field: [...p.field, revivedCard],
+              graveyard: newGrave
+            };
+          });
           addLog(`${ownerName} reviveu ${toRevive.name} para o campo!`, 'effect');
         } else {
-          setFn(p => ({
-            ...p,
-            hand: [...p.hand, revivedCard],
-            graveyard: p.graveyard.slice(0, -1)
-          }));
-          addLog(`${ownerName} não tinha espaço no campo — ${toRevive.name} foi para a mão!`, 'effect');
+          const revivedId = toRevive.uniqueId;
+          setFn(p => {
+            const newGrave: typeof p.graveyard = [];
+            let removed = false;
+            for (const g of p.graveyard) {
+              if (!removed && g.uniqueId === revivedId) { removed = true; continue; }
+              newGrave.push(g);
+            }
+            return {
+              ...p,
+              hand: [...p.hand, revivedCard],
+              graveyard: newGrave
+            };
+          });
+          if (toRevive.cardType !== CardType.POKEMON) {
+            addLog(`${ownerName} reviveu ${toRevive.name}, mas não é Pokémon — foi para a mão!`, 'effect');
+          } else {
+            addLog(`${ownerName} não tinha espaço no campo — ${toRevive.name} foi para a mão!`, 'effect');
+          }
         }
       }
     }
