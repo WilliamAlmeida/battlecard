@@ -156,7 +156,7 @@ export const GEN1_RAW: RawCard[] = [
   { id: '139', name: 'Omastar', type: ElementType.WATER, attack: 2200, defense: 2100, level: 2 },
   { id: '140', name: 'Kabuto', type: ElementType.WATER, attack: 900, defense: 1100, level: 1 },
   { id: '141', name: 'Kabutops', type: ElementType.WATER, attack: 2300, defense: 2000, level: 2 },
-  { id: '142', name: 'Aerodactyl', type: ElementType.NORMAL, attack: 2600, defense: 2200, level: 2 },
+  { id: '142', name: 'Aerodactyl', type: ElementType.GROUND, attack: 2600, defense: 2200, level: 2 },
   { id: '143', name: 'Snorlax', type: ElementType.NORMAL, attack: 2500, defense: 2500, level: 3 },
   { id: '144', name: 'Articuno', type: ElementType.WATER, attack: 2800, defense: 2600, level: 3 },
   { id: '145', name: 'Zapdos', type: ElementType.ELECTRIC, attack: 2800, defense: 2600, level: 3, rarity: Rarity.LEGENDARY, ability: ABILITIES.pressure },
