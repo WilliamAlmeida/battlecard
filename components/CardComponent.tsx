@@ -197,16 +197,7 @@ export const CardComponent: React.FC<CardProps> = ({ card, compact, isOpponent, 
       {activeStatuses.length > 0 && (
         <div className="absolute bottom-0 left-1/2 -translate-x-1/2 flex items-center">
           {activeStatuses.map((status, i) => (
-            <span key={i} className="text-base animate-pulse">{getStatusIcon(StatusEffect.POISON)}</span>
-          ))}
-          {activeStatuses.map((status, i) => (
             <span key={i} className="text-base animate-pulse">{getStatusIcon(status)}</span>
-          ))}
-          {activeStatuses.map((status, i) => (
-            <span key={i} className="text-base animate-pulse">{getStatusIcon(StatusEffect.BURN)}</span>
-          ))}
-          {activeStatuses.map((status, i) => (
-            <span key={i} className="text-base animate-pulse">{getStatusIcon(StatusEffect.PARALYZE)}</span>
           ))}
         </div>
       )}
