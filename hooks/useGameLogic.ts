@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Player, Card, Phase, GameLogEntry, ElementType, StatusEffect, AIDifficulty, GameMode, AbilityTrigger, CardType, TrapCondition, SacrificeStrategy } from '../types';
 import { INITIAL_DECK, SPELL_CARDS, TRAP_CARDS } from '../constants';
-import { ABILITIES } from '../pokemons/abilities';
 import { GameRules } from '../utils/gameRules';
 import { AIController } from '../classes/AIController';
 import { soundService } from '../services/soundService';
