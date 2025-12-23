@@ -213,7 +213,7 @@ export const CollectionView: React.FC<CollectionViewProps> = ({ onClose, onBack 
                 onClick={handleGiveMissingCards}
                 className="px-6 py-3 rounded-xl font-bold text-lg bg-indigo-600 hover:bg-indigo-500 text-white"
               >
-                Dar cartas faltantes (dev)
+                Obter Todas Cartas
               </button>
             )}
           </div>

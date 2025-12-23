@@ -266,11 +266,11 @@ export const ACHIEVEMENTS_LIST: Omit<Achievement, 'unlocked' | 'unlockedAt' | 'p
   {
     id: 'complete_collection',
     name: 'Pokédex Completa',
-    description: 'Colete todas as 151 cartas',
+    description: 'Colete todas as 187 cartas',
     icon: '📖',
-    condition: { type: 'CARDS_COLLECTED', value: 151 },
+    condition: { type: 'CARDS_COLLECTED', value: 187 },
     reward: { type: 'TITLE', value: 'Mestre Pokémon' },
-    maxProgress: 151
+    maxProgress: 187
   }
 ];
 

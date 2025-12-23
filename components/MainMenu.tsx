@@ -366,7 +366,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
           <div className="text-xs text-slate-500 uppercase">Melhor Streak</div>
         </div>
         <div className="bg-slate-800/50 px-6 py-3 rounded-xl text-center">
-          <div className="text-2xl font-bold text-blue-400">{collectionService.getObtainedCardsCount()}/151</div>
+          <div className="text-2xl font-bold text-blue-400">{collectionService.getObtainedCardsCount()}/187</div>
           <div className="text-xs text-slate-500 uppercase">Coleção</div>
         </div>
         <div className="bg-slate-800/50 px-6 py-3 rounded-xl text-center">
@@ -458,7 +458,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
       </div>
 
         <div className="text-xs text-slate-600 mt-4">
-          Last updated: 23/12/2025 | v1.4.2
+          Last updated: 23/12/2025 | v1.5.1
         </div>
       </div>
     </div>
