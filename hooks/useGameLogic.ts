@@ -706,12 +706,21 @@ export const useGameLogic = () => {
     
     if (!card) return;
     
-    setFn(p => ({
-      ...p,
-      hand: p.hand.filter(c => c.uniqueId !== cardId && !sacrifices.includes(c.uniqueId)),
-      field: [...p.field.filter(c => !sacrifices.includes(c.uniqueId)), { ...card, hasAttacked: false }],
-      graveyard: [...p.graveyard, ...p.field.filter(c => sacrifices.includes(c.uniqueId)).map(c => ({ ...c, destroyedAt: Date.now() }))]
-    }));
+    setFn(p => {
+      const removedFromField = p.field.filter(c => sacrifices.includes(c.uniqueId));
+      const removedFromHand = p.hand.filter(c => sacrifices.includes(c.uniqueId));
+
+      return {
+        ...p,
+        hand: p.hand.filter(c => c.uniqueId !== cardId && !sacrifices.includes(c.uniqueId)),
+        field: [...p.field.filter(c => !sacrifices.includes(c.uniqueId)), { ...card, hasAttacked: false }],
+        graveyard: [
+          ...p.graveyard,
+          ...removedFromField.map(c => ({ ...c, destroyedAt: Date.now() })),
+          ...removedFromHand.map(c => ({ ...c, destroyedAt: Date.now() }))
+        ]
+      };
+    });
     
     soundService.playSummon();
     addLog(`${owner === 'player' ? 'Você' : 'CPU'} invocou ${card.name}!`);
