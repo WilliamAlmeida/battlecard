@@ -25,7 +25,7 @@ export class AIController {
   // Chance de cometer erro baseado na dificuldade
   private static shouldMakeMistake(): boolean {
     const mistakeChance = {
-      [AIDifficulty.EASY]: 0.4,    // 40% chance de erro
+      [AIDifficulty.EASY]: 0.2,    // 20% chance de erro
       [AIDifficulty.NORMAL]: 0.15, // 15% chance de erro
       [AIDifficulty.HARD]: 0.05,   // 5% chance de erro
       [AIDifficulty.EXPERT]: 0     // Nunca erra
