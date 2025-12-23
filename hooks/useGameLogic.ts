@@ -658,11 +658,28 @@ export const useGameLogic = () => {
           if (action.type === 'SUMMON' && action.cardId) {
             const card = npc.hand.find(c => c.uniqueId === action.cardId);
             if (card) {
+               const sacrifices = action.sacrifices || [];
                setNpc(p => {
-                 const newHand = p.hand.filter(c => c.uniqueId !== action.cardId && !(action.sacrifices || []).includes(c.uniqueId));
-                 const newField = p.field.filter(c => !(action.sacrifices || []).includes(c.uniqueId));
-                 return { ...p, hand: newHand, field: [...newField, { ...card, hasAttacked: false }], graveyard: [...p.graveyard] };
+                 const removedFromField = p.field.filter(c => sacrifices.includes(c.uniqueId));
+                 const removedFromHand = p.hand.filter(c => sacrifices.includes(c.uniqueId));
+                 const newHand = p.hand.filter(c => c.uniqueId !== action.cardId && !sacrifices.includes(c.uniqueId));
+                 const newField = [...p.field.filter(c => !sacrifices.includes(c.uniqueId)), { ...card, hasAttacked: false }];
+                 const newGrave = [
+                   ...p.graveyard,
+                   ...removedFromField.map(c => ({ ...c, destroyedAt: Date.now() })),
+                   ...removedFromHand.map(c => ({ ...c, destroyedAt: Date.now() }))
+                 ];
+                 return { ...p, hand: newHand, field: newField, graveyard: newGrave };
                });
+
+               // Log de quais cartas foram sacrificadas (campo / mão)
+               if (action.sacrifices && action.sacrifices.length > 0) {
+                 const sacrificedFromField = npc.field.filter(c => (action.sacrifices || []).includes(c.uniqueId));
+                 const sacrificedFromHand = npc.hand.filter(c => (action.sacrifices || []).includes(c.uniqueId));
+                 sacrificedFromField.forEach(c => addLog(`CPU sacrificou ${c.name} do campo`, 'info'));
+                 sacrificedFromHand.forEach(c => addLog(`CPU sacrificou ${c.name} da mão`, 'info'));
+               }
+
                addLog(`CPU invocou ${card.name}!`);
                soundService.playSummon();
                setPhase(Phase.BATTLE);
@@ -723,6 +740,21 @@ export const useGameLogic = () => {
     });
     
     soundService.playSummon();
+
+    // Log sacrifices
+    if (sacrifices.length > 0) {
+      const state = owner === 'player' ? gameStateRef.current.player : gameStateRef.current.npc;
+      const sacrificedFromField = state.field.filter(c => sacrifices.includes(c.uniqueId));
+      const sacrificedFromHand = state.hand.filter(c => sacrifices.includes(c.uniqueId));
+      
+      if (sacrificedFromField.length > 0) {
+        sacrificedFromField.forEach(c => addLog(`${owner === 'player' ? 'Você' : 'CPU'} sacrificou ${c.name} do campo`, 'info'));
+      }
+      if (sacrificedFromHand.length > 0) {
+        sacrificedFromHand.forEach(c => addLog(`${owner === 'player' ? 'Você' : 'CPU'} sacrificou ${c.name} da mão`, 'info'));
+      }
+    }
+    
     addLog(`${owner === 'player' ? 'Você' : 'CPU'} invocou ${card.name}!`);
     
     // Trigger ON_SUMMON ability
