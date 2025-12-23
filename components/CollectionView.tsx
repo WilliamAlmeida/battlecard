@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Card, CardType, Rarity, ElementType } from '../types';
 import { CardComponent } from './CardComponent';
 import { collectionService } from '../services/collectionService';
@@ -58,6 +58,10 @@ export const CollectionView: React.FC<CollectionViewProps> = ({ onClose, onBack 
   const [viewMode, setViewMode] = useState<'tiles' | 'component'>('tiles');
   const [openingPack, setOpeningPack] = useState(false);
   const [packResults, setPackResults] = useState<string[]>([]);
+  // incremental rendering to avoid huge DOM/memory usage
+  const ITEMS_PER_BATCH = 40;
+  const [visibleCount, setVisibleCount] = useState<number>(ITEMS_PER_BATCH);
+  const containerRef = useRef<HTMLDivElement | null>(null);
 
   const [collection, setCollection] = useState(collectionService.getCollection());
   const allCards = [...INITIAL_DECK, ...SPELL_CARDS, ...TRAP_CARDS];
@@ -97,6 +101,19 @@ export const CollectionView: React.FC<CollectionViewProps> = ({ onClose, onBack 
       setCollection(collectionService.getCollection());
     } else {
       soundService.playError();
+    }
+  };
+
+  // reset visibleCount when filters change
+  useEffect(() => {
+    setVisibleCount(ITEMS_PER_BATCH);
+  }, [filter, typeFilter, rarityFilter, showOnlyOwned, viewMode]);
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const el = e.currentTarget;
+    const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 300;
+    if (nearBottom && visibleCount < filteredCards.length) {
+      setVisibleCount(c => Math.min(filteredCards.length, c + ITEMS_PER_BATCH));
     }
   };
 
@@ -159,7 +176,7 @@ export const CollectionView: React.FC<CollectionViewProps> = ({ onClose, onBack 
   }
 
   return (
-    <div className="fixed inset-0 bg-slate-900 z-50 overflow-y-auto select-none">
+    <div ref={containerRef} onScroll={handleScroll} className="fixed inset-0 bg-slate-900 z-50 overflow-y-auto select-none">
       <div className="p-8">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
@@ -287,7 +304,7 @@ export const CollectionView: React.FC<CollectionViewProps> = ({ onClose, onBack 
         {/* Cards Grid or Component View */}
         {viewMode === 'tiles' ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4">
-            {filteredCards.map(card => {
+            {filteredCards.slice(0, visibleCount).map(card => {
               const owned = collectionService.hasCard(card.id);
               const quantity = collectionService.getCardQuantity(card.id);
               
@@ -364,10 +381,20 @@ export const CollectionView: React.FC<CollectionViewProps> = ({ onClose, onBack 
                 </div>
               );
             })}
+            {visibleCount < filteredCards.length && (
+              <div className="col-span-full flex justify-center mt-4">
+                <button
+                  onClick={() => setVisibleCount(c => Math.min(filteredCards.length, c + ITEMS_PER_BATCH))}
+                  className="px-6 py-3 rounded-xl bg-slate-700 hover:bg-slate-600 font-bold"
+                >
+                  Carregar mais
+                </button>
+              </div>
+            )}
           </div>
         ) : (
           <div className="flex flex-wrap justify-between gap-4 sm:gap-8">
-            {filteredCards.map(card => {
+            {filteredCards.slice(0, visibleCount).map(card => {
               const owned = collectionService.hasCard(card.id);
               const quantity = collectionService.getCardQuantity(card.id);
               return (
