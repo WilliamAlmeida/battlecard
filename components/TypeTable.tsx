@@ -19,7 +19,7 @@ export const TypeTable: React.FC<TypeTableProps> = ({ isOpen: externalOpen, onTo
 
   const cellClassFor = (mult?: number) => {
     if (mult === undefined || mult === 1) return 'bg-slate-800 text-slate-200';
-    if (mult === 2) return 'bg-emerald-700 text-emerald-100 font-bold';
+    if (mult === 1.5) return 'bg-emerald-700 text-emerald-100 font-bold';
     if (mult === 0.5) return 'bg-amber-700 text-amber-50';
     if (mult === 0) return 'bg-red-800 text-red-100 line-through';
     return 'bg-slate-800 text-slate-200';
@@ -33,6 +33,7 @@ export const TypeTable: React.FC<TypeTableProps> = ({ isOpen: externalOpen, onTo
       case ElementType.ELECTRIC: return 'bg-yellow-500 border-yellow-700 text-black';
       case ElementType.BUG: return 'bg-lime-600 border-lime-800 text-white';
       case ElementType.DRAGON: return 'bg-violet-700 border-violet-900 text-white';
+      case ElementType.GHOST: return 'bg-indigo-700 border-indigo-900 text-white';
       case ElementType.NORMAL: return 'bg-stone-400 border-stone-600 text-black';
       case ElementType.POISON: return 'bg-purple-600 border-purple-800 text-white';
       case ElementType.GROUND: return 'bg-amber-700 border-amber-900 text-black';
@@ -48,6 +49,7 @@ export const TypeTable: React.FC<TypeTableProps> = ({ isOpen: externalOpen, onTo
       case ElementType.FIRE: return '🔥';
       case ElementType.WATER: return '💧';
       case ElementType.ELECTRIC: return '⚡';
+      case ElementType.GHOST: return '👻';
       case ElementType.PSYCHIC: return '🔮';
       case ElementType.FIGHTING: return '🥊';
       case ElementType.GROUND: return '🏜️';

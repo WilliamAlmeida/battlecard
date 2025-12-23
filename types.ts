@@ -4,6 +4,7 @@ export enum ElementType {
   WATER = 'WATER',
   ELECTRIC = 'ELECTRIC',
   DRAGON = 'DRAGON',
+  GHOST = 'GHOST',
   NORMAL = 'NORMAL',
   BUG = 'BUG',
   POISON = 'POISON',

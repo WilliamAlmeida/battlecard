@@ -37,6 +37,7 @@ const getTypeIcon = (type: ElementType) => {
     case ElementType.FIRE: return '🔥';
     case ElementType.WATER: return '💧';
     case ElementType.ELECTRIC: return '⚡';
+    case ElementType.GHOST: return '👻';
     case ElementType.PSYCHIC: return '🔮';
     case ElementType.FIGHTING: return '🥊';
     case ElementType.GROUND: return '🏜️';
