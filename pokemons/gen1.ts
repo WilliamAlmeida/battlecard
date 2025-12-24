@@ -11,6 +11,7 @@ interface RawCard {
   level: number;
   rarity?: Rarity;
   ability?: Ability;
+  imageUrl?: string;
 }
 
 // INITIAL_DECK will be built from GEN1_RAW below
@@ -43,10 +44,10 @@ export const GEN1_RAW: RawCard[] = [
   { id: '026', name: 'Raichu', type: ElementType.ELECTRIC, attack: 2400, defense: 1800, level: 2, ability: ABILITIES.lightning_rod },
   { id: '027', name: 'Sandshrew', type: ElementType.GROUND, attack: 1100, defense: 1400, level: 1 },
   { id: '028', name: 'Sandslash', type: ElementType.GROUND, attack: 1900, defense: 2100, level: 2, ability: ABILITIES.sand_veil },
-  { id: '029', name: 'Nidoran♀', type: ElementType.POISON, attack: 900, defense: 800, level: 1 },
+  { id: '029', name: 'Nidoran♀', type: ElementType.POISON, attack: 900, defense: 800, level: 1, imageUrl: 'nidoran-f' },
   { id: '030', name: 'Nidorina', type: ElementType.POISON, attack: 1400, defense: 1200, level: 2 },
   { id: '031', name: 'Nidoqueen', type: ElementType.POISON, attack: 2400, defense: 2000, level: 3, ability: ABILITIES.poison_point },
-  { id: '032', name: 'Nidoran♂', type: ElementType.POISON, attack: 900, defense: 800, level: 1 },
+  { id: '032', name: 'Nidoran♂', type: ElementType.POISON, attack: 900, defense: 800, level: 1, imageUrl: 'nidoran-m' },
   { id: '033', name: 'Nidorino', type: ElementType.POISON, attack: 1500, defense: 1200, level: 2 },
   { id: '034', name: 'Nidoking', type: ElementType.POISON, attack: 2500, defense: 2100, level: 3, ability: ABILITIES.poison_gas },
   { id: '035', name: 'Clefairy', type: ElementType.NORMAL, attack: 1000, defense: 1200, level: 1 },

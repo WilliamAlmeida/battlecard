@@ -10,7 +10,8 @@ const createCard = (
   defense: number,
   level: number,
   rarity: Rarity = Rarity.COMMON,
-  ability?: Ability
+  ability?: Ability,
+  imageUrl?: string
 ): Omit<Card, 'uniqueId' | 'hasAttacked' | 'statusEffects' | 'statusDuration'> => ({
   id,
   name,
@@ -22,6 +23,7 @@ const createCard = (
   sacrificeRequired: level === 1 ? 0 : level === 2 ? 1 : 2,
   rarity,
   ability,
+  imageUrl
 });
 
 // Função auxiliar para criar cartas de magia
@@ -81,7 +83,7 @@ type CardBase = Omit<Card, 'uniqueId' | 'hasAttacked' | 'statusEffects' | 'statu
 
 // Map raw entries to the shape returned by createCard
 export const INITIAL_DECK: CardBase[] = GEN1_RAW.map(c =>
-  createCard(c.id, c.name, c.type, c.attack, c.defense, c.level, c.rarity ?? getRarityByLevel(c.level), c.ability)
+  createCard(c.id, c.name, c.type, c.attack, c.defense, c.level, c.rarity ?? getRarityByLevel(c.level), c.ability, c.imageUrl)
 );
 
 // NPC deck distribution presets (sums should equal MAX_DECK_SIZE when possible)

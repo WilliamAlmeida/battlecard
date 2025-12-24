@@ -192,7 +192,7 @@ export const CardComponent: React.FC<CardProps> = ({ card, compact, isOpponent, 
 
   // Pokemon Card
   // Build background URL from card name (lowercase, spaces -> '-') and apply
-  const imageName = card.name
+  const imageName = (card.imageUrl || card.name)
     .toLowerCase()
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')

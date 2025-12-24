@@ -133,6 +133,7 @@ export interface Card {
   trapEffect?: SpellEffect;
   isSet?: boolean;
   destroyedAt?: number;
+  imageUrl?: string;
 }
 
 export interface Player {
