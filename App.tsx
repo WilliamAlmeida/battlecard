@@ -3,6 +3,7 @@ import { Card, Phase, ElementType, AIDifficulty, GameMode } from './types';
 import { GameRules } from './utils/gameRules';
 import { TypeTable } from './components/TypeTable';
 import { Graveyard } from './components/Graveyard';
+import { OpponentPanel } from './components/OpponentPanel';
 import { useGameLogic } from './hooks/useGameLogic';
 import { CardComponent } from './components/CardComponent';
 import { BattleLog } from './components/BattleLog';
@@ -35,7 +36,7 @@ export default function App() {
   const [cardsToSacrifice, setCardsToSacrifice] = useState<string[]>([]);
   const [pendingSummonCardId, setPendingSummonCardId] = useState<string | null>(null);
   const [attackMode, setAttackMode] = useState(false);
-  const [activeSidePanel, setActiveSidePanel] = useState<'log' | 'types' | 'grave' | null>('log');
+  const [activeSidePanel, setActiveSidePanel] = useState<'log' | 'types' | 'grave' | 'opponent' | null>('log');
   const [selectedDeckId, setSelectedDeckId] = useState<string | null>(null);
   const [lastBossId, setLastBossId] = useState<string | null>(null);
   const [showNeedDeckModal, setShowNeedDeckModal] = useState(false);
@@ -620,6 +621,13 @@ export default function App() {
       <TypeTable
         isOpen={activeSidePanel === 'types'}
         onToggle={() => setActiveSidePanel(v => v === 'types' ? null : 'types')}
+      />
+
+      <OpponentPanel
+        npcHand={npc.hand}
+        npcDeck={npc.deck}
+        isOpen={activeSidePanel === 'opponent'}
+        onToggle={() => setActiveSidePanel(v => v === 'opponent' ? null : 'opponent')}
       />
 
       <Graveyard
