@@ -1,390 +1,24 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Player, Card, Phase, GameLogEntry, ElementType, StatusEffect, AIDifficulty, GameMode, AbilityTrigger, CardType, TrapCondition, SacrificeStrategy } from '../types';
-import { INITIAL_DECK, SPELL_CARDS, TRAP_CARDS } from '../constants';
+import { Player, Card, Phase, GameLogEntry, StatusEffect, AIDifficulty, GameMode, AbilityTrigger, CardType, TrapCondition, SacrificeStrategy } from '../types';
+import { INITIAL_DECK } from '../constants';
 import { GameRules } from '../utils/gameRules';
 import { AIController } from '../classes/AIController';
 import { soundService } from '../services/soundService';
 import { statsService } from '../services/statsService';
 import { achievementsService } from '../services/achievementsService';
 
-type CardBase = Omit<Card, 'uniqueId' | 'hasAttacked' | 'statusEffects' | 'statusDuration'>;
-
-const generateUniqueId = () => Math.random().toString(36).substr(2, 9);
-const shuffle = <T,>(array: T[]): T[] => {
-  const newArray = [...array];
-  for (let i = newArray.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
-  }
-  return newArray;
-};
-
-// Status effect handlers
-const processStatusEffects = (card: Card): { card: Card, damage: number, canAct: boolean, logs: string[] } => {
-  const logs: string[] = [];
-  let damage = 0;
-  let canAct = true;
-  
-  if (!card.statusEffects || card.statusEffects.length === 0) {
-    return { card, damage, canAct, logs };
-  }
-
-  const newCard = { ...card };
-  const activeStatuses = newCard.statusEffects?.filter(s => s !== StatusEffect.NONE) || [];
-  const newDurations = [...(newCard.statusDuration || [])];
-  const statusesToRemove: StatusEffect[] = [];
-
-  activeStatuses.forEach((status, index) => {
-    switch (status) {
-      case StatusEffect.BURN:
-        damage += Math.floor(newCard.attack * 0.1);
-        logs.push(`${newCard.name} sofre queimadura! (-${Math.floor(newCard.attack * 0.1)} HP)`);
-        break;
-      case StatusEffect.POISON:
-        damage += 100;
-        logs.push(`${newCard.name} sofre envenenamento! (-100 HP)`);
-        break;
-      case StatusEffect.PARALYZE:
-        if (Math.random() < 0.25) {
-          canAct = false;
-          logs.push(`${newCard.name} está paralisado e não pode agir!`);
-        }
-        break;
-      case StatusEffect.FREEZE:
-        canAct = false;
-        logs.push(`${newCard.name} está congelado!`);
-        if (Math.random() < 0.2) {
-          statusesToRemove.push(StatusEffect.FREEZE);
-          logs.push(`${newCard.name} descongelou!`);
-        }
-        break;
-      case StatusEffect.SLEEP:
-        canAct = false;
-        logs.push(`${newCard.name} está dormindo!`);
-        if (Math.random() < 0.33) {
-          statusesToRemove.push(StatusEffect.SLEEP);
-          logs.push(`${newCard.name} acordou!`);
-        }
-        break;
-      case StatusEffect.CONFUSE:
-        if (Math.random() < 0.33) {
-          damage += Math.floor(newCard.attack * 0.25);
-          logs.push(`${newCard.name} se machucou na confusão!`);
-        }
-        break;
-    }
-
-    // Decrease duration
-    if (newDurations[index] !== undefined) {
-      newDurations[index]--;
-      if (newDurations[index] <= 0) {
-        statusesToRemove.push(status);
-        logs.push(`${newCard.name} se recuperou de ${getStatusName(status)}!`);
-      }
-    }
-  });
-
-  // Remove expired statuses
-  newCard.statusEffects = activeStatuses.filter(s => !statusesToRemove.includes(s));
-  newCard.statusDuration = newDurations.filter((_, i) => !statusesToRemove.includes(activeStatuses[i]));
-
-  return { card: newCard, damage, canAct, logs };
-};
-
-const getStatusName = (status: StatusEffect): string => {
-  const names: Record<StatusEffect, string> = {
-    [StatusEffect.NONE]: '',
-    [StatusEffect.BURN]: 'queimadura',
-    [StatusEffect.FREEZE]: 'congelamento',
-    [StatusEffect.PARALYZE]: 'paralisia',
-    [StatusEffect.POISON]: 'envenenamento',
-    [StatusEffect.SLEEP]: 'sono',
-    [StatusEffect.CONFUSE]: 'confusão'
-  };
-  return names[status];
-};
-
-const applyStatusEffect = (card: Card, status: StatusEffect, duration: number = 3): Card => {
-  const newCard = { ...card };
-  if (!newCard.statusEffects) newCard.statusEffects = [];
-  if (!newCard.statusDuration) newCard.statusDuration = [];
-  
-  // Don't stack same status
-  if (!newCard.statusEffects.includes(status)) {
-    newCard.statusEffects.push(status);
-    newCard.statusDuration.push(duration);
-  }
-  
-  return newCard;
-};
-
-// Process ability effects
-type AbilityProcessResult = {
-  logs: string[];
-  drawCards?: number;
-  healOwner?: number;
-  statusToApply?: { target: Card, status: StatusEffect }[];
-  reviveCard?: Card;
-};
-
-const processAbility = (
-  card: Card,
-  trigger: AbilityTrigger,
-  context: {
-    owner: Player,
-    opponent: Player,
-    attacker?: Card,
-    defender?: Card,
-    destroyed?: boolean
-  }
-): AbilityProcessResult | null => {
-  if (!card.ability || card.ability.trigger !== trigger) return null;
-
-  const result: AbilityProcessResult = { logs: [] };
-  const ability = card.ability;
-  const effect = ability.effect;
-
-  result.logs.push(`💫 ${card.name} ativou ${ability.name}!`);
-
-  // ON_SUMMON effects
-  if (trigger === AbilityTrigger.ON_SUMMON) {
-    if (effect.type === 'DRAW') {
-      result.drawCards = effect.value || 1;
-      result.logs.push(`Comprou ${result.drawCards} carta(s)!`);
-    }
-    else if (effect.type === 'STATUS' && effect.statusEffect && effect.target === 'ALL_ENEMIES') {
-      const targets = context.opponent.field.map(c => ({ target: c, status: effect.statusEffect! }));
-      result.statusToApply = targets;
-      targets.forEach(t => result.logs.push(`${t.target.name} foi afetado por ${effect.statusEffect}!`));
-    }
-  }
-
-  // ON_ATTACK effects
-  if (trigger === AbilityTrigger.ON_ATTACK && context.defender) {
-    if (effect.type === 'STATUS' && effect.statusEffect) {
-      if (Math.random() < 0.3) {
-        result.statusToApply = [{ target: context.defender, status: effect.statusEffect }];
-        result.logs.push(`${context.defender.name} foi afetado por ${effect.statusEffect}!`);
-      }
-    }
-    else if (effect.type === 'DRAW' && context.destroyed) {
-      // pickup ability: draw card when destroying enemy
-      if (Math.random() < 0.5) {
-        result.drawCards = 1;
-        result.logs.push(`Comprou 1 carta ao destruir o inimigo!`);
-      }
-    }
-  }
-
-  // ON_DAMAGE effects (quando a carta recebe dano)
-  if (trigger === AbilityTrigger.ON_DAMAGE && context.attacker) {
-    if (effect.type === 'STATUS' && effect.statusEffect) {
-      if (Math.random() < 0.3) {
-        result.statusToApply = [{ target: context.attacker, status: effect.statusEffect }];
-        result.logs.push(`${context.attacker.name} foi afetado por ${effect.statusEffect} ao atacar ${card.name}!`);
-      }
-    }
-    else if (effect.type === 'STATUS' && !effect.statusEffect) {
-      // synchronize: copy status to attacker
-      if (card.statusEffects && card.statusEffects.length > 0) {
-        const statusToCopy = card.statusEffects[0];
-        result.statusToApply = [{ target: context.attacker, status: statusToCopy }];
-        result.logs.push(`${context.attacker.name} foi afetado por ${statusToCopy} (Sincronizar)!`);
-      }
-    }
-  }
-
-  // ON_DESTROY effects
-  if (trigger === AbilityTrigger.ON_DESTROY) {
-    if (effect.type === 'HEAL') {
-      result.healOwner = effect.value || 500;
-      result.logs.push(`Dono recuperou ${result.healOwner} HP!`);
-    }
-    else if (effect.type === 'REVIVE') {
-      if (Math.random() < 0.25) {
-        result.reviveCard = { ...card, attack: Math.floor(card.attack / 2), defense: Math.floor(card.defense / 2), hasAttacked: true };
-        result.logs.push(`${card.name} renasceu com metade do ATK/DEF!`);
-      }
-    }
-  }
-
-  // ON_TURN_END effects
-  if (trigger === AbilityTrigger.ON_TURN_END) {
-    if (effect.type === 'HEAL') {
-      result.healOwner = effect.value || 200;
-      result.logs.push(`Dono recuperou ${result.healOwner} HP!`);
-    }
-  }
-
-  return result;
-};
-
-// Calculate passive ability bonuses
-const calculatePassiveStats = (card: Card, owner: Player, opponent: Player): { attack: number, defense: number, evasion?: number } => {
-  let attackBonus = 0;
-  let defenseBonus = 0;
-  let evasion = 0;
-
-  if (!card.ability || card.ability.trigger !== AbilityTrigger.PASSIVE) {
-    return { attack: attackBonus, defense: defenseBonus };
-  }
-
-  const ability = card.ability;
-  const effect = ability.effect;
-
-  // blaze, torrent, overgrow: +500 ATK when HP < 50%
-  if ((ability.id === 'blaze' || ability.id === 'torrent' || ability.id === 'overgrow') && owner.hp < 4000) {
-    attackBonus += 500;
-  }
-
-  // guts: +50% ATK when affected by status
-  if (ability.id === 'guts' && card.statusEffects && card.statusEffects.length > 0) {
-    attackBonus += Math.floor(card.attack * 0.5);
-  }
-
-  // swarm: +300 ATK for each Bug ally on field
-  if (ability.id === 'swarm') {
-    const bugAllies = owner.field.filter(c => c.type === ElementType.BUG && c.uniqueId !== card.uniqueId).length;
-    attackBonus += bugAllies * 300;
-  }
-
-  // pressure: enemies have -300 ATK
-  if (ability.id === 'pressure' && effect.type === 'DEBUFF') {
-    // This is applied to opponents, handled separately
-  }
-
-  // lightning_rod: +300 ATK (simplified, originally when targeted by electric)
-  if (ability.id === 'lightning_rod') {
-    attackBonus += 300;
-  }
-
-  // sand_veil: 20% evasion
-  if (ability.id === 'sand_veil') {
-    evasion = 0.2;
-  }
-
-  return { attack: attackBonus, defense: defenseBonus, evasion };
-};
-
-// Calculate debuffs from opponent's passive abilities
-const calculateOpponentPassiveDebuffs = (targetCard: Card, opponent: Player): { attack: number, defense: number } => {
-  let attackDebuff = 0;
-  let defenseDebuff = 0;
-
-  // Check all opponent cards for pressure ability
-  opponent.field.forEach(opponentCard => {
-    if (opponentCard.ability?.id === 'pressure' && opponentCard.ability.trigger === AbilityTrigger.PASSIVE) {
-      attackDebuff -= 300;
-    }
-  });
-
-  return { attack: attackDebuff, defense: defenseDebuff };
-};
-
-// Helper to check and activate traps
-const checkAndActivateTraps = (
-  trapOwner: Player,
-  opponent: Player,
-  condition: TrapCondition,
-  context: { attacker?: Card, defender?: Card, summoned?: Card, destroyed?: Card, attackerOwner?: 'player' | 'npc' },
-  setPlayer: (value: Player | ((prev: Player) => Player)) => void,
-  setNpc: (value: Player | ((prev: Player) => Player)) => void
-): { activatedTraps: Card[], damageToOpponentPlayer: number, statusEffects: Array<{target: Card, status: StatusEffect}>, destroyTargets: string[], logs: string[], debuffTargets: Array<{targetId: string, value: number, stat?: 'ATTACK' | 'DEFENSE'}>, negateAttack: boolean, surviveTrap: boolean } => {
-  const activatedTraps: Card[] = [];
-  let totalDamageToOpponentPlayer = 0;
-  const logs: string[] = [];
-  const statusEffects: Array<{target: Card, status: StatusEffect}> = [];
-  const destroyTargets: string[] = [];
-  const debuffTargets: Array<{targetId: string, value: number, stat?: 'ATTACK' | 'DEFENSE'}> = [];
-  let negateAttack = false;
-  let surviveTrap = false;
-
-  const seenTrapIds = new Set<string>();
-  trapOwner.trapZone.forEach(trap => {
-    if (trap.trapCondition === condition && trap.isSet) {
-      // Only activate one trap instance per card `id` per event.
-      // If multiple traps with the same `id` are set, only the first will trigger.
-      if (seenTrapIds.has(trap.id)) return;
-      seenTrapIds.add(trap.id);
-      activatedTraps.push(trap);
-      logs.push(`⚠️ TRAP ATIVADA: ${trap.name}!`);
-
-      if (trap.trapEffect) {
-        const effect = trap.trapEffect;
-        
-        if (effect.type === 'DAMAGE') {
-          const damage = effect.value !== undefined ? effect.value : 500;
-          
-          // Handle special damage effects
-          if (effect.specialId === 'reflect_damage' && context.attacker && context.defender) {
-            // Mirror Coat: reflect the attacker's attack back
-            const reflectedDamage = context.attacker.attack;
-            totalDamageToOpponentPlayer += reflectedDamage;
-            logs.push(`${trap.name} refletiu ${reflectedDamage} de dano!`);
-          }
-          else if (effect.target === 'SINGLE_ENEMY' && context.attacker) {
-            totalDamageToOpponentPlayer += damage;
-            logs.push(`${trap.name} causa ${damage} de dano em ${context.attacker.name}!`);
-          }
-          else if (effect.target === 'ALL_ENEMIES') {
-            // Damage all opponent's field monsters
-            opponent.field.forEach(card => {
-              if (damage >= card.defense) {
-                destroyTargets.push(card.uniqueId);
-                logs.push(`${trap.name} destruiu ${card.name} com ${damage} de dano!`);
-              } else {
-                logs.push(`${trap.name} causou ${damage} de dano em ${card.name}!`);
-              }
-            });
-          }
-        }
-        else if (effect.type === 'STATUS' && effect.statusEffect) {
-          if (effect.target === 'SINGLE_ENEMY' && context.attacker) {
-            statusEffects.push({ target: context.attacker, status: effect.statusEffect });
-            logs.push(`${trap.name} aplicou ${effect.statusEffect} em ${context.attacker.name}!`);
-          }
-          else if (effect.target === 'SINGLE_ENEMY' && context.summoned) {
-            statusEffects.push({ target: context.summoned, status: effect.statusEffect });
-            logs.push(`${trap.name} aplicou ${effect.statusEffect} em ${context.summoned.name}!`);
-          }
-        }
-        else if (effect.type === 'DESTROY') {
-          if (effect.target === 'SINGLE_ENEMY' && context.attacker) {
-            destroyTargets.push(context.attacker.uniqueId);
-            logs.push(`${trap.name} destruiu ${context.attacker.name}!`);
-          }
-        }
-        else if (effect.type === 'DEBUFF' && effect.value) {
-          const statToDecrease = effect.stat; // if undefined => apply to both
-          const statName = statToDecrease ? (statToDecrease === 'DEFENSE' ? 'DEF' : 'ATK') : 'ATK/DEF';
-
-          if (effect.target === 'SINGLE_ENEMY' && context.attacker) {
-            debuffTargets.push({ targetId: context.attacker.uniqueId, value: effect.value, stat: statToDecrease });
-            logs.push(`${trap.name} reduziu ${Math.abs(effect.value)} ${statName} de ${context.attacker.name}!`);
-          }
-          else if (effect.target === 'ALL_ENEMIES') {
-            opponent.field.forEach(card => {
-              debuffTargets.push({ targetId: card.uniqueId, value: effect.value!, stat: statToDecrease });
-            });
-            logs.push(`${trap.name} reduziu ${Math.abs(effect.value)} ${statName} de todos os inimigos!`);
-          }
-        }
-        else if (effect.type === 'SPECIAL') {
-          if (effect.specialId === 'negate_attack') {
-            negateAttack = true;
-            logs.push(`${trap.name} negou o ataque!`);
-          }
-          else if (effect.specialId === 'survive_1hp') {
-            surviveTrap = true;
-            logs.push(`${trap.name} permitiu sobrevivência com 1 HP!`);
-          }
-        }
-      }
-    }
-  });
-
-  return { activatedTraps, damageToOpponentPlayer: totalDamageToOpponentPlayer, statusEffects, destroyTargets, logs, debuffTargets, negateAttack, surviveTrap };
-};
+// Import refactored modules
+import {
+  CardBase,
+  generateUniqueId,
+  shuffle,
+  processStatusEffects,
+  applyStatusEffect,
+  processAbility,
+  calculatePassiveStats,
+  calculateOpponentPassiveDebuffs,
+  checkAndActivateTraps
+} from './gameLogic';
 
 export const useGameLogic = () => {
   const [gameStarted, setGameStarted] = useState(false);
@@ -889,18 +523,32 @@ export const useGameLogic = () => {
                   fn(p => ({ ...p, hp: Math.min(8000, p.hp + destroyAbilityResult.healOwner!) }));
                 }
 
-                // Apply revive
+                // Apply revive (remove from graveyard and add to field/hand)
                 if (destroyAbilityResult.reviveCard) {
                   const fn = isPlayer ? setNpc : setPlayer;
                   setTimeout(() => {
                     fn(p => {
+                      const revivedId = destroyAbilityResult.reviveCard!.uniqueId;
+                      const newGrave: typeof p.graveyard = [];
+                      let removed = false;
+                      for (const g of p.graveyard) {
+                        if (!removed && g.uniqueId === revivedId) { removed = true; continue; }
+                        newGrave.push(g);
+                      }
+
                       if (p.field.length < 3) {
                         return {
                           ...p,
-                          field: [...p.field, destroyAbilityResult.reviveCard!]
+                          field: [...p.field, destroyAbilityResult.reviveCard!],
+                          graveyard: newGrave
                         };
                       }
-                      return p;
+
+                      return {
+                        ...p,
+                        hand: [...p.hand, destroyAbilityResult.reviveCard!],
+                        graveyard: newGrave
+                      };
                     });
                     addLog(`${defender.name} renasceu no campo!`, 'effect');
                   }, 500);
