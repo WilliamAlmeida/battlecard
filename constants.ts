@@ -1,4 +1,4 @@
-import { Card, ElementType, CardType, Rarity, Ability, AbilityTrigger, StatusEffect, SpellEffect, TrapCondition } from './types';
+import { Card, ElementType, CardType, Rarity, Ability, AbilityTrigger, StatusEffect, SpellEffect, TrapCondition, AIDifficulty } from './types';
 import { GEN1_RAW } from './pokemons/gen1';
 
 // Função auxiliar para criar cartas de Pokémon
@@ -83,6 +83,14 @@ type CardBase = Omit<Card, 'uniqueId' | 'hasAttacked' | 'statusEffects' | 'statu
 export const INITIAL_DECK: CardBase[] = GEN1_RAW.map(c =>
   createCard(c.id, c.name, c.type, c.attack, c.defense, c.level, c.rarity ?? getRarityByLevel(c.level), c.ability)
 );
+
+// NPC deck distribution presets (sums should equal MAX_DECK_SIZE when possible)
+export const NPC_DECK_DISTRIBUTION: Record<AIDifficulty, { common: number; uncommon: number; rarePlus: number }> = {
+  [AIDifficulty.EASY]:   { common: 28, uncommon: 10, rarePlus: 2 },
+  [AIDifficulty.NORMAL]: { common: 24, uncommon: 12, rarePlus: 4 },
+  [AIDifficulty.HARD]:   { common: 15, uncommon: 15, rarePlus: 10 },
+  [AIDifficulty.EXPERT]: { common: 10, uncommon: 20, rarePlus: 10 }
+};
 
 // === CARTAS DE MAGIA ===
 export const SPELL_CARDS: CardBase[] = [

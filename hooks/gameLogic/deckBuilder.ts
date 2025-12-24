@@ -1,6 +1,7 @@
 import { CardBase } from './types';
 import { shuffle } from './helpers';
 import { AIDifficulty, Rarity } from '../../types';
+import { NPC_DECK_DISTRIBUTION } from '../../constants';
 
 // Build NPC deck of fixed size (defaults to 40) respecting rarity distribution
 export const buildNpcDeck = (cards: CardBase[], size = 40, difficulty?: AIDifficulty) => {
@@ -15,23 +16,10 @@ export const buildNpcDeck = (cards: CardBase[], size = 40, difficulty?: AIDiffic
     else poolThree.push(c);
   });
 
-  // Choose distribution based on difficulty
-  let tOne = Math.floor(size * 0.6);
-  let tTwo = Math.floor(size * 0.3);
-  let tThree = size - tOne - tTwo;
-
-  if (difficulty === AIDifficulty.EASY) {
-    tOne = 28; tTwo = 10; tThree = 2;
-  } else if (difficulty === AIDifficulty.NORMAL) {
-    tOne = 24; tTwo = 12; tThree = 4;
-  } else if (difficulty === AIDifficulty.HARD) {
-    tOne = 15; tTwo = 15; tThree = 10;
-  } else if (difficulty === AIDifficulty.EXPERT) {
-    tOne = 10; tTwo = 20; tThree = 10;
-  }
-
-  const targetOne = Math.max(0, Math.min(size, tOne));
-  const targetTwo = Math.max(0, Math.min(size - targetOne, tTwo));
+  // Choose distribution based on difficulty (from constants)
+  const dist = NPC_DECK_DISTRIBUTION[difficulty || AIDifficulty.NORMAL] || NPC_DECK_DISTRIBUTION[AIDifficulty.NORMAL];
+  const targetOne = Math.max(0, Math.min(size, dist.common));
+  const targetTwo = Math.max(0, Math.min(size - targetOne, dist.uncommon));
   const targetThree = Math.max(0, size - targetOne - targetTwo);
 
   const pickFrom = (pool: CardBase[], n: number) => shuffle(pool).slice(0, Math.min(n, pool.length));
