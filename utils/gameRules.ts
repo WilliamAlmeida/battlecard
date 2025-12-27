@@ -1,5 +1,5 @@
 
-import { Card, Player, ElementType } from '../types';
+import { Card, Player, ElementType, CardType } from '../types';
 
 export const GameRules = {
   MAX_FIELD_SIZE: 3,
@@ -7,15 +7,16 @@ export const GameRules = {
   MAX_HP: 8000,
 
   canSummon: (player: Player, card: Card): boolean => {
-    // Contar apenas Pokémons disponíveis para sacrifício (mão + campo), excluindo a carta sendo invocada
-    const pokemonsInHand = player.hand.filter(c => c.cardType === 'POKEMON' && c.uniqueId !== card.uniqueId).length;
-    const availableSacrifices = pokemonsInHand + player.field.length;
+    // Contar apenas cartas válidas para sacrifício (exclui cartas do tipo POKEMON)
+    const validInHand = player.hand.filter(c => c.cardType !== CardType.POKEMON && c.uniqueId !== card.uniqueId).length;
+    const validOnField = player.field.filter(c => c.cardType !== CardType.POKEMON).length;
+    const availableSacrifices = validInHand + validOnField;
 
     // Se não há sacrifícios suficientes, não é possível invocar
     if (availableSacrifices < card.sacrificeRequired) return false;
 
-    // Calcular quantos sacrifícios podem vir do campo (liberam espaço)
-    const fieldSacrifices = Math.min(player.field.length, card.sacrificeRequired);
+    // Calcular quantos sacrifícios podem vir do campo (liberam espaço) — somente cartas válidas no campo
+    const fieldSacrifices = Math.min(validOnField, card.sacrificeRequired);
     const resultingFieldSize = player.field.length - fieldSacrifices + 1; // +1 pelo monstro que será invocado
 
     // Permitir invocação apenas se, após sacrificar (preferencialmente do campo), couber no campo

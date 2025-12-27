@@ -517,7 +517,7 @@ export default function App() {
 
            
             {tributeSelectionMode && (
-              <div className="flex gap-2 sm:gap-6 bg-red-950/40 p-2 sm:px-3 rounded-3xl border-2 border-red-500/50 animate-pulse">
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-6 bg-red-950/40 p-2 sm:px-3 rounded-3xl border-2 border-red-500/50 animate-pulse">
                  <div className="flex flex-col justify-center">
                     <span className="text-sm sm:font-bold text-red-400 uppercase tracking-widest text-nowrap">Aguardando Sacrifícios</span>
                     <span className="text-sm sm:text-base font-semibold sm:font-semibold text-center">
@@ -528,7 +528,7 @@ export default function App() {
                     </span>
                  </div>
 
-                 <div className="flex justify-center gap-2 sm:gap-4">
+                 <div className="flex justify-evenly sm:justify-center gap-2 sm:gap-4">
                     <button onClick={() => {
                     const card = player.hand.find(c => c.uniqueId === pendingSummonCardId);
                     if (card && cardsToSacrifice.length === card.sacrificeRequired) { summonCard('player', pendingSummonCardId!, cardsToSacrifice); setTributeSelectionMode(false); setCardsToSacrifice([]); setPendingSummonCardId(null); } else { addLog(`Erro: Escolha exatamente ${card?.sacrificeRequired} Pokémon.`); }
