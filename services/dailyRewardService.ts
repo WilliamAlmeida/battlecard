@@ -101,6 +101,12 @@ class DailyRewardService {
       return DAILY_SCHEDULE[idx - 1];
   }
 
+  // Get reward for a specific day (1-based index), or null if out of range
+  getRewardForDay(day: number): DailyReward | null {
+    if (day < 1 || day > DAILY_SCHEDULE.length) return null;
+    return DAILY_SCHEDULE[day - 1];
+  }
+
   // Claim the reward: applies to collectionService and advances the state.
   claim(): DailyReward | null {
     if (!this.isClaimAvailable()) return null;
@@ -133,9 +139,25 @@ class DailyRewardService {
 
     // Update lastClaimDate to today and advance dayIndex for next claim
     this.state.lastClaimDate = this.isoDate(today);
-    // Next time: if yesterday was today-1 we'll increment (already incremented before), else start from next day
-    // Ensure next dayIndex is within 1..DAILY_SCHEDULE.length and will be used on next claim calculation
-    // Here we keep dayIndex as-is (represents the day just claimed) and on next claim we will decide
+    this.save();
+    return reward;
+  }
+
+  // TEST METHOD: Force claim for testing purposes (bypasses date check)
+  testClaim(): DailyReward | null {
+    // Advance to next day regardless of date
+    this.state.dayIndex = Math.min(DAILY_SCHEDULE.length, this.state.dayIndex + 1);
+    const reward = DAILY_SCHEDULE[this.state.dayIndex - 1];
+
+    // Apply rewards
+    if (reward.coins) collectionService.addCoins(reward.coins);
+    if (reward.packs) collectionService.addPack(reward.packs);
+    if (reward.cards && reward.cards.length > 0) {
+      reward.cards.forEach(c => collectionService.addCard(c));
+    }
+
+    // Update state (use a fake date to allow continuous testing)
+    this.state.lastClaimDate = this.isoDate(new Date(Date.now() - 86400000 * 2)); // 2 days ago
     this.save();
     return reward;
   }
