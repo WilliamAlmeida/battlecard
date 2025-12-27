@@ -4,14 +4,43 @@ import { INITIAL_DECK, SPELL_CARDS, TRAP_CARDS } from '../constants';
 
 const COLLECTION_KEY = 'pokecard_collection';
 
-// Cartas iniciais que o jogador começa com
-const STARTER_CARDS = [
-  '001', '004', '007', // Starters
-  '010', '016', '019', // Commons
-  '025', // Pikachu
-  'spell_potion', 'spell_pokeball', // Spells básicas
-  'trap_counter' // Trap básica
+// const STARTER_CARDS = [
+//   '001', '004', '007', // Starters
+//   '010', '016', '019', // Commons
+//   '025', // Pikachu
+//   'spell_potion', 'spell_pokeball', // Spells básicas
+//   'trap_counter' // Trap básica
+// ];
+
+// Presets de decks iniciais (escolhe 1 aleatoriamente).
+// Preencha cada array até 15 cartas conforme desejar.
+const STARTER_DECKS: string[][] = [
+  // Deck 1 - Bulbasaur como carta principal
+  [
+    '001', // Starter
+    '010', '016', '019', '011', '021', '023', '046', '050', '098', '035', '014', // Commons
+    'spell_potion', 'spell_pokeball', // Spells básicas
+    'trap_counter', // Trap básica
+  ],
+  // Deck 2 - Charmander como carta principal
+  [
+    '004', // Starter
+    '010', '016', '019', '011', '021', '023', '046', '050', '098', '035', '014', // Commons
+    'spell_potion', 'spell_pokeball', // Spells básicas
+    'trap_counter', // Trap básica
+  ],
+  // Deck 3 - Squirtle como carta principal
+  [
+    '007', // Starter
+    '010', '016', '019', '011', '021', '023', '046', '050', '098', '035', '014', // Commons
+    'spell_potion', 'spell_pokeball', // Spells básicas
+    'trap_counter', // Trap básica
+  ]
 ];
+
+// Pikachu pode ser adicionado como fator de sorte (30%) independente do deck escolhido
+const PIKACHU_ID = '025';
+const PIKACHU_LUCK_FACTOR = 0.3; // 30%
 
 class CollectionService {
   private collection: PlayerCollection = {
@@ -43,12 +72,21 @@ class CollectionService {
 
   private initializeStarterCollection() {
     const allCards = [...INITIAL_DECK, ...SPELL_CARDS, ...TRAP_CARDS];
-    
+
+    // Escolhe aleatoriamente um dos decks iniciais
+    const chosenDeck = STARTER_DECKS[Math.floor(Math.random() * STARTER_DECKS.length)] || [];
+
+    // Aplica fator de sorte para Pikachu (30%) — adiciona Pikachu além das 15 cartas caso ocorra
+    const starterCards = [...chosenDeck];
+    if (Math.random() < PIKACHU_LUCK_FACTOR && !starterCards.includes(PIKACHU_ID)) {
+      starterCards.push(PIKACHU_ID);
+    }
+
     this.collection = {
       cards: allCards.map(card => ({
         cardId: card.id,
-        quantity: STARTER_CARDS.includes(card.id) ? 1 : 0,
-        obtained: STARTER_CARDS.includes(card.id)
+        quantity: starterCards.includes(card.id) ? 1 : 0,
+        obtained: starterCards.includes(card.id)
       })),
       coins: 500,
       packs: 1,
