@@ -60,6 +60,7 @@ export const DeckBuilderView: React.FC<DeckBuilderViewProps> = ({ onBack, onClos
   const [typeFilter, setTypeFilter] = useState<ElementType | 'all'>('all');
   const [rarityFilter, setRarityFilter] = useState<Rarity | 'all'>('all');
   const [abilityOnly, setAbilityOnly] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<'none'|'atk'|'def'|'star'>('none');
   const [bossEditMode, setBossEditMode] = useState(false);
   const [bosses, setBosses] = useState<any[]>([]);
@@ -91,6 +92,8 @@ export const DeckBuilderView: React.FC<DeckBuilderViewProps> = ({ onBack, onClos
     if (typeFilter !== 'all' && card.type !== typeFilter) return false;
     if (rarityFilter !== 'all' && card.rarity !== rarityFilter) return false;
     if (abilityOnly && !card.ability) return false;
+    const searchLower = searchTerm.trim().toLowerCase();
+    if (searchLower && !card.name.toLowerCase().includes(searchLower)) return false;
     return true;
   });
 
@@ -501,6 +504,13 @@ export const DeckBuilderView: React.FC<DeckBuilderViewProps> = ({ onBack, onClos
 
             {/* Filters */}
             <div className="space-y-2 mb-4">
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                placeholder="Procurar por nome..."
+                className="w-full bg-slate-700 px-3 py-2 rounded-xl text-sm"
+              />
               <select 
                 value={filter}
                 onChange={e => setFilter(e.target.value as any)}

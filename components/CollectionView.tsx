@@ -55,6 +55,7 @@ export const CollectionView: React.FC<CollectionViewProps> = ({ onClose, onBack 
   const [typeFilter, setTypeFilter] = useState<ElementType | 'all'>('all');
   const [rarityFilter, setRarityFilter] = useState<Rarity | 'all'>('all');
   const [abilityOnly, setAbilityOnly] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<'none'|'atk'|'def'|'star'>('none');
   const [showOnlyOwned, setShowOnlyOwned] = useState(false);
   const [viewMode, setViewMode] = useState<'tiles' | 'component'>('tiles');
@@ -83,6 +84,8 @@ export const CollectionView: React.FC<CollectionViewProps> = ({ onClose, onBack 
     if (rarityFilter !== 'all' && card.rarity !== rarityFilter) return false;
     if (showOnlyOwned && !collectionService.hasCard(card.id)) return false;
     if (abilityOnly && !card.ability) return false;
+    const searchLower = searchTerm.trim().toLowerCase();
+    if (searchLower && !card.name.toLowerCase().includes(searchLower)) return false;
     return true;
   });
 
@@ -124,7 +127,7 @@ export const CollectionView: React.FC<CollectionViewProps> = ({ onClose, onBack 
   // reset visibleCount when filters change
   useEffect(() => {
     setVisibleCount(ITEMS_PER_BATCH);
-  }, [filter, typeFilter, rarityFilter, showOnlyOwned, viewMode, abilityOnly, sortBy]);
+  }, [filter, typeFilter, rarityFilter, showOnlyOwned, viewMode, abilityOnly, sortBy, searchTerm]);
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const el = e.currentTarget;
@@ -257,6 +260,13 @@ export const CollectionView: React.FC<CollectionViewProps> = ({ onClose, onBack 
 
         {/* Filters */}
         <div className="flex flex-wrap gap-4 mb-6 items-center">
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+            placeholder="Procurar por nome..."
+            className="bg-slate-800 px-4 py-2 rounded-xl w-full sm:w-auto"
+          />
           <select 
             value={filter}
             onChange={e => setFilter(e.target.value as any)}
