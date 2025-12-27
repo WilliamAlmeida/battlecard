@@ -97,7 +97,7 @@ export const DailyRewardTimeline: React.FC<DailyRewardTimelineProps> = ({ onClos
               const day = i + 1;
               let state: 'claimed' | 'available' | 'upcoming' = 'upcoming';
               if (day < pendingDay) state = 'claimed';
-              else if (day === pendingDay) state = dailyAvailable ? 'available' : 'claimed';
+              else if (day === pendingDay) state = dailyAvailable ? 'available' : 'upcoming';
               
               const rewardForDay = dailyRewardService.getRewardForDay(day);
               const isDay30 = day === 30;
@@ -126,7 +126,7 @@ export const DailyRewardTimeline: React.FC<DailyRewardTimelineProps> = ({ onClos
                   {day > 1 && (
                     <div className={`
                       absolute h-2 -left-8 top-6 w-8
-                      ${day <= pendingDay ? 'bg-gradient-to-r from-green-600 to-green-500' : 'bg-slate-700'}
+                        ${day < pendingDay ? 'bg-gradient-to-r from-green-600 to-green-500' : 'bg-slate-700'}
                       ${state === 'available' ? 'animate-pulse' : ''}
                     `} />
                   )}

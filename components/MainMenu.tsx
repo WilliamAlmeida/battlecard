@@ -406,17 +406,38 @@ export const MainMenu: React.FC<MainMenuProps> = ({
           <div>
             <div className="text-lg font-bold">🎁 Recompensa Diária</div>
             <div className="text-sm text-slate-400">
-              {dailyAvailable ? '' : (dailyRewardPreview ? 'Reivindicado: confira sua recompensa' : 'Já reivindicado hoje')}
+              {dailyAvailable
+                ? `Disponível — Dia ${pendingDay} (${claimedCount} reivindicados)`
+                : (dailyRewardPreview ? '✅ Reivindicado — confira sua recompensa' : 'Já reivindicado hoje')
+              }
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => { soundService.playClick(); setShowDailyTimeline(true); }}
-              className="px-3 py-2 rounded-xl bg-slate-700 hover:bg-slate-600 text-sm text-slate-200"
-            >
-              📅 Ver Linha do Tempo
-            </button>
-            {/* Claiming is handled inside the Timeline now */}
+            {dailyAvailable ? (
+              <button
+                onClick={() => { soundService.playClick(); setShowDailyTimeline(true); }}
+                className="px-4 py-2 rounded-xl bg-yellow-500 hover:bg-yellow-400 text-sm font-bold text-black"
+                aria-label="Reivindicar recompensa diária"
+              >
+                🎉 Reivindicar
+              </button>
+            ) : dailyRewardPreview ? (
+              <button
+                onClick={() => { soundService.playClick(); setShowDailyTimeline(true); }}
+                className="px-3 py-2 rounded-xl bg-green-600 hover:bg-green-500 text-sm text-white"
+                aria-label="Ver recompensa recebida"
+              >
+                🪄 Ver Recompensa
+              </button>
+            ) : (
+              <button
+                onClick={() => { soundService.playClick(); setShowDailyTimeline(true); }}
+                className="px-3 py-2 rounded-xl bg-slate-700 hover:bg-slate-600 text-sm text-slate-200"
+                aria-label="Ver linha do tempo"
+              >
+                📅 Ver Linha do Tempo
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -428,8 +449,6 @@ export const MainMenu: React.FC<MainMenuProps> = ({
           onClaim={handleTimelineRefresh}
         />
       )}
-
-      {/* Reveal modal removed — timeline displays the reward visual */}
 
       {/* Modos de Jogo */}
       <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 mb-12 max-w-4xl">

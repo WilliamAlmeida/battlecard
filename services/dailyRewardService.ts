@@ -76,6 +76,21 @@ class DailyRewardService {
     } catch (e) {
       this.state = { ...DEFAULT_STATE };
     }
+    // Normalize state: if lastClaimDate is today (user already claimed today),
+    // ensure `dayIndex` points to the next pending day (at least 2). Also if
+    // lastClaimDate is yesterday, ensure `dayIndex` is at least 2 so the
+    // pending reward matches the stored streak.
+    try {
+      const todayIso = this.isoDate();
+      const yesterday = new Date();
+      yesterday.setDate(new Date().getDate() - 1);
+      const yesterdayIso = this.isoDate(yesterday);
+      if (this.state.lastClaimDate === todayIso || this.state.lastClaimDate === yesterdayIso) {
+        this.state.dayIndex = Math.max(2, Math.min(DAILY_SCHEDULE.length, this.state.dayIndex));
+      }
+    } catch (e) {
+      // ignore normalization errors
+    }
   }
 
   private save() {
@@ -117,18 +132,17 @@ class DailyRewardService {
     yesterday.setDate(today.getDate() - 1);
     const yesterdayIso = this.isoDate(yesterday);
     const last = this.state.lastClaimDate;
-
-    if (last === yesterdayIso) {
-      // continue streak
-      this.state.dayIndex = Math.min(DAILY_SCHEDULE.length, this.state.dayIndex + 1);
-    } else if (last === this.isoDate(today)) {
-      // already claimed today (should be blocked earlier)
-    } else {
-      // reset streak
+    // Establish which day we're actually claiming now. The service stores
+    // `dayIndex` as the next day to be claimed (1..30). If the streak was
+    // broken (last is not yesterday or today) we reset to 1 so the current
+    // claim gives day 1. If last was yesterday, `dayIndex` already points to
+    // the correct next reward. If last is today, claiming is blocked above.
+    if (!last || (last !== yesterdayIso && last !== this.isoDate(today))) {
       this.state.dayIndex = 1;
     }
 
-    const reward = DAILY_SCHEDULE[this.state.dayIndex - 1];
+    const currentIndex = Math.max(1, Math.min(DAILY_SCHEDULE.length, this.state.dayIndex));
+    const reward = DAILY_SCHEDULE[currentIndex - 1];
 
     // Apply rewards
     if (reward.coins) collectionService.addCoins(reward.coins);
@@ -137,27 +151,30 @@ class DailyRewardService {
       reward.cards.forEach(c => collectionService.addCard(c));
     }
 
-    // Update lastClaimDate to today and advance dayIndex for next claim
+    // Update lastClaimDate to today and advance dayIndex for the next pending reward
     this.state.lastClaimDate = this.isoDate(today);
+    this.state.dayIndex = Math.min(DAILY_SCHEDULE.length, currentIndex + 1);
     this.save();
     return reward;
   }
 
   // TEST METHOD: Force claim for testing purposes (bypasses date check)
   testClaim(): DailyReward | null {
-    // Advance to next day regardless of date
-    this.state.dayIndex = Math.min(DAILY_SCHEDULE.length, this.state.dayIndex + 1);
-    const reward = DAILY_SCHEDULE[this.state.dayIndex - 1];
+    // Force a claim for testing: use the current dayIndex as the reward to
+    // give, then advance dayIndex and set lastClaimDate to a past date so
+    // UI treats this as available for subsequent test claims.
+    const currentIndex = Math.max(1, Math.min(DAILY_SCHEDULE.length, this.state.dayIndex));
+    const reward = DAILY_SCHEDULE[currentIndex - 1];
 
-    // Apply rewards
     if (reward.coins) collectionService.addCoins(reward.coins);
     if (reward.packs) collectionService.addPack(reward.packs);
     if (reward.cards && reward.cards.length > 0) {
       reward.cards.forEach(c => collectionService.addCard(c));
     }
 
-    // Update state (use a fake date to allow continuous testing)
+    // Move to next pending and make last claim date old so tests can continue
     this.state.lastClaimDate = this.isoDate(new Date(Date.now() - 86400000 * 2)); // 2 days ago
+    this.state.dayIndex = Math.min(DAILY_SCHEDULE.length, currentIndex + 1);
     this.save();
     return reward;
   }
@@ -172,8 +189,10 @@ class DailyRewardService {
     yesterday.setDate(today.getDate() - 1);
     const yesterdayIso = this.isoDate(yesterday);
 
-    if (last === this.isoDate(today)) return this.state.dayIndex;
-    if (last === yesterdayIso) return this.state.dayIndex; // still same streak value until claim
+    // `dayIndex` stores the next day to be claimed, so the number of days
+    // already claimed in the current streak is `dayIndex - 1`.
+    if (last === this.isoDate(today)) return Math.max(0, this.state.dayIndex - 1);
+    if (last === yesterdayIso) return Math.max(0, this.state.dayIndex - 1);
     return 0;
   }
 }
