@@ -124,6 +124,42 @@ export const CollectionView: React.FC<CollectionViewProps> = ({ onClose, onBack 
     }
   };
 
+  const handleOpenAnother = () => {
+    if (collectionService.getCollection().packs <= 0) {
+      soundService.playError();
+      return;
+    }
+    soundService.playSummon();
+    // show opening animation
+    setPackResults([]);
+    setTimeout(() => {
+      const results = collectionService.openPack();
+      setPackResults(results);
+      setCollection(collectionService.getCollection());
+      soundService.playAchievement();
+    }, 800);
+  };
+
+  const handleOpenAll = () => {
+    if (collectionService.getCollection().packs <= 0) {
+      soundService.playError();
+      return;
+    }
+    soundService.playSummon();
+    setPackResults([]);
+    setTimeout(() => {
+      const allResults: string[] = [];
+      // keep opening until no packs remain
+      while (collectionService.getCollection().packs > 0) {
+        const res = collectionService.openPack();
+        allResults.push(...res);
+      }
+      setPackResults(allResults);
+      setCollection(collectionService.getCollection());
+      soundService.playAchievement();
+    }, 1000);
+  };
+
   // reset visibleCount when filters change
   useEffect(() => {
     setVisibleCount(ITEMS_PER_BATCH);
@@ -157,7 +193,7 @@ export const CollectionView: React.FC<CollectionViewProps> = ({ onClose, onBack 
 
   if (openingPack) {
     return (
-      <div className="fixed inset-0 bg-black z-50 flex flex-col items-center justify-center">
+      <div className="fixed inset-0 bg-black z-50 flex flex-col items-center justify-center select-none">
         {packResults.length === 0 ? (
           <div className="text-center">
             <div className="text-9xl animate-bounce mb-8">📦</div>
@@ -166,29 +202,53 @@ export const CollectionView: React.FC<CollectionViewProps> = ({ onClose, onBack 
         ) : (
           <div className="text-center">
             <h2 className="text-4xl font-black text-yellow-500 mb-8">Você obteve!</h2>
-            <div className="flex gap-4 flex-wrap justify-center mb-8">
-              {packResults.map((cardId, i) => {
-                const card = allCards.find(c => c.id === cardId);
-                if (!card) return null;
-                return (
-                  <div 
-                    key={i}
-                    className={`p-4 rounded-xl border-4 ${getRarityColor(card.rarity)} animate-in zoom-in duration-500`}
-                    style={{ animationDelay: `${i * 200}ms` }}
-                  >
-                    <div className="text-4xl mb-2">{getTypeIcon(card.type)}</div>
-                    <div className="font-bold">{card.name}</div>
-                    <div className="text-xs text-slate-400">{getRarityLabel(card.rarity)}</div>
-                  </div>
-                );
-              })}
+            <div className="mb-8 flex justify-center">
+              <div className="w-[90vw] sm:w-[90vw] mx-auto overflow-x-auto overflow-y-hidden pt-4 pb-8">
+                <div className="grid grid-flow-col auto-cols-min grid-rows-2 gap-4 items-start justify-normal md:justify-center">
+                  {packResults.map((cardId, i) => {
+                    const card = allCards.find(c => c.id === cardId);
+                    if (!card) return null;
+                    return (
+                      <div 
+                        key={i}
+                        className={`min-w-[140px] p-4 rounded-xl border-4 ${getRarityColor(card.rarity)} animate-in zoom-in duration-500`}
+                        style={{ animationDelay: `${i * 200}ms` }}
+                      >
+                        <div className="text-4xl mb-2">{getTypeIcon(card.type)}</div>
+                        <div className="font-bold">{card.name}</div>
+                        <div className="text-xs text-slate-400">{getRarityLabel(card.rarity)}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
-            <button 
-              onClick={() => { setOpeningPack(false); setPackResults([]); }}
-              className="bg-yellow-500 text-black px-8 py-4 rounded-xl font-bold text-xl hover:bg-yellow-400"
-            >
-              Continuar
-            </button>
+            <div className="flex gap-4 justify-center">
+              <button 
+                onClick={() => { setOpeningPack(false); setPackResults([]); }}
+                className="bg-yellow-500 text-black px-8 py-4 rounded-xl font-bold text-xl hover:bg-yellow-400"
+              >
+                Continuar
+              </button>
+
+              {collection.packs > 0 && (
+                <button
+                  onClick={handleOpenAnother}
+                  className="bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-indigo-500"
+                >
+                  Abrir outro
+                </button>
+              )}
+
+              {collection.packs > 1 && (
+                <button
+                  onClick={handleOpenAll}
+                  className="bg-green-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-green-500"
+                >
+                  Abrir todos ({collection.packs})
+                </button>
+              )}
+            </div>
           </div>
         )}
       </div>
