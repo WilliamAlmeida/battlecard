@@ -5,9 +5,14 @@ import { GameRules } from '../utils/gameRules';
 export class AIController {
   private static difficulty: AIDifficulty = AIDifficulty.NORMAL;
   private static sacrificeStrategy: SacrificeStrategy = SacrificeStrategy.AUTO;
+  private static summonsThisTurn: number = 0;
 
   static setDifficulty(diff: AIDifficulty) {
     this.difficulty = diff;
+  }
+
+  static resetTurnCounters() {
+    this.summonsThisTurn = 0;
   }
 
   static getDifficulty(): AIDifficulty {
@@ -133,6 +138,11 @@ export class AIController {
       return { type: 'GO_TO_BATTLE' };
     }
 
+    // Após o primeiro summon, 50% de chance de parar e ir para Battle
+    if (this.summonsThisTurn > 0 && Math.random() < 0.5) {
+      return { type: 'GO_TO_BATTLE' };
+    }
+
     // Ordenar por força considerando o campo inimigo
     if (this.difficulty !== AIDifficulty.EASY) {
       playableHand.sort((a, b) => 
@@ -156,6 +166,8 @@ export class AIController {
         return { type: 'GO_TO_BATTLE' };
       }
     }
+
+    this.summonsThisTurn++;
 
     return {
       type: 'SUMMON',

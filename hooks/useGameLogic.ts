@@ -186,6 +186,7 @@ export const useGameLogic = () => {
     
     // Configure AI difficulty and sacrifice strategy
     AIController.setDifficulty(diff);
+    AIController.resetTurnCounters();
     if (options?.sacrificeStrategy) {
       AIController.setSacrificeStrategy(options.sacrificeStrategy);
     } else {
@@ -716,7 +717,7 @@ export const useGameLogic = () => {
           const action = AIController.decideNextMove(npc, player, phase, gameStateRef.current.difficulty);
           if (action.type === 'SUMMON' && action.cardId) {
             summonCard('npc', action.cardId, action.sacrifices || []);
-            setPhase(Phase.BATTLE);
+            // Não mudar para battle automaticamente - deixar a IA decidir
           } else if (action.type === 'USE_SPELL' && action.cardId) {
             useSpell('npc', action.cardId, action.targetId);
           } else if (action.type === 'SET_TRAP' && action.cardId) {
@@ -1108,6 +1109,7 @@ export const useGameLogic = () => {
     endTurn: () => {
       setPhase(Phase.DRAW);
       setCurrentTurnPlayer('npc');
+      AIController.resetTurnCounters();
       setPlayer(p => ({ ...p, field: p.field.map(c => ({ ...c, hasAttacked: false })) }));
       setNpc(p => ({ ...p, field: p.field.map(c => ({ ...c, hasAttacked: false })) }));
       addLog("Encerrando turno. CPU está pensando...");
