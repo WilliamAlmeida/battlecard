@@ -12,6 +12,8 @@ interface CardProps {
   isAttacking?: boolean;
   isDamaged?: boolean;
   showDetails?: boolean;
+  targetPosition?: { x: number; y: number };
+  attackTargetActive?: boolean;
 }
 
 const getTypeColor = (type: ElementType) => {
@@ -73,10 +75,25 @@ const getRarityGlow = (rarity: Rarity) => {
   }
 };
 
-export const CardComponent: React.FC<CardProps> = ({ card, compact, isOpponent, faceDown = false, isActive, canAttack, isAttacking, isDamaged, showDetails }) => {
+export const CardComponent: React.FC<CardProps> = ({ card, compact, isOpponent, faceDown = false, isActive, canAttack, isAttacking, isDamaged, showDetails, targetPosition, attackTargetActive }) => {
   let animationClass = '';
+  let customAnimation = '';
+
   if (isAttacking) {
-    animationClass = isOpponent ? 'animate-attack-down' : 'animate-attack-up';
+    // Prefer target animation only when explicitly active to avoid falling back
+    // to the up/down animation if targetPosition briefly becomes undefined.
+    if (attackTargetActive && targetPosition) {
+      animationClass = 'animate-attack-target';
+      customAnimation = `
+        @keyframes attack-target {
+          0% { transform: translate(0, 0) scale(1); }
+          40% { transform: translate(${targetPosition.x}px, ${targetPosition.y}px) scale(1.15); z-index: 100; }
+          100% { transform: translate(0, 0) scale(1); }
+        }
+      `;
+    } else {
+      animationClass = isOpponent ? 'animate-attack-down' : 'animate-attack-up';
+    }
   } else if (isDamaged) {
     animationClass = 'animate-shake';
   }
@@ -208,7 +225,9 @@ export const CardComponent: React.FC<CardProps> = ({ card, compact, isOpponent, 
   };
 
   return (
-    <div className={baseClasses}>
+    <>
+      {customAnimation && <style>{customAnimation}</style>}
+      <div className={baseClasses}>
       <div
         className="absolute inset-0 pointer-events-none -top-1 -left-9 z-[1]"
         style={{
@@ -296,5 +315,6 @@ export const CardComponent: React.FC<CardProps> = ({ card, compact, isOpponent, 
         </div>
       )}
     </div>
+    </>
   );
 };

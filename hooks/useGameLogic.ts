@@ -37,6 +37,7 @@ export const useGameLogic = () => {
   
   const [attackingCardId, setAttackingCardId] = useState<string | null>(null);
   const [damagedCardId, setDamagedCardId] = useState<string | null>(null);
+  const [attackTargetId, setAttackTargetId] = useState<string | null>(null);
   const [floatingDamage, setFloatingDamage] = useState<{id: string, value: number, targetId: string} | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
   
@@ -54,11 +55,11 @@ export const useGameLogic = () => {
   // Survival mode tracking
   const [survivalWave, setSurvivalWave] = useState<number>(0);
 
-  const gameStateRef = useRef({ player, npc, phase, currentTurnPlayer, gameOver, gameStarted, isAnimating, turnCount, starter, difficulty });
+  const gameStateRef = useRef({ player, npc, phase, currentTurnPlayer, gameOver, gameStarted, isAnimating, turnCount, starter, difficulty, attackTargetId });
 
   useEffect(() => {
     gameStateRef.current = { player, npc, phase, currentTurnPlayer, gameOver, gameStarted, isAnimating, turnCount, starter, difficulty };
-  }, [player, npc, phase, currentTurnPlayer, gameOver, gameStarted, isAnimating, turnCount, starter, difficulty]);
+  }, [player, npc, phase, currentTurnPlayer, gameOver, gameStarted, isAnimating, turnCount, starter, difficulty, attackTargetId]);
 
   const addLog = useCallback((message: string, type: 'info' | 'combat' | 'effect' = 'info') => {
     const id = generateUniqueId();
@@ -285,6 +286,8 @@ export const useGameLogic = () => {
     }
 
     setIsAnimating(true);
+    // mark the intended target immediately so UI can use attack-target from start
+    setAttackTargetId(targetId);
     setAttackingCardId(attackerId);
 
     const isPlayer = ownerId === 'player';
@@ -295,6 +298,7 @@ export const useGameLogic = () => {
     if (!attacker) {
       setIsAnimating(false);
       setAttackingCardId(null);
+      setAttackTargetId(null);
       return;
     }
 
@@ -336,6 +340,7 @@ export const useGameLogic = () => {
     if (trapResult.negateAttack) {
       addLog('Ataque negado pela armadilha!', 'trap');
       setAttackingCardId(null);
+      setAttackTargetId(null);
       setDamagedCardId(null);
       setFloatingDamage(null);
       setIsAnimating(false);
@@ -396,6 +401,7 @@ export const useGameLogic = () => {
       }));
       addLog(`${attacker.name} foi destruído pela armadilha!`, 'trap');
       setAttackingCardId(null);
+      setAttackTargetId(null);
       setDamagedCardId(null);
       setFloatingDamage(null);
       setIsAnimating(false);
@@ -476,6 +482,7 @@ export const useGameLogic = () => {
           addLog(`${defender.name} evadiu o ataque! (Véu de Areia)`, 'effect');
           setDamagedCardId(null);
           setAttackingCardId(null);
+          setAttackTargetId(null);
           setFloatingDamage(null);
           setIsAnimating(false);
           return;
@@ -642,6 +649,7 @@ export const useGameLogic = () => {
                   graveyard: [...p.graveyard, { ...attacker, destroyedAt: Date.now() }]
                 }));
                 addLog(`${attacker.name} também foi destruído pela armadilha!`, 'trap');
+                setAttackTargetId(null);
               }
 
               // Handle survive_1hp special: if trap triggered, ensure the owner survives with 1 HP
@@ -670,6 +678,7 @@ export const useGameLogic = () => {
 
     setTimeout(() => {
       setAttackingCardId(null);
+      setAttackTargetId(null);
       setDamagedCardId(null);
       setFloatingDamage(null);
       setIsAnimating(false);
@@ -1097,6 +1106,7 @@ export const useGameLogic = () => {
     gameStarted, gameOver, winner, player, npc, turnCount, currentTurnPlayer, phase, logs,
     isAIProcessing: isAnimating,
     attackingCardId, damagedCardId, floatingDamage,
+    attackTargetId,
     difficulty, gameMode,
     startGame, 
     survivalWave,

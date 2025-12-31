@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, Phase, ElementType, AIDifficulty, GameMode } from './types';
 import { GameRules } from './utils/gameRules';
 import { TypeTable } from './components/TypeTable';
@@ -25,7 +25,7 @@ type AppView = 'menu' | 'game' | 'collection' | 'achievements' | 'stats' | 'deck
 export default function App() {
   const {
     gameStarted, gameOver, winner, player, npc, turnCount, currentTurnPlayer, phase, logs,
-    isAIProcessing, attackingCardId, damagedCardId, floatingDamage, difficulty, gameMode,
+    isAIProcessing, attackingCardId, damagedCardId, floatingDamage, attackTargetId, difficulty, gameMode,
     startGame, setPhase, summonCard, setTrap, useSpell, executeAttack, endTurn, addLog, resetGame,
     startNextSurvivalWave
   } = useGameLogic();
@@ -40,6 +40,26 @@ export default function App() {
   const [selectedDeckId, setSelectedDeckId] = useState<string | null>(null);
   const [lastBossId, setLastBossId] = useState<string | null>(null);
   const [showNeedDeckModal, setShowNeedDeckModal] = useState(false);
+  
+  // Refs para calcular posições das cartas
+  const cardRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+  
+  // Função para calcular posição relativa entre atacante e alvo
+  const getTargetPosition = (attackerId: string, targetId: string) => {
+    const attackerEl = cardRefs.current.get(attackerId);
+    const targetEl = cardRefs.current.get(targetId);
+    
+    if (!attackerEl || !targetEl) return undefined;
+    
+    const attackerRect = attackerEl.getBoundingClientRect();
+    const targetRect = targetEl.getBoundingClientRect();
+    
+    return {
+      x: targetRect.left - attackerRect.left,
+      y: targetRect.top - attackerRect.top
+    };
+  };
+  
   // Load saved selected deck from collectionService on mount
   useEffect(() => {
     const saved = collectionService.getSelectedDeckId();
@@ -487,12 +507,19 @@ export default function App() {
         {/* Campo Oponente */}
         <div className="flex gap-2 sm:gap-12 min-h-[160px] sm:min-h-[260px] items-center">
            {npc.field.map(card => (
-             <div key={card.uniqueId} onClick={() => handleEnemyClick(card)} className={`cursor-pointer transition-transform ${attackMode ? 'hover:scale-110' : ''}`}>
+             <div 
+               key={card.uniqueId} 
+               ref={(el) => el && cardRefs.current.set(card.uniqueId, el)}
+               onClick={() => handleEnemyClick(card)} 
+               className={`cursor-pointer transition-transform ${attackMode ? 'hover:scale-110' : ''}`}
+             >
                <CardComponent 
                  card={card} 
                  isOpponent
                  isAttacking={attackingCardId === card.uniqueId} 
                  isDamaged={damagedCardId === card.uniqueId}
+                 attackTargetActive={attackingCardId !== null && attackTargetId !== null && attackingCardId === card.uniqueId}
+                 targetPosition={attackingCardId === card.uniqueId && attackTargetId ? getTargetPosition(card.uniqueId, attackTargetId) : undefined}
                  compact
                />
              </div>
@@ -560,6 +587,7 @@ export default function App() {
            {player.field.map(card => (
              <div
                key={card.uniqueId}
+               ref={(el) => el && cardRefs.current.set(card.uniqueId, el)}
                onClick={() => handleCardClick(card, 'field')}
                className={`transition-all duration-300 ${selectedCardId === card.uniqueId ? '-translate-y-4 sm:-translate-y-10 z-10 shadow-[0_50px_100px_rgba(250,204,21,0.4)]' : ''} ${cardsToSacrifice.includes(card.uniqueId) ? 'opacity-30 scale-95 grayscale' : ''}`}
              >
@@ -567,6 +595,8 @@ export default function App() {
                  card={card} 
                  isAttacking={attackingCardId === card.uniqueId} 
                  isDamaged={damagedCardId === card.uniqueId}
+                 attackTargetActive={attackingCardId !== null && attackTargetId !== null && attackingCardId === card.uniqueId}
+                 targetPosition={attackingCardId === card.uniqueId && attackTargetId ? getTargetPosition(card.uniqueId, attackTargetId) : undefined}
                  canAttack={!card.hasAttacked && phase === Phase.BATTLE && currentTurnPlayer === 'player'}
                  compact
                />
