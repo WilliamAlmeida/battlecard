@@ -6,6 +6,7 @@ interface CardProps {
   card: Card;
   compact?: boolean;
   isOpponent?: boolean;
+  faceDown?: boolean;
   isActive?: boolean;
   canAttack?: boolean;
   isAttacking?: boolean;
@@ -72,7 +73,7 @@ const getRarityGlow = (rarity: Rarity) => {
   }
 };
 
-export const CardComponent: React.FC<CardProps> = ({ card, compact, isOpponent, isActive, canAttack, isAttacking, isDamaged, showDetails }) => {
+export const CardComponent: React.FC<CardProps> = ({ card, compact, isOpponent, faceDown = false, isActive, canAttack, isAttacking, isDamaged, showDetails }) => {
   let animationClass = '';
   if (isAttacking) {
     animationClass = isOpponent ? 'animate-attack-down' : 'animate-attack-up';
@@ -120,8 +121,8 @@ export const CardComponent: React.FC<CardProps> = ({ card, compact, isOpponent, 
     ${activeStatuses.length > 0 ? 'ring-4 ring-red-500' : ''}
   `;
 
-  // Opponent hidden card
-  if (isOpponent) {
+    // Face-down hidden card
+    if (faceDown) {
     return (
       <div className={`${compact ? 'w-[110px] h-[155px] md:w-32 md:h-[180px] text-lg p-2 sm:px-3' : 'w-[110px] h-[155px] md:w-32 md:h-[180px] text-lg p-2 sm:px-3'} ${animationClass} bg-gradient-to-br from-slate-700 to-slate-900 border-[3px] border-slate-500 rounded-2xl flex flex-col items-center justify-center shadow-2xl relative overflow-hidden group`}>
          <div className="w-24 h-24 rounded-full bg-slate-800 flex items-center justify-center border-2 border-slate-600 shadow-inner group-hover:scale-125 transition-transform duration-500">
