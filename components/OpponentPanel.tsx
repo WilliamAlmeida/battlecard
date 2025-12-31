@@ -47,7 +47,7 @@ export const OpponentPanel: React.FC<OpponentPanelProps> = ({ npcHand, npcDeck, 
                 {npcHand.length === 0 && <div className="text-slate-600 italic">Mão vazia</div>}
                 {npcHand.map((c, i) => (
                   <div key={`${c.uniqueId}-${i}`} className="p-1">
-                    <CardComponent card={c} compact isOpponent={!reveal} />
+                    <CardComponent card={c} compact faceDown={!reveal} />
                   </div>
                 ))}
               </div>
