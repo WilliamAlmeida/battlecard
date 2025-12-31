@@ -1,11 +1,56 @@
 // Campaign Data - Sistema de campanha com bosses temáticos
 import { CampaignBoss, AIDifficulty, SpecialRule, ElementType, SacrificeStrategy } from '../types';
 
+export interface CampaignCategory {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  color: string;
+  unlocked: boolean;
+}
+
+export const CAMPAIGN_CATEGORIES: CampaignCategory[] = [
+  {
+    id: 'gym_leaders',
+    name: 'Liga Pokémon',
+    description: 'Derrote os 8 Líderes de Ginásio de Kanto',
+    icon: '🏟️',
+    color: 'from-blue-600 to-cyan-600',
+    unlocked: true
+  },
+  {
+    id: 'elite_four',
+    name: 'Elite dos Quatro',
+    description: 'Enfrente os 4 melhores treinadores da região',
+    icon: '⭐',
+    color: 'from-purple-600 to-pink-600',
+    unlocked: false
+  },
+  {
+    id: 'champion',
+    name: 'O Campeão',
+    description: 'Derrote o atual Campeão e se torne uma lenda',
+    icon: '👑',
+    color: 'from-yellow-500 to-amber-600',
+    unlocked: false
+  },
+  {
+    id: 'secret_challenges',
+    name: 'Desafios Secretos',
+    description: 'Enfrentamentos especiais contra oponentes lendários',
+    icon: '🌟',
+    color: 'from-red-600 to-orange-600',
+    unlocked: false
+  }
+];
+
 export const CAMPAIGN_BOSSES: CampaignBoss[] = [
   // Liga Pokémon - 8 Líderes de Ginásio
   {
     id: 'brock',
     name: 'Brock',
+    category: 'gym_leaders',
     avatar: '🪨',
     description: 'Líder do Ginásio de Pewter City. Especialista em Pokémon de Pedra.',
     deck: ['027', '050', '074', '104', '111', '028', '051', '075', '095', '112', '105', '076', '084', '076', '095', '075', '111', '074', '074', '050'],
@@ -22,6 +67,7 @@ export const CAMPAIGN_BOSSES: CampaignBoss[] = [
   {
     id: 'misty',
     name: 'Misty',
+    category: 'gym_leaders',
     avatar: '🌊',
     description: 'Líder do Ginásio de Cerulean City. Especialista em Pokémon de Água.',
     deck: ['120', '121', '054', '055', '116', '117', '007', '008', '009', '131', '072', '073', '090', '091', '098', '099', '118', '119', '134', '138'],
@@ -38,6 +84,7 @@ export const CAMPAIGN_BOSSES: CampaignBoss[] = [
   {
     id: 'lt_surge',
     name: 'Lt. Surge',
+    category: 'gym_leaders',
     avatar: '⚡',
     description: 'Líder do Ginásio de Vermilion City. Especialista em Pokémon Elétricos.',
     deck: ['025', '026', '100', '101', '081', '082', '125', '135', '133', '100', '101', '115', '053', '137', '103', '103', '025', '026', '125', '082'],
@@ -54,6 +101,7 @@ export const CAMPAIGN_BOSSES: CampaignBoss[] = [
   {
     id: 'erika',
     name: 'Erika',
+    category: 'gym_leaders',
     avatar: '🌸',
     description: 'Líder do Ginásio de Celadon City. Especialista em Pokémon de Planta.',
     deck: ['001', '043', '069', '102', '114', '002', '044', '070', '103', '003', '045', '114', '114', '103', '002', '070', '044', '003', '071', '045'],
@@ -70,6 +118,7 @@ export const CAMPAIGN_BOSSES: CampaignBoss[] = [
   {
     id: 'koga',
     name: 'Koga',
+    category: 'gym_leaders',
     avatar: '☠️',
     description: 'Líder do Ginásio de Fuchsia City. Mestre Ninja e especialista em Veneno.',
     deck: ['088', '023', '029', '032', '109', '041', '015', '089', '110', '042', '033', '030', '034', '031', '034', '031', '015', '089', '110', '088'],
@@ -86,6 +135,7 @@ export const CAMPAIGN_BOSSES: CampaignBoss[] = [
   {
     id: 'sabrina',
     name: 'Sabrina',
+    category: 'gym_leaders',
     avatar: '🔮',
     description: 'Líder do Ginásio de Saffron City. Mestre dos poderes psíquicos.',
     deck: ['096', '063', '096', '063', '124', '122', '122', '124', '097', '064', '097', '064', '065', '065', '065', '151', '092', '093', '094', '093'],
@@ -102,6 +152,7 @@ export const CAMPAIGN_BOSSES: CampaignBoss[] = [
   {
     id: 'blaine',
     name: 'Blaine',
+    category: 'gym_leaders',
     avatar: '🔥',
     description: 'Líder do Ginásio de Cinnabar Island. Cientista e mestre do fogo.',
     deck: ['004', '037', '058', '077', '005', '038', '059', '078', '126', '136', '006', '004', '077', '059', '136', '126', '006', '038', '077', '004'],
@@ -118,6 +169,7 @@ export const CAMPAIGN_BOSSES: CampaignBoss[] = [
   {
     id: 'giovanni',
     name: 'Giovanni',
+    category: 'gym_leaders',
     avatar: '🏴',
     description: 'Líder do Ginásio de Viridian City e chefe da Team Rocket.',
     deck: ['111', '111', '053', '053', '029', '032', '029', '032', '030', '033', '030', '033', '031', '034', '031', '034', '112', '112', '051', '052'],
@@ -137,6 +189,7 @@ export const CAMPAIGN_BOSSES: CampaignBoss[] = [
   {
     id: 'lorelei',
     name: 'Lorelei',
+    category: 'elite_four',
     avatar: '🧊',
     description: 'Membro da Elite Four. Mestre do Gelo.',
     deck: ['087', '091', '131', '124', '144', '007', '008', '009', '072', '073', '090', '060', '061', '062', '116', '117', '134', '138', '139', '130'],
@@ -153,6 +206,7 @@ export const CAMPAIGN_BOSSES: CampaignBoss[] = [
   {
     id: 'bruno',
     name: 'Bruno',
+    category: 'elite_four',
     avatar: '🥊',
     description: 'Membro da Elite Four. Mestre das Lutas.',
     deck: ['066', '067', '068', '095', '056', '057', '106', '107', '115', '128', '127', '016', '021', '018', '019', '020', '083', '132', '133', '137'],
@@ -169,6 +223,7 @@ export const CAMPAIGN_BOSSES: CampaignBoss[] = [
   {
     id: 'agatha',
     name: 'Agatha',
+    category: 'elite_four',
     avatar: '👻',
     description: 'Membro da Elite Four. Mestre dos Fantasmas.',
     deck: ['092', '093', '094', '042', '024', '110', '041', '023', '029', '030', '088', '089', '109', '049', '048', '015', '094', '094', '094', '150'],
@@ -185,6 +240,7 @@ export const CAMPAIGN_BOSSES: CampaignBoss[] = [
   {
     id: 'lance',
     name: 'Lance',
+    category: 'elite_four',
     avatar: '🐉',
     description: 'Membro da Elite Four. Mestre dos Dragões.',
     deck: ['147', '148', '149', '149', '130', '142', '006', '150', '149', '131', '133', '137', '143', '144', '145', '146', '129', '128', '127', '130', '147', '147'],
@@ -203,6 +259,7 @@ export const CAMPAIGN_BOSSES: CampaignBoss[] = [
   {
     id: 'champion',
     name: 'Blue',
+    category: 'champion',
     avatar: '👑',
     description: 'O Campeão da Liga Pokémon! Seu maior rival.',
     deck: ['018', '059', '065', '103', '130', '112', '149', '150', '151', '131', '143', '129', '133', '137', '146', '144', '145', '125', '126', '127', '114', '007', '114'],
@@ -223,6 +280,7 @@ export const CAMPAIGN_BOSSES: CampaignBoss[] = [
   {
     id: 'mewtwo_boss',
     name: 'Mewtwo',
+    category: 'secret_challenges',
     avatar: '🧬',
     description: 'O Pokémon mais poderoso criado pela ciência. BOSS SECRETO!',
     deck: ['150', '150', '065', '094', '151', '149', '144', '145', '146', '137', '133', '139', '131', '130', '143', '138', '151', '150', '149', '114', '007', '114'],
@@ -242,6 +300,7 @@ export const CAMPAIGN_BOSSES: CampaignBoss[] = [
   {
     id: 'safari_guardian',
     name: 'Safari Guardian',
+    category: 'secret_challenges',
     avatar: '🦌',
     description: 'Guardião do Safari Zone — usa muitos Pokémon comuns e versáteis.',
     deck: ['052','053','016','017','018','032','033','034','083','084','085','108','113','115','128','129','133','137','060','061'],
@@ -258,6 +317,7 @@ export const CAMPAIGN_BOSSES: CampaignBoss[] = [
   {
     id: 'rocket_admin',
     name: 'Team Rocket Admin',
+    category: 'secret_challenges',
     avatar: '🎩',
     description: 'Chefe da equipe Rocket — trap/poison/ground focus e táticas sujas.',
     deck: ['023','024','041','042','050','051','074','075','076','095','111','112','031','034','129','130','083','052','015','049'],
@@ -274,6 +334,7 @@ export const CAMPAIGN_BOSSES: CampaignBoss[] = [
   {
     id: 'fossil_hunter',
     name: 'Fossil Hunter',
+    category: 'secret_challenges',
     avatar: '🗿',
     description: 'Caçador de fósseis — muita presença de Rock/Bug/Water e cartas resistentes.',
     deck: ['140','141','132','133','127','128','074','075','076','050','051','072','073','138','139','130','142','137','131','143'],
@@ -290,6 +351,7 @@ export const CAMPAIGN_BOSSES: CampaignBoss[] = [
   {
     id: 'dragon_master',
     name: 'Dragon Master',
+    category: 'secret_challenges',
     avatar: '🐲',
     description: 'Mestre dos dragões — decks cheios de ameaças grandes e raras.',
     deck: ['147', '148', '149', '149', '130', '142', '150', '149', '149', '131', '143', '137', '126', '125', '144', '145', '146', '129', '133', '151', '114', '007', '108'],
@@ -350,6 +412,32 @@ class CampaignService {
     return [...this.bosses];
   }
 
+  getBossesByCategory(categoryId: string): CampaignBoss[] {
+    return this.bosses.filter(b => b.category === categoryId);
+  }
+
+  getCategories(): CampaignCategory[] {
+    return CAMPAIGN_CATEGORIES.map(cat => {
+      const categoryBosses = this.getBossesByCategory(cat.id);
+      const allDefeated = categoryBosses.length > 0 && categoryBosses.every(b => b.defeated);
+      const anyUnlocked = categoryBosses.some(b => b.unlocked);
+      
+      return {
+        ...cat,
+        unlocked: cat.unlocked || anyUnlocked
+      };
+    });
+  }
+
+  getCategoryProgress(categoryId: string): { defeated: number; total: number; unlocked: number } {
+    const bosses = this.getBossesByCategory(categoryId);
+    return {
+      defeated: bosses.filter(b => b.defeated).length,
+      total: bosses.length,
+      unlocked: bosses.filter(b => b.unlocked).length
+    };
+  }
+
   getBoss(id: string): CampaignBoss | undefined {
     return this.bosses.find(b => b.id === id);
   }
@@ -362,11 +450,44 @@ class CampaignService {
     const bossIndex = this.bosses.findIndex(b => b.id === id);
     if (bossIndex >= 0) {
       this.bosses[bossIndex].defeated = true;
-      // Desbloquear próximo boss
-      if (bossIndex + 1 < this.bosses.length) {
-        this.bosses[bossIndex + 1].unlocked = true;
+      
+      // Desbloquear próximo boss da mesma categoria
+      const currentBoss = this.bosses[bossIndex];
+      const categoryBosses = this.bosses.filter(b => b.category === currentBoss.category);
+      const currentBossInCategory = categoryBosses.findIndex(b => b.id === id);
+      
+      if (currentBossInCategory >= 0 && currentBossInCategory + 1 < categoryBosses.length) {
+        const nextBoss = categoryBosses[currentBossInCategory + 1];
+        const nextBossIndex = this.bosses.findIndex(b => b.id === nextBoss.id);
+        if (nextBossIndex >= 0) {
+          this.bosses[nextBossIndex].unlocked = true;
+        }
       }
+      
+      // Verificar se completou a categoria e desbloquear próxima
+      const progress = this.getCategoryProgress(currentBoss.category);
+      if (progress.defeated === progress.total) {
+        this.unlockNextCategory(currentBoss.category);
+      }
+      
       this.saveCampaign();
+    }
+  }
+
+  private unlockNextCategory(currentCategoryId: string) {
+    const categoryOrder = ['gym_leaders', 'elite_four', 'champion', 'secret_challenges'];
+    const currentIndex = categoryOrder.indexOf(currentCategoryId);
+    
+    if (currentIndex >= 0 && currentIndex + 1 < categoryOrder.length) {
+      const nextCategoryId = categoryOrder[currentIndex + 1];
+      const nextCategoryBosses = this.bosses.filter(b => b.category === nextCategoryId);
+      
+      if (nextCategoryBosses.length > 0) {
+        const firstBossIndex = this.bosses.findIndex(b => b.id === nextCategoryBosses[0].id);
+        if (firstBossIndex >= 0) {
+          this.bosses[firstBossIndex].unlocked = true;
+        }
+      }
     }
   }
 

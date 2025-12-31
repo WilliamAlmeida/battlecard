@@ -30,6 +30,8 @@ export const MainMenu: React.FC<MainMenuProps> = ({
   const [selectedMode, setSelectedMode] = useState<GameMode | null>(null);
   const [difficulty, setDifficulty] = useState<AIDifficulty>(AIDifficulty.NORMAL);
   const [showCampaign, setShowCampaign] = useState(false);
+  const [showCampaignCategory, setShowCampaignCategory] = useState(false);
+  const [selectedCampaignCategory, setSelectedCampaignCategory] = useState<string | null>(null);
   const [showSurvival, setShowSurvival] = useState(false);
   const [deckSelectorOpen, setDeckSelectorOpen] = useState(false);
   const [showDailyTimeline, setShowDailyTimeline] = useState(false);
@@ -45,7 +47,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
   const handleModeSelect = (mode: GameMode) => {
     soundService.playClick();
     if (mode === GameMode.CAMPAIGN) {
-      setShowCampaign(true);
+      setShowCampaignCategory(true);
     } else if (mode === GameMode.SURVIVAL) {
       setShowSurvival(true);
     } else {
@@ -201,26 +203,135 @@ export const MainMenu: React.FC<MainMenuProps> = ({
   const pendingDay = pending?.day ?? 1;
   const claimedCount = Math.max(0, pendingDay - 1);
 
-  if (showCampaign) {
+  // Campaign Category Selection Screen
+  if (showCampaignCategory) {
+    const categories = campaignService.getCategories();
+    
     return (
       <div className="fixed inset-0 bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 z-50 overflow-y-auto select-none">
         <div className="flex flex-col items-center justify-start min-h-screen p-8">
           <button 
-            onClick={() => setShowCampaign(false)}
+            onClick={() => setShowCampaignCategory(false)}
             className="absolute top-8 left-8 bg-slate-700 px-6 py-3 rounded-xl font-bold hover:bg-slate-600 transition-colors"
           >
             👈 Voltar
           </button>
 
-          <h1 className="text-4xl font-black text-yellow-500 italic mb-2 mt-24 sm:mt-12">CAMPANHA</h1>
-          <p className="text-slate-400 mb-8">Progresso: {campaignProgress.defeated}/{campaignProgress.total} bosses derrotados</p>
+          <h1 className="text-5xl font-black text-yellow-500 italic mb-2 mt-24 sm:mt-12 text-center">SELECIONE SUA JORNADA</h1>
+          <p className="text-slate-400 mb-12 text-center">Escolha qual campanha você deseja enfrentar</p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl w-full">
+            {categories.map(category => {
+              const progress = campaignService.getCategoryProgress(category.id);
+              const isCompleted = progress.defeated === progress.total;
+              
+              return (
+                <button
+                  key={category.id}
+                  onClick={() => {
+                    if (category.unlocked) {
+                      soundService.playClick();
+                      setSelectedCampaignCategory(category.id);
+                      setShowCampaign(true);
+                      setShowCampaignCategory(false);
+                    }
+                  }}
+                  disabled={!category.unlocked}
+                  className={`
+                    relative p-8 rounded-3xl border-4 transition-all text-left
+                    ${category.unlocked
+                      ? `bg-gradient-to-br ${category.color} hover:scale-105 cursor-pointer shadow-2xl border-white/20`
+                      : 'bg-slate-900/50 border-slate-700 opacity-50 cursor-not-allowed'
+                    }
+                  `}
+                >
+                  {!category.unlocked && (
+                    <div className="absolute inset-0 flex items-center justify-center z-10">
+                      <span className="text-8xl">🔒</span>
+                    </div>
+                  )}
+                  
+                  {isCompleted && category.unlocked && (
+                    <div className="absolute top-4 right-4 text-4xl animate-pulse">✅</div>
+                  )}
+
+                  <div className="text-7xl mb-6">{category.icon}</div>
+                  <h2 className="text-4xl font-black mb-3">{category.name}</h2>
+                  <p className="text-white/80 mb-6 text-lg">{category.description}</p>
+                  
+                  {category.unlocked && (
+                    <div className="mt-4 pt-4 border-t border-white/20">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-sm text-white/60">Progresso</span>
+                        <span className="text-sm font-bold">
+                          {progress.defeated}/{progress.total}
+                        </span>
+                      </div>
+                      <div className="w-full bg-black/30 rounded-full h-3 overflow-hidden">
+                        <div 
+                          className="bg-yellow-400 h-full transition-all rounded-full"
+                          style={{ width: `${(progress.defeated / progress.total) * 100}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="mt-12 text-center text-slate-500 max-w-2xl">
+            <p className="text-sm">💡 Complete cada campanha para desbloquear a próxima!</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (showCampaign) {
+    const bosses = selectedCampaignCategory 
+      ? campaignService.getBossesByCategory(selectedCampaignCategory)
+      : campaignService.getBosses();
+    
+    const categoryInfo = selectedCampaignCategory 
+      ? campaignService.getCategories().find(c => c.id === selectedCampaignCategory)
+      : null;
+    
+    const progress = selectedCampaignCategory 
+      ? campaignService.getCategoryProgress(selectedCampaignCategory)
+      : campaignProgress;
+
+    return (
+      <div className="fixed inset-0 bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 z-50 overflow-y-auto select-none">
+        <div className="flex flex-col items-center justify-start min-h-screen p-8">
+          <button 
+            onClick={() => {
+              setShowCampaign(false);
+              setShowCampaignCategory(true);
+            }}
+            className="absolute top-8 left-8 bg-slate-700 px-6 py-3 rounded-xl font-bold hover:bg-slate-600 transition-colors"
+          >
+            👈 Voltar
+          </button>
+
+          <div className="text-center mb-8 mt-24 sm:mt-12">
+            {categoryInfo && (
+              <div className="text-6xl mb-3">{categoryInfo.icon}</div>
+            )}
+            <h1 className="text-4xl font-black text-yellow-500 italic mb-2">
+              {categoryInfo ? categoryInfo.name.toUpperCase() : 'CAMPANHA'}
+            </h1>
+            <p className="text-slate-400">
+              Progresso: {progress.defeated}/{progress.total} derrotados
+            </p>
+          </div>
 
           <div className="max-w-2xl ">
             <DeckSelector />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl">
-            {campaignService.getBosses().map(boss => (
+            {bosses.map(boss => (
               <div 
                 key={boss.id}
                 className={`
@@ -270,11 +381,13 @@ export const MainMenu: React.FC<MainMenuProps> = ({
               </div>
             ))}
 
-            <div className="p-6 rounded-2xl border-4 border-dashed border-slate-600 bg-slate-900/50 flex flex-col items-center justify-center text-slate-500">
-              <div className="text-5xl mb-4">⏳</div>
-              <h3 className="text-2xl font-black mb-2">Em Breve</h3>
-              <p className="text-sm text-slate-400 text-center">Novos líderes e desafios estão a caminho!</p>
-             </div> 
+            {selectedCampaignCategory === 'gym_leaders' && (
+              <div className="p-6 rounded-2xl border-4 border-dashed border-slate-600 bg-slate-900/50 flex flex-col items-center justify-center text-slate-500">
+                <div className="text-5xl mb-4">⏳</div>
+                <h3 className="text-2xl font-black mb-2">Em Breve</h3>
+                <p className="text-sm text-slate-400 text-center">Novos líderes estão a caminho!</p>
+              </div>
+            )}
           </div>
         </div>
       </div>

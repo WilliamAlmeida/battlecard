@@ -204,6 +204,7 @@ export interface AchievementReward {
 export interface CampaignBoss {
   id: string;
   name: string;
+  category: string;
   avatar: string;
   description: string;
   deck: string[];
