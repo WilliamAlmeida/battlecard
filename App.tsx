@@ -490,6 +490,7 @@ export default function App() {
              <div key={card.uniqueId} onClick={() => handleEnemyClick(card)} className={`cursor-pointer transition-transform ${attackMode ? 'hover:scale-110' : ''}`}>
                <CardComponent 
                  card={card} 
+                 isOpponent
                  isAttacking={attackingCardId === card.uniqueId} 
                  isDamaged={damagedCardId === card.uniqueId}
                  compact
