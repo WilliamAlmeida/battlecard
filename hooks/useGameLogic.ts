@@ -598,9 +598,15 @@ export const useGameLogic = () => {
                         newGrave.push(g);
                       }
 
+                      const sanitized = {
+                        ...destroyAbilityResult.reviveCard!,
+                        statusEffects: [],
+                        statusDuration: []
+                      };
+
                       return {
                         ...p,
-                        hand: [...p.hand, destroyAbilityResult.reviveCard!],
+                        hand: [...p.hand, sanitized],
                         graveyard: newGrave
                       };
                     });
@@ -1105,8 +1111,8 @@ export const useGameLogic = () => {
       if (state.graveyard.length > 0) {
         const toRevive = state.graveyard[state.graveyard.length - 1];
         const revivedCard = effect.value === 1
-          ? { ...toRevive, hasAttacked: false }
-          : { ...toRevive, attack: Math.floor(toRevive.attack / 2), hasAttacked: false };
+          ? { ...toRevive, hasAttacked: false, statusEffects: [], statusDuration: [] }
+          : { ...toRevive, attack: Math.floor(toRevive.attack / 2), hasAttacked: false, statusEffects: [], statusDuration: [] };
 
         const revivedId = toRevive.uniqueId;
         setFn(p => {

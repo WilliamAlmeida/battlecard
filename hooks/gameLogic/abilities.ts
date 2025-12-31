@@ -79,7 +79,9 @@ export const processAbility = (
           ...card,
           attack: Math.floor(card.attack / 2),
           defense: Math.floor(card.defense / 2),
-          hasAttacked: true
+          hasAttacked: true,
+          statusEffects: [],
+          statusDuration: []
         };
         result.logs.push(`${card.name} renasceu com metade do ATK/DEF!`);
       }
