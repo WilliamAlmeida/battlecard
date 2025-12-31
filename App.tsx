@@ -13,6 +13,7 @@ import { AchievementsView } from './components/AchievementsView';
 import { StatsView } from './components/StatsView';
 import { AchievementNotification } from './components/AchievementNotification';
 import { DeckBuilderView } from './components/DeckBuilderView';
+import { ShopView } from './components/ShopView';
 import { achievementsService } from './services/achievementsService';
 import { campaignService } from './services/campaignService';
 import { soundService } from './services/soundService';
@@ -20,7 +21,7 @@ import { getCardsByIds } from './constants';
 import { collectionService } from './services/collectionService';
 import { statsService } from './services/statsService';
 
-type AppView = 'menu' | 'game' | 'collection' | 'achievements' | 'stats' | 'deckbuilder';
+type AppView = 'menu' | 'game' | 'collection' | 'achievements' | 'stats' | 'deckbuilder' | 'shop';
 
 export default function App() {
   const {
@@ -356,6 +357,7 @@ export default function App() {
           onOpenDeckBuilder={() => setCurrentView('deckbuilder')}
           onOpenAchievements={() => setCurrentView('achievements')}
           onOpenStats={() => setCurrentView('stats')}
+          onOpenShop={() => setCurrentView('shop')}
           selectedDeckId={selectedDeckId}
           onSelectDeck={handleSelectDeck}
         />
@@ -433,6 +435,18 @@ export default function App() {
     return (
       <>
         <DeckBuilderView onBack={() => setCurrentView('menu')} />
+        <AchievementNotification
+          achievement={achievementNotification}
+          onClose={() => setAchievementNotification(null)}
+        />
+      </>
+    );
+  }
+
+  if (currentView === 'shop') {
+    return (
+      <>
+        <ShopView onClose={() => setCurrentView('menu')} />
         <AchievementNotification
           achievement={achievementNotification}
           onClose={() => setAchievementNotification(null)}

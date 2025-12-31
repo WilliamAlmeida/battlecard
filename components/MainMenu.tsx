@@ -14,6 +14,7 @@ interface MainMenuProps {
   onOpenDeckBuilder: () => void;
   onOpenAchievements: () => void;
   onOpenStats: () => void;
+  onOpenShop: () => void;
   selectedDeckId: string | null;
   onSelectDeck: (deckId: string | null) => void;
 }
@@ -24,6 +25,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
   onOpenDeckBuilder,
   onOpenAchievements,
   onOpenStats,
+  onOpenShop,
   selectedDeckId,
   onSelectDeck
 }) => {
@@ -626,6 +628,18 @@ export const MainMenu: React.FC<MainMenuProps> = ({
           <span className="text-5xl mb-4 block group-hover:animate-bounce">🔧</span>
           <h3 className="text-2xl font-black">Deck Builder</h3>
           <p className="text-sm text-white/70">Crie e edite seus decks</p>
+        </button>
+
+        <button
+          onClick={onOpenShop}
+          className="bg-gradient-to-br from-pink-600 to-rose-600 p-8 rounded-3xl text-left hover:scale-105 transition-all shadow-2xl border-b-8 border-pink-900 group"
+        >
+          <span className="text-5xl mb-4 block group-hover:animate-bounce">🛒</span>
+          <h3 className="text-2xl font-black">Loja</h3>
+          <p className="text-sm text-white/70">Compre cartas exclusivas</p>
+          <div className="mt-2 text-xs bg-black/30 px-2 py-1 rounded-full inline-block">
+            💰 {collection.coins}
+          </div>
         </button>
       </div>
 
