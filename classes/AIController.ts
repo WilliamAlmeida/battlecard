@@ -45,18 +45,31 @@ export class AIController {
 
   // Avaliar força de uma carta considerando tipo contra o campo inimigo
   private static evaluateCardStrength(card: Card, enemyField: Card[]): number {
-    let score = card.attack;
+    // Base: ATK + DEF (peso dominante 100%)
+    let score = card.attack + (card.defense || 0);
     
-    // Bonus por habilidade
-    if (card.ability) score += 200;
+    // Habilidade tem valor moderado (não deve superar diferença de 600+ em stats)
+    if (card.ability) score += 300;
     
-    // Avaliar vantagem de tipo contra inimigos
-    enemyField.forEach(enemy => {
-      const advantage = this.getTypeAdvantage(card, enemy);
-      if (advantage === 2) score += 400;
-      else if (advantage === 0.5) score -= 300;
-      else if (advantage === 0) score -= 500;
-    });
+    // Avaliar vantagem de tipo contra inimigos (bônus moderado, não dominante)
+    if (enemyField.length > 0) {
+      let typeBonus = 0;
+      let bestAdvantage = 1;
+      
+      // Pegar apenas a MELHOR vantagem de tipo, não acumular
+      enemyField.forEach(enemy => {
+        const advantage = this.getTypeAdvantage(card, enemy);
+        if (advantage > bestAdvantage) bestAdvantage = advantage;
+      });
+      
+      // Bônus/penalidade baseado na melhor vantagem
+      if (bestAdvantage === 2) typeBonus = 500; // Super efetivo
+      else if (bestAdvantage === 1.5) typeBonus = 300; // Efetivo
+      else if (bestAdvantage === 0.5) typeBonus = -200; // Pouco efetivo
+      else if (bestAdvantage === 0) typeBonus = -400; // Imune
+      
+      score += typeBonus;
+    }
     
     return score;
   }
@@ -231,39 +244,42 @@ export class AIController {
 
   // Estratégia 2: FIELD_FIRST (prioriza campo, mais fracos primeiro)
   private static sacrificeFieldFirst(field: Card[], hand: Card[], required: number): string[] {
-    field.sort((a, b) => a.attack - b.attack);
-    hand.sort((a, b) => a.attack - b.attack);
+    // Ordena por força total (ATK + DEF), mais fracos primeiro
+    field.sort((a, b) => (a.attack + (a.defense || 0)) - (b.attack + (b.defense || 0)));
+    hand.sort((a, b) => (a.attack + (a.defense || 0)) - (b.attack + (b.defense || 0)));
     const candidates = [...field, ...hand];
     return candidates.slice(0, required).map(c => c.uniqueId);
   }
 
   // Estratégia 3: HAND_FIRST (prioriza mão, mais fracos primeiro)
   private static sacrificeHandFirst(field: Card[], hand: Card[], required: number): string[] {
-    field.sort((a, b) => a.attack - b.attack);
-    hand.sort((a, b) => a.attack - b.attack);
+    // Ordena por força total (ATK + DEF), mais fracos primeiro
+    field.sort((a, b) => (a.attack + (a.defense || 0)) - (b.attack + (b.defense || 0)));
+    hand.sort((a, b) => (a.attack + (a.defense || 0)) - (b.attack + (b.defense || 0)));
     const candidates = [...hand, ...field];
     return candidates.slice(0, required).map(c => c.uniqueId);
   }
 
   // Estratégia 4: SMART_HYBRID (mantém campo quando possível)
   private static sacrificeSmartHybrid(npc: Player, field: Card[], hand: Card[], required: number): string[] {
-    hand.sort((a, b) => a.attack - b.attack);
-    field.sort((a, b) => a.attack - b.attack);
+    // Ordena por força total (ATK + DEF), mais fracos primeiro
+    hand.sort((a, b) => (a.attack + (a.defense || 0)) - (b.attack + (b.defense || 0)));
+    field.sort((a, b) => (a.attack + (a.defense || 0)) - (b.attack + (b.defense || 0)));
 
     // Se campo não está cheio, tentar pegar todos da mão
     if (npc.field.length < GameRules.MAX_FIELD_SIZE) {
       if (hand.length >= required) {
-        // Pode sacrificar só da mão
+        // Pode sacrificar só da mão (os mais fracos)
         return hand.slice(0, required).map(c => c.uniqueId);
       } else {
-        // Pega o que tem na mão + complementa com campo
+        // Pega o que tem na mão + complementa com campo (os mais fracos)
         const fromHand = hand.map(c => c.uniqueId);
         const needFromField = required - hand.length;
         const fromField = field.slice(0, needFromField).map(c => c.uniqueId);
         return [...fromHand, ...fromField];
       }
     } else {
-      // Campo cheio: DEVE sacrificar do campo primeiro
+      // Campo cheio: DEVE sacrificar do campo primeiro (os mais fracos)
       const candidates = [...field, ...hand];
       return candidates.slice(0, required).map(c => c.uniqueId);
     }
@@ -272,20 +288,44 @@ export class AIController {
   // Estratégia 5: SCORE_BASED (híbrido com pontuação)
   private static sacrificeScoreBased(field: Card[], hand: Card[], required: number, enemyField?: Card[]): string[] {
     const scoreCard = (card: Card, isOnField: boolean): number => {
+      // Base: ATK + DEF é o fator mais importante (peso 100%)
       let score = card.attack + (card.defense || 0);
-      if (card.ability) score += 300; // Habilidades são valiosas
-      if (isOnField && card.hasAttacked) score -= 200; // Já atacou = menos útil agora
-      if (isOnField) score += 150; // Bonus moderado por estar no campo (pressão)
+      
+      // Habilidades NÃO afetam decisão de sacrifício (peso 0 conforme solicitado)
+      // if (card.ability) score += 0;
+      
+      // Pokémon no campo tem valor por pressão/posição (5% extra)
+      if (isOnField) score += 200;
+      
+      // Se já atacou, vale um pouco menos, mas não muito (redução de apenas 3%)
+      if (isOnField && card.hasAttacked) score -= 100;
       
       // Considerar vantagem de tipo contra o campo inimigo
       if (enemyField && enemyField.length > 0) {
         let typeBonus = 0;
+        let advantageCount = 0;
+        let disadvantageCount = 0;
+        
         enemyField.forEach(enemy => {
           const advantage = this.getTypeAdvantage(card, enemy);
-          if (advantage === 1.5) typeBonus += 300; // Vantagem forte = não sacrificar
-          else if (advantage === 0.5) typeBonus -= 150; // Desvantagem = pode sacrificar
-          else if (advantage === 0) typeBonus -= 250; // Imune = sacrificar
+          if (advantage === 2) {
+            advantageCount++;
+            typeBonus += 400; // Super efetivo = muito valioso
+          } else if (advantage === 1.5) {
+            advantageCount++;
+            typeBonus += 300; // Vantagem = valioso
+          } else if (advantage === 0.5) {
+            disadvantageCount++;
+            typeBonus -= 200; // Desvantagem = menos valioso
+          } else if (advantage === 0) {
+            disadvantageCount++;
+            typeBonus -= 300; // Imune ao inimigo = menos valioso
+          }
         });
+        
+        // Bônus extra se tem vantagem contra múltiplos inimigos
+        if (advantageCount > 1) typeBonus += 200 * (advantageCount - 1);
+        
         score += typeBonus;
       }
       
