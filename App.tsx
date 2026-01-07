@@ -578,7 +578,7 @@ export default function App() {
 
 
       {/* Campo Central */}
-      <main className="flex-1 flex flex-col items-center justify-center gap-y-10 gap-x-20 relative px-4 sm:px-4 py-8 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-slate-800 to-slate-900">
+      <main className="flex-1 flex flex-col justify-center gap-y-10 gap-x-20 relative px-4 sm:px-4 py-8 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-slate-800 to-slate-900">
         
         {/* Campo Oponente */}
         <div className="relative z-[31]">
@@ -652,7 +652,7 @@ export default function App() {
                     ref={(el) => el && cardRefs.current.set(card.uniqueId, el)}
                     onClick={() => handleCardClick(card, 'field')}
                     className={`cursor-pointer transition-all
-                      ${selectedCardId === card.uniqueId ? 'scale-110 ring-2 ring-yellow-500' : ''}
+                      ${selectedCardId === card.uniqueId ? 'scale-105 ring-0 ring-yellow-500' : ''}
                       ${cardsToSacrifice.includes(card.uniqueId) ? 'ring-2 ring-red-500 opacity-70' : ''}
                       ${canAttackCard ? 'hover:ring-2 hover:ring-green-500' : ''}`}
                   >

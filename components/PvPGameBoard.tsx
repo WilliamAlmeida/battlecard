@@ -300,7 +300,7 @@ export const PvPGameBoard: React.FC<PvPGameBoardProps> = ({ onGameEnd }) => {
       
 
       {/* Game Area */}
-      <div className="flex-1 flex flex-col justify-center gap-y-10 gap-x-20 relative px-4 sm:px-4 py-8 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-slate-800 to-slate-900">
+      <main className="flex-1 flex flex-col justify-center gap-y-10 gap-x-20 relative px-4 sm:px-4 py-8 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-slate-800 to-slate-900">
         {/* Opponent Field */}
         <div className="relative z-[11]">
           <div className="flex justify-center gap-3 min-h-[140px]">
@@ -395,7 +395,7 @@ export const PvPGameBoard: React.FC<PvPGameBoardProps> = ({ onGameEnd }) => {
           )}
 
         </div>
-      </div>
+      </main>
 
       {/* Bottom Bar - My Info & Hand */}
       <div className="bg-slate-900 p-2 sm:p-5 border-t-8 border-white/5 shadow-[0_-30px_60px_rgba(0,0,0,0.6)] min-h-[266px]">
