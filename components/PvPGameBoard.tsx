@@ -246,7 +246,7 @@ export const PvPGameBoard: React.FC<PvPGameBoardProps> = ({ onGameEnd }) => {
         </div>
       )}
 
-      {/* Top Bar */}
+      {/* HUD Superior */}
       <header className="flex flex-wrap justify-around items-center p-2 bg-slate-800/95 border-b-4 border-white/5 z-30 shadow-2xl gap-2 md:gap-6">
 
         {/* My Info */}
@@ -322,7 +322,11 @@ export const PvPGameBoard: React.FC<PvPGameBoardProps> = ({ onGameEnd }) => {
                   }`}
                   onClick={() => targetingMode && handleOpponentFieldCardClick(card)}
                 >
-                  <CardComponent card={card} size="small" />
+                  <CardComponent 
+                    card={card} 
+                    size="small" 
+                    hasStatusEffects={card.statusEffects?.some(s => s !== 'NONE')}
+                  />
                 </div>
               ))
             )}
@@ -361,15 +365,18 @@ export const PvPGameBoard: React.FC<PvPGameBoardProps> = ({ onGameEnd }) => {
               myPlayer.field.map(card => (
                 <div 
                   key={card.uniqueId}
-                  className={`cursor-pointer transition-all ${
-                    attackingCard?.uniqueId === card.uniqueId ? 'scale-110 ring-2 ring-yellow-500' : ''
-                  } ${canAttack(card) && !attackingCard ? 'hover:ring-2 hover:ring-green-500' : ''}`}
+                  className={`cursor-pointer transition-all
+                    ${attackingCard?.uniqueId === card.uniqueId ? 'scale-105 ring-0 ring-yellow-500' : ''}
+                    ${canAttack(card) && !attackingCard ? 'hover:ring-2 hover:ring-green-500' : ''}`}
                   onClick={() => handleMyFieldCardClick(card)}
                 >
                   <CardComponent 
                     card={card} 
                     size="small" 
                     showAttacked={card.hasAttacked}
+                    canAttack={canAttack(card) && !attackingCard}
+                    isActive={attackingCard?.uniqueId === card.uniqueId}
+                    hasStatusEffects={card.statusEffects?.some(s => s !== 'NONE')}
                   />
                 </div>
               ))
@@ -414,7 +421,12 @@ export const PvPGameBoard: React.FC<PvPGameBoardProps> = ({ onGameEnd }) => {
                 }
               }}
             >
-              <CardComponent card={card} size="small" />
+              <CardComponent 
+                card={card} 
+                size="small" 
+                isActive={selectedCard?.uniqueId === card.uniqueId}
+                hasStatusEffects={card.statusEffects?.some(s => s !== 'NONE')}
+              />
             </div>
           ))}
         </div>

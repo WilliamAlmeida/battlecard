@@ -5,13 +5,16 @@ import Tooltip from './Tooltip';
 interface CardProps {
   card: Card;
   compact?: boolean;
+  size?: 'small' | 'normal';
   isOpponent?: boolean;
   faceDown?: boolean;
   isActive?: boolean;
   canAttack?: boolean;
+  hasStatusEffects?: boolean;
   isAttacking?: boolean;
   isDamaged?: boolean;
   showDetails?: boolean;
+  showAttacked?: boolean;
   targetPosition?: { x: number; y: number };
   attackTargetActive?: boolean;
 }
@@ -75,7 +78,22 @@ const getRarityGlow = (rarity: Rarity) => {
   }
 };
 
-export const CardComponent: React.FC<CardProps> = ({ card, compact, isOpponent, faceDown = false, isActive, canAttack, isAttacking, isDamaged, showDetails, targetPosition, attackTargetActive }) => {
+export const CardComponent: React.FC<CardProps> = ({ 
+  card, 
+  compact, 
+  size = 'normal',
+  isOpponent, 
+  faceDown = false, 
+  isActive, 
+  canAttack, 
+  hasStatusEffects,
+  isAttacking, 
+  isDamaged, 
+  showDetails, 
+  showAttacked,
+  targetPosition, 
+  attackTargetActive 
+}) => {
   let animationClass = '';
   let customAnimation = '';
 
@@ -105,8 +123,6 @@ export const CardComponent: React.FC<CardProps> = ({ card, compact, isOpponent, 
     return getTypeColor(card.type);
   };
 
-  const activeStatuses = card.statusEffects?.filter(s => s !== StatusEffect.NONE) || [];
-
   const renderEffect = (effect: any) => {
     if (!effect) return 'Nenhum';
     const parts: string[] = [];
@@ -131,11 +147,11 @@ export const CardComponent: React.FC<CardProps> = ({ card, compact, isOpponent, 
     flex flex-col text-white overflow-hidden cursor-pointer
     ${getCardColor()}
     ${getRarityGlow(card.rarity)}
-    ${isActive ? 'ring-4 ring-white -translate-y-4 z-10' : 'hover:brightness-110'}
-    ${canAttack ? 'animate-pulse ring-[3px] sm:ring-4 ring-yellow-400 shadow-[0_0_30px_rgba(250,204,21,0.6)]' : ''}
+    ${isActive ? 'ring-2 ring-white/50 -translate-y-4 z-10' : 'hover:brightness-110'}
+    ${canAttack ? 'animate-pulse ring-2 ring-yellow-400/50 shadow-[0_0_30px_rgba(250,204,21,0.6)]' : ''}
     ${compact ? 'w-[110px] h-[155px] md:w-32 md:h-[180px] text-lg p-2 sm:px-3' : 'w-[110px] h-[155px] md:w-32 md:h-[180px] text-lg p-2 sm:px-3'}
     ${animationClass}
-    ${activeStatuses.length > 0 ? 'ring-4 ring-red-500' : ''}
+    ${hasStatusEffects ? 'ring-2 ring-red-500/50' : ''}
   `;
 
     // Face-down hidden card
@@ -238,9 +254,9 @@ export const CardComponent: React.FC<CardProps> = ({ card, compact, isOpponent, 
       />
 
       {/* Status Effects */}
-      {activeStatuses.length > 0 && (
+      {hasStatusEffects && card.statusEffects && (
         <div className="absolute bottom-0 left-1/2 -translate-x-1/2 flex items-center">
-          {activeStatuses.map((status, i) => (
+          {card.statusEffects.filter(s => s !== StatusEffect.NONE).map((status, i) => (
             <span key={i} className="text-base animate-pulse">{getStatusIcon(status)}</span>
           ))}
         </div>
@@ -309,7 +325,7 @@ export const CardComponent: React.FC<CardProps> = ({ card, compact, isOpponent, 
         </div>
       </div>
       
-      {card.hasAttacked && (
+      {(showAttacked || card.hasAttacked) && (
         <div className="absolute inset-0 bg-black/70 flex items-center justify-center pointer-events-none backdrop-blur-[2px] z-20">
             <span className={`${compact ? 'text-sm px-2 py-1 border-4' : 'text-sm px-2 py-1 border-4'} font-black text-white/80 uppercase -rotate-12 border-white/30 rounded-2xl scale-125 tracking-tighter italic shadow-2xl`}>EXAUSTO</span>
         </div>

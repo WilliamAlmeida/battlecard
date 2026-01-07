@@ -156,8 +156,7 @@ export default function App() {
 
     // Clique no Campo
     if (location === 'field') {
-      // Se estamos em modo de seleção (spell alvo) e a carta selecionada é uma SPELL com alvo SINGLE_ALLY,
-      // aplicar o spell no aliado clicado.
+      // Se estamos em modo de targeting (spell ou ataque)
       if (attackMode && selectedCardId) {
         const selectedSpell = player.hand.find(c => c.uniqueId === selectedCardId);
         if (selectedSpell?.cardType === 'SPELL') {
@@ -174,25 +173,21 @@ export default function App() {
             return;
           }
         }
+        
+        // Se já está em attackMode, não permitir selecionar outra carta
+        return;
       }
 
-      if (phase === Phase.BATTLE) {
+      // Step 1: Selecionar carta para atacar (apenas em BATTLE phase)
+      if (phase === Phase.BATTLE && !attackMode) {
         if (!card.hasAttacked) {
           setSelectedCardId(card.uniqueId);
           setAttackMode(true);
-          addLog(`Ataque: ${card.name} pronto! Escolha o alvo ou clique na carta novamente para cancelar.`);
         } else {
           addLog(`${card.name} já atacou e está exausto.`);
         }
-      } else if (phase === Phase.MAIN) {
+      } else if (phase === Phase.MAIN && !attackMode) {
         addLog(`Você só pode atacar na BATTLE PHASE.`);
-      }
-      
-      // Cancelar seleção ao clicar na mesma carta
-      if (selectedCardId === card.uniqueId) {
-        setSelectedCardId(null);
-        setAttackMode(false);
-        addLog("Ataque cancelado.");
       }
     }
 
@@ -487,7 +482,7 @@ export default function App() {
 
   // Game view
   return (
-    <div className="flex flex-col h-screen bg-slate-900 text-white sm:overflow-hidden relative font-sans select-none">
+    <div className="min-h-screen bg-slate-900 relative overflow-hidden">
       
       {/* Achievement notification overlay */}
       <AchievementNotification
@@ -495,8 +490,36 @@ export default function App() {
         onClose={() => setAchievementNotification(null)}
       />
       
+      {/* Targeting Mode Overlay: allow clicks to pass through to board (pointer-events-none),
+          but keep the small control clickable (pointer-events-auto) so Cancel works. */}
+      {attackMode && (
+        <div className="absolute inset-0 bg-black/30 z-[30] pointer-events-none">
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-purple-600 px-4 py-2 rounded-lg pointer-events-auto">
+            {(() => {
+              const selectedSpell = player.hand.find(c => c.uniqueId === selectedCardId);
+              if (selectedSpell?.cardType === 'SPELL') {
+                const t = selectedSpell.spellEffect?.target;
+                if (t === 'SINGLE_ALLY') return 'Selecione um alvo aliado para a magia';
+                if (t === 'SINGLE_ENEMY') return 'Selecione um alvo inimigo para a magia';
+              }
+              if (npc.field.length === 0) return 'Clique para atacar diretamente';
+              return 'Selecione um alvo para atacar';
+            })()}
+            <button 
+              className="ml-4 text-red-300 hover:text-red-100" 
+              onClick={() => {
+                setAttackMode(false);
+                setSelectedCardId(null);
+              }}
+            >
+              ✕ Cancelar
+            </button>
+          </div>
+        </div>
+      )}
+      
       {/* HUD Superior */}
-      <header className="flex flex-wrap justify-around items-center p-2 bg-slate-800/95 border-b-4 border-white/5 z-30 shadow-2xl gap-2 md:gap-6 relative">
+      <header className="flex flex-wrap justify-around items-center p-2 bg-slate-800/95 border-b-4 border-white/5 z-30 shadow-2xl gap-2 md:gap-6">
         {/* Back to Menu Button */}
         <button 
           onClick={handleBackToMenu}
@@ -545,146 +568,202 @@ export default function App() {
         </div>
       </header>
 
+
       {/* Campo Central */}
       <main className="flex-1 flex flex-col items-center justify-center gap-y-10 gap-x-20 relative px-4 sm:px-4 py-8 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-slate-800 to-slate-900">
         
         {/* Campo Oponente */}
-        <div className="flex gap-2 sm:gap-12 min-h-[160px] sm:min-h-[260px] items-center">
-           {npc.field.map(card => (
-             <div 
-               key={card.uniqueId} 
-               ref={(el) => el && cardRefs.current.set(card.uniqueId, el)}
-               onClick={() => handleEnemyClick(card)} 
-               className={`cursor-pointer transition-transform ${attackMode ? 'hover:scale-110' : ''}`}
-             >
-               <CardComponent 
-                 card={card} 
-                 isOpponent
-                 isAttacking={attackingCardId === card.uniqueId} 
-                 isDamaged={damagedCardId === card.uniqueId}
-                 attackTargetActive={attackingCardId !== null && attackTargetId !== null && attackingCardId === card.uniqueId}
-                 targetPosition={attackingCardId === card.uniqueId && attackTargetId ? getTargetPosition(card.uniqueId, attackTargetId) : undefined}
-                 compact
-               />
-             </div>
-           ))}
-           {npc.field.length === 0 && <div className="text-white/5 font-black text-4xl sm:text-8xl uppercase tracking-tighter italic opacity-20">Oponente Limpo</div>}
-        </div>
-
-        {/* Linha de Combate */}
-        <div className="w-full h-1 bg-white/5 flex items-center justify-center relative z-[11]">
-           {attackMode && phase === Phase.BATTLE && npc.field.length === 0 && player.field.some(c => c.uniqueId === selectedCardId) && (
-             <button onClick={handleDirectAttack} className="bg-gradient-to-r from-red-600 to-orange-600 px-8 py-3 sm:px-16 sm:py-6 rounded-full font-black sm:text-3xl animate-bounce shadow-[0_0_80px_rgba(220,38,38,0.7)] border-4 border-white transition-all hover:scale-110 active:scale-90">⚔️ ATAQUE DIRETO!</button>
-           )}
-           {attackMode && (() => {
-             const selectedSpell = player.hand.find(c => c.uniqueId === selectedCardId);
-             if (selectedSpell?.cardType === 'SPELL') {
-               const t = selectedSpell.spellEffect?.target;
-               if (t === 'SINGLE_ALLY') return (<div className="bg-yellow-500 text-black px-2 sm:px-10 sm:py-3 rounded-full font-semibold sm:font-black text-sm sm:text-2xl animate-pulse shadow-2xl border-4 border-black">SELECIONE UM POKÉMON ALIADO</div>);
-               if (t === 'SINGLE_ENEMY') return (<div className="bg-yellow-500 text-black px-2 sm:px-10 sm:py-3 rounded-full font-semibold sm:font-black text-sm sm:text-2xl animate-pulse shadow-2xl border-4 border-black">SELECIONE UM POKÉMON INIMIGO</div>);
-             }
-             if (npc.field.length > 0) return (<div className="bg-yellow-500 text-black px-2 sm:px-10 sm:py-3 rounded-full font-semibold sm:font-black text-sm sm:text-2xl animate-pulse shadow-2xl border-4 border-black">SELECIONE UM POKÉMON INIMIGO</div>);
-             return null;
-           })()}
-
-           
-            {tributeSelectionMode && (
-              <div className="flex flex-col sm:flex-row gap-2 sm:gap-6 bg-red-950/40 p-2 sm:px-3 rounded-3xl border-2 border-red-500/50 animate-pulse">
-                 <div className="flex flex-col justify-center">
-                    <span className="text-sm sm:font-bold text-red-400 uppercase tracking-widest text-nowrap">Aguardando Sacrifícios</span>
-                    <span className="text-sm sm:text-base font-semibold sm:font-semibold text-center">
-                      Selecione {(() => {
-                        const required = player.hand.find((c) => c.uniqueId === pendingSummonCardId)?.sacrificeRequired || 0;
-                        return `${required} carta${required === 1 ? '' : 's'}`;
-                      })()}
-                    </span>
-                 </div>
-
-                 <div className="flex justify-evenly sm:justify-center gap-2 sm:gap-4">
-                    <button onClick={() => {
-                    const card = player.hand.find(c => c.uniqueId === pendingSummonCardId);
-                    if (card && cardsToSacrifice.length === card.sacrificeRequired) { summonCard('player', pendingSummonCardId!, cardsToSacrifice); setTributeSelectionMode(false); setCardsToSacrifice([]); setPendingSummonCardId(null); } else { addLog(`Erro: Escolha exatamente ${card?.sacrificeRequired} Pokémon.`); }
-                    }} className="bg-green-600 px-2 py-2 text-xs sm:text-base rounded-2xl hover:bg-green-500 transition-colors shadow-2xl border-b-4 border-green-800">CONFIRMAR</button>
-
-                    <button onClick={() => {
-                    setTributeSelectionMode(false); setCardsToSacrifice([]); setPendingSummonCardId(null);
-                    }} className="bg-slate-700 px-2 py-2 text-xs sm:text-base rounded-2xl hover:bg-slate-600 transition-colors shadow-2xl border-b-4 border-slate-900">CANCELAR</button>
-                 </div>
+        <div className="relative z-[31]">
+          <div className="flex justify-center gap-3 min-h-[140px]">
+            {npc.field.length === 0 ? (
+              <div 
+                className={`w-24 h-32 border-2 border-dashed border-gray-600 rounded-lg flex items-center justify-center text-gray-600 cursor-pointer ${
+                  attackMode ? 'border-red-500 bg-red-500/10 hover:bg-red-500/20' : ''
+                }`}
+                onClick={attackMode ? handleDirectAttack : undefined}
+              >
+                {attackMode ? '⚔️ Ataque Direto' : 'Vazio'}
               </div>
+            ) : (
+              npc.field.map(card => (
+                <div 
+                  key={card.uniqueId} 
+                  ref={(el) => el && cardRefs.current.set(card.uniqueId, el)}
+                  onClick={() => handleEnemyClick(card)} 
+                  className={`cursor-pointer transition-transform ${
+                    attackMode ? 'hover:scale-110 ring-2 ring-red-500' : ''
+                  }`}
+                >
+                  <CardComponent 
+                    card={card}
+                    size="small"
+                    isOpponent
+                    isAttacking={attackingCardId === card.uniqueId} 
+                    isDamaged={damagedCardId === card.uniqueId}
+                    attackTargetActive={attackingCardId !== null && attackTargetId !== null && attackingCardId === card.uniqueId}
+                    targetPosition={attackingCardId === card.uniqueId && attackTargetId ? getTargetPosition(card.uniqueId, attackTargetId) : undefined}
+                    hasStatusEffects={card.statusEffects?.some(s => s !== 'NONE')}
+                  />
+                </div>
+              ))
             )}
+          </div>
 
+          {/* Opponent Trap Zone */}
+          {npc.trapZone.length > 0 && (
+            <div className={`absolute -bottom-14 sm:bottom-0 -right-8 sm:-right-3 flex gap-3 z-10 scale-50 sm:scale-75`}>
+              {npc.trapZone.map(trap => (
+                <div key={trap.uniqueId}>
+                  <CardComponent card={trap} compact faceDown />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* Trap Zone (Player) */}
-        {player.trapZone.length > 0 && (
-          <div className={`absolute -bottom-8 sm:bottom-0 -right-${player.trapZone.length * 5} sm:right-3 flex gap-3 z-10 scale-50 sm:scale-75`}>
-            {player.trapZone.map(trap => (
-              <div key={trap.uniqueId}>
-                <CardComponent card={trap} compact />
-              </div>
-            ))}
+        {/* Phase Indicator (minimal) */}
+        <div className="flex items-center justify-center gap-3 sm:gap-6 text-xs sm:text-base">
+          <div className="bg-gray-700 px-4 py-2 rounded-lg">
+            Fase: {phase}
           </div>
-        )}
+        </div>
 
         {/* Campo Player */}
-        <div className="flex gap-[10px] sm:gap-12 min-h-[160px] sm:min-h-[200px] items-center">
-           {player.field.map(card => (
-             <div
-               key={card.uniqueId}
-               ref={(el) => el && cardRefs.current.set(card.uniqueId, el)}
-               onClick={() => handleCardClick(card, 'field')}
-               className={`transition-all duration-300 ${selectedCardId === card.uniqueId ? '-translate-y-4 sm:-translate-y-10 z-10 shadow-[0_50px_100px_rgba(250,204,21,0.4)]' : ''} ${cardsToSacrifice.includes(card.uniqueId) ? 'opacity-30 scale-95 grayscale' : ''}`}
-             >
-               <CardComponent 
-                 card={card} 
-                 isAttacking={attackingCardId === card.uniqueId} 
-                 isDamaged={damagedCardId === card.uniqueId}
-                 attackTargetActive={attackingCardId !== null && attackTargetId !== null && attackingCardId === card.uniqueId}
-                 targetPosition={attackingCardId === card.uniqueId && attackTargetId ? getTargetPosition(card.uniqueId, attackTargetId) : undefined}
-                 canAttack={!card.hasAttacked && phase === Phase.BATTLE && currentTurnPlayer === 'player'}
-                 compact
-               />
-             </div>
-           ))}
-           {player.field.length === 0 && <div className="text-white/5 font-black text-4xl sm:text-8xl uppercase tracking-tighter italic opacity-20">Seu Campo Limpo</div>}
+        <div className="relative z-[31]">
+          <div className="flex justify-center gap-3 min-h-[140px]">
+            {player.field.length === 0 ? (
+              <div className="w-24 h-32 border-2 border-dashed border-gray-600 rounded-lg flex items-center justify-center text-gray-600">
+                Vazio
+              </div>
+            ) : (
+              player.field.map(card => {
+                const canAttackCard = !card.hasAttacked && phase === Phase.BATTLE && currentTurnPlayer === 'player' && !attackMode && !isBusy;
+                return (
+                  <div
+                    key={card.uniqueId}
+                    ref={(el) => el && cardRefs.current.set(card.uniqueId, el)}
+                    onClick={() => handleCardClick(card, 'field')}
+                    className={`cursor-pointer transition-all
+                      ${selectedCardId === card.uniqueId ? 'scale-110 ring-2 ring-yellow-500' : ''}
+                      ${cardsToSacrifice.includes(card.uniqueId) ? 'ring-2 ring-red-500 opacity-70' : ''}
+                      ${canAttackCard ? 'hover:ring-2 hover:ring-green-500' : ''}`}
+                  >
+                    <CardComponent 
+                      card={card}
+                      size="small"
+                      isAttacking={attackingCardId === card.uniqueId} 
+                      isDamaged={damagedCardId === card.uniqueId}
+                      attackTargetActive={attackingCardId !== null && attackTargetId !== null && attackingCardId === card.uniqueId}
+                      targetPosition={attackingCardId === card.uniqueId && attackTargetId ? getTargetPosition(card.uniqueId, attackTargetId) : undefined}
+                      canAttack={canAttackCard}
+                      isActive={selectedCardId === card.uniqueId}
+                      hasStatusEffects={card.statusEffects?.some(s => s !== 'NONE')}
+                    />
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+          {/* My Trap Zone */}
+          {player.trapZone.length > 0 && (
+            <div className={`absolute -bottom-14 sm:bottom-0 -right-8 sm:-right-3 flex gap-3 z-10 scale-50 sm:scale-75`}>
+              {player.trapZone.map(trap => (
+                <div key={trap.uniqueId}>
+                  <CardComponent card={trap} compact />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </main>
 
-      {/* Footer / Mão */}
-      <footer className="bg-slate-950 p-2 sm:p-5 border-t-8 border-white/5 z-30 shadow-[0_-30px_60px_rgba(0,0,0,0.6)] min-h-[400px]">
-         <div className="flex justify-between items-center w-fit mb-2">
-            <div className="flex gap-2">
-               <div className="flex flex-col items-center justify-center bg-slate-900/50 min-h-[48px] sm:min-h-[92px] min-w-[170px] px-2 sm:p-4 rounded-lg sm:rounded-3xl border border-white/5">
-                  <span className="text-xs font-black uppercase tracking-[0.3em] text-slate-500">Fase Atual</span>
-                  <span className="text-sm sm:text-lg font-black uppercase text-yellow-500 drop-shadow-md">{phase} PHASE</span>
-               </div>
-               
-               {currentTurnPlayer === 'player' && !isBusy && (
-                 <button 
-                  onClick={handlePhaseButton}
-                  className="bg-gradient-to-b from-yellow-400 to-orange-600 text-nowrap px-3 py-2 sm:px-8 sm:py-6 rounded-lg sm:rounded-3xl sm:text-3xl font-black uppercase hover:scale-110 active:scale-95 transition-all shadow-2xl border-b-8 border-orange-900 text-black italic tracking-tighter"
-                 >
-                   {phase === Phase.MAIN ? 'Batalhar!' : 'Encerrar'}
-                 </button>
-               )}
+      {/* Bottom Bar - My Info & Hand */}
+      <div className="bg-slate-900 p-2 sm:p-5 border-t-8 border-white/5 shadow-[0_-30px_60px_rgba(0,0,0,0.6)] min-h-[266px]">
+        {/* My Hand */}
+        <div className="flex justify-start sm:justify-center gap-2 overflow-x-auto pb-2">
+          {player.hand.map(card => (
+            <div 
+              key={card.uniqueId} 
+              onClick={() => handleCardClick(card, 'hand')} 
+              className={`cursor-pointer transition-all flex-shrink-0 ${
+                selectedCardId === card.uniqueId 
+                  ? 'scale-110 ring-2 ring-yellow-500 -translate-y-2' 
+                  : 'hover:scale-105 hover:-translate-y-1'
+              } ${
+                cardsToSacrifice.includes(card.uniqueId) 
+                  ? 'ring-2 ring-red-500 opacity-70' 
+                  : ''
+              }`}
+            >
+              <CardComponent 
+                card={card} 
+                size="small" 
+                isActive={selectedCardId === card.uniqueId}
+                hasStatusEffects={card.statusEffects?.some(s => s !== 'NONE')}
+              />
             </div>
+          ))}
+        </div>
 
-         </div>
+        {/* Summon/Sacrifice Controls */}
+        {tributeSelectionMode && pendingSummonCardId && (
+          <div className="flex justify-center gap-4 mt-3">
+            <span className="text-gray-400 self-center">
+              Sacrifícios: {cardsToSacrifice.length}/{player.hand.find(c => c.uniqueId === pendingSummonCardId)?.sacrificeRequired || 0}
+            </span>
+            <button
+              onClick={() => {
+                const card = player.hand.find(c => c.uniqueId === pendingSummonCardId);
+                if (card && cardsToSacrifice.length === card.sacrificeRequired) {
+                  summonCard('player', pendingSummonCardId, cardsToSacrifice);
+                  setTributeSelectionMode(false);
+                  setCardsToSacrifice([]);
+                  setPendingSummonCardId(null);
+                } else {
+                  addLog(`Erro: Escolha exatamente ${card?.sacrificeRequired} Pokémon.`);
+                }
+              }}
+              disabled={cardsToSacrifice.length !== (player.hand.find(c => c.uniqueId === pendingSummonCardId)?.sacrificeRequired || 0)}
+              className="px-6 py-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg font-bold disabled:opacity-50 disabled:cursor-not-allowed hover:from-green-600 hover:to-emerald-600 transition-all"
+            >
+              Invocar {player.hand.find(c => c.uniqueId === pendingSummonCardId)?.name}
+            </button>
+            <button
+              onClick={() => {
+                setTributeSelectionMode(false);
+                setCardsToSacrifice([]);
+                setPendingSummonCardId(null);
+              }}
+              className="px-4 py-2 bg-gray-600 rounded-lg hover:bg-gray-500 transition-all"
+            >
+              Cancelar
+            </button>
+          </div>
+        )}
 
-         {/* Mão do Jogador */}
-         <div className="absolute left-1/2 -translate-x-1/2 flex gap-2 sm:gap-4 justify-start sm:justify-center scrollbar-hide overflow-x-auto sm:overflow-x-visible w-[95vw] sm:max-w-screen-2xl h-52 sm:h-auto items-end">
-            {player.hand.map((card, idx) => (
-              <div 
-                key={card.uniqueId} 
-                onClick={() => handleCardClick(card, 'hand')} 
-                className={`shrink-0 transition-all duration-500 cursor-pointer hover:-translate-y-5 hover:sm:-translate-y-20 hover:scale-125 hover:z-50 ${cardsToSacrifice.includes(card.uniqueId) ? 'opacity-50 grayscale blur-sm' : ''} ${tributeSelectionMode && pendingSummonCardId === card.uniqueId ? 'ring-4 ring-yellow-400 shadow-[0_0_30px_rgba(250,204,21,0.6)] rounded-2xl' : ''}`}
-                style={{ zIndex: 10 + idx }}
+        {/* Phase Controls */}
+        {currentTurnPlayer === 'player' && !isBusy && !tributeSelectionMode && !attackMode && (
+          <div className="flex justify-center gap-4 mt-3">
+            {phase === Phase.MAIN && (
+              <button
+                onClick={() => setPhase(Phase.BATTLE)}
+                className="px-6 py-2 bg-gradient-to-r from-orange-500 to-red-500 rounded-lg font-bold hover:from-orange-600 hover:to-red-600 transition-all"
               >
-                <CardComponent card={card} compact />
-              </div>
-            ))}
-         </div>
-      </footer>
+                ⚔️ Ir para Batalha
+              </button>
+            )}
+            {phase === Phase.BATTLE && (
+              <button
+                onClick={handlePhaseButton}
+                className="px-6 py-2 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-lg font-bold hover:from-blue-600 hover:to-indigo-600 transition-all"
+              >
+                ➡️ Encerrar Turno
+              </button>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Painéis laterais: Log ou Tabela de Tipos (toggle) */}
       <BattleLog
