@@ -140,8 +140,13 @@ export default function App() {
     if (tributeSelectionMode) {
       const required = player.hand.find(c => c.uniqueId === pendingSummonCardId)?.sacrificeRequired || 0;
       if (card.uniqueId === pendingSummonCardId) {
-        addLog("Você não pode sacrificar o próprio Pokémon que está tentando invocar!");
-        return;
+        // Se esta convocação já estiver pendente, clicar novamente cancela a seleção pendente (comportamento semelhante ao PvP).
+        if (pendingSummonCardId === card.uniqueId) {
+          setPendingSummonCardId(null);
+          setTributeSelectionMode(false);
+          setCardsToSacrifice([]);
+          return;
+        }
       }
       setCardsToSacrifice(prev => {
         if (prev.includes(card.uniqueId)) return prev.filter(id => id !== card.uniqueId);
@@ -700,7 +705,7 @@ export default function App() {
               key={card.uniqueId} 
               onClick={() => handleCardClick(card, 'hand')} 
               className={`cursor-pointer transition-all flex-shrink-0 ${
-                selectedCardId === card.uniqueId 
+                (selectedCardId === card.uniqueId || pendingSummonCardId === card.uniqueId) 
                   ? 'scale-110 ring-2 ring-yellow-500 -translate-y-2' 
                   : 'hover:scale-105 hover:-translate-y-1'
               } ${
@@ -712,7 +717,7 @@ export default function App() {
               <CardComponent 
                 card={card} 
                 size="small" 
-                isActive={selectedCardId === card.uniqueId}
+                isActive={selectedCardId === card.uniqueId || pendingSummonCardId === card.uniqueId}
                 hasStatusEffects={card.statusEffects?.some(s => s !== 'NONE')}
               />
             </div>
