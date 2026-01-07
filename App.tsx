@@ -193,6 +193,11 @@ export default function App() {
 
     // Clique na Mão (Invocação)
     if (location === 'hand' && phase === Phase.MAIN) {
+      // Bloquear troca automática de seleção entre Pokémon na mão: exigir deseleção primeiro
+      if (card.cardType === 'POKEMON' && selectedCardId && selectedCardId !== card.uniqueId) {
+        addLog('Remova a seleção atual antes de selecionar outro Pokémon.');
+        return;
+      }
       // Handle SPELL cards
       if (card.cardType === 'SPELL') {
         const effect = card.spellEffect;
