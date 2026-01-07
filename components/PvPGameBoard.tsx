@@ -213,7 +213,7 @@ export const PvPGameBoard: React.FC<PvPGameBoardProps> = ({ onGameEnd }) => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 via-indigo-900 to-gray-900 relative overflow-hidden">
+    <div className="min-h-screen bg-slate-900 relative overflow-hidden">
       {/* Opponent Disconnected Overlay */}
       {opponentDisconnected && (
         <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-40">
@@ -236,7 +236,7 @@ export const PvPGameBoard: React.FC<PvPGameBoardProps> = ({ onGameEnd }) => {
       {/* Targeting Mode Overlay: allow clicks to pass through to board (pointer-events-none),
           but keep the small control clickable (pointer-events-auto) so Cancel works. */}
       {targetingMode && (
-        <div className="absolute inset-0 bg-black/30 z-0 pointer-events-none">
+        <div className="absolute inset-0 bg-black/30 z-[10] pointer-events-none">
           <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-purple-600 px-4 py-2 rounded-lg pointer-events-auto">
             {targetingMode === 'attack' ? 'Selecione um alvo para atacar' : 'Selecione um alvo para a magia'}
             <button className="ml-4 text-red-300 hover:text-red-100" onClick={cancelTargeting}>
@@ -250,7 +250,6 @@ export const PvPGameBoard: React.FC<PvPGameBoardProps> = ({ onGameEnd }) => {
       <header className="flex flex-wrap justify-around items-center p-2 bg-slate-800/95 border-b-4 border-white/5 z-30 shadow-2xl gap-2 md:gap-6">
 
         {/* My Info */}
-
         <div className="flex items-center gap-2 md:gap-2 flex-1 md:flex-none">
           <div className="w-12 md:w-20 h-12 md:h-20 bg-blue-600 rounded-3xl border-4 border-white flex items-center justify-center text-2xl md:text-5xl shadow-lg flex-shrink-0">{myPlayer?.avatar || '👤'}</div>
           <div className="flex flex-col">
@@ -267,30 +266,31 @@ export const PvPGameBoard: React.FC<PvPGameBoardProps> = ({ onGameEnd }) => {
             </div>
           </div>
         </div>
-      
-          {/* Opponent Info */}
-        <div className="flex items-center justify-between max-w-6xl mx-auto">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-orange-500 rounded-full flex items-center justify-center text-xl">
-              👤
-            </div>
-            <div>
-              <div className="font-bold text-white">{opponentPlayer.odhnima}</div>
-              <div className="flex items-center gap-2">
-                <div className="text-sm text-gray-400">🃏 {opponentPlayer.handCount}</div>
-                <div className="text-sm text-gray-400">📚 {opponentPlayer.deckCount}</div>
-              </div>
+        
+        <div className="absolute -top-2 left-1/2 -translate-x-1/2 mt-2">
+          <div className="text-center bg-black/30 px-2 md:px-5 py-[2px] sm:py-2 rounded-b-lg sm:rounded-b-3xl border-b-2 border-x-2 border-white/10 shadow-2xl flex gap-x-1">
+            <div className="text-[10px] sm:text-xl font-bold text-yellow-500 tracking-tighter">TURNO {gameState.turnNumber} -</div>
+            <div className={`text-[10px] sm:text-xl font-bold uppercase tracking-widest ${isMyTurn() ? 'text-blue-400 animate-pulse' : 'text-red-400'}`}>
+              {isMyTurn() ? 'SEU TURNO' : 'OPONENTE'}
             </div>
           </div>
-          
-          {/* Opponent HP */}
-          <div className="text-right">
-            <div className="text-red-400 font-bold text-2xl">{opponentPlayer.hp}</div>
-            <div className="w-32 h-2 bg-gray-700 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-red-500 transition-all"
-                style={{ width: `${(opponentPlayer.hp / 8000) * 100}%` }}
-              />
+        </div>
+      
+        {/* Opponent Info */}
+        <div className="flex items-center gap-2 md:gap-2 flex-1 md:flex-none flex-row-reverse">
+          <div className="w-12 md:w-20 h-12 md:h-20 bg-red-600 rounded-3xl border-4 border-white flex items-center justify-center text-2xl md:text-5xl shadow-lg flex-shrink-0">{opponentPlayer?.avatar || '👤'}</div>
+          <div className="flex flex-col items-end">
+            <div className="font-black text-xs sm:text-lg drop-shadow-md">{opponentPlayer.odhnima || 'Player'}</div>
+            <div className="relative">
+              <div className="w-32 md:w-80 h-5 md:h-7 bg-black rounded-full border-2 border-white/20 overflow-hidden shadow-inner">
+                  <div className="h-full bg-gradient-to-r from-red-600 to-red-400 transition-all duration-700" style={{width: `${(opponentPlayer.hp/8000)*100}%`}}></div>
+              </div>
+              <span className="absolute inset-0 flex items-center justify-center text-xs md:text-lg font-black drop-shadow-md">{opponentPlayer.hp} LP</span>
+              {/* {floatingDamage?.targetId === 'player-hp' && <div className="damage-popup left-0 top-0 text-3xl md:text-5xl">-{floatingDamage.value}</div>} */}
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="text-sm text-gray-400">🃏 {opponentPlayer.handCount}</div>
+              <div className="text-sm text-gray-400">📚 {opponentPlayer.deckCount}</div>
             </div>
           </div>
         </div>
@@ -302,7 +302,7 @@ export const PvPGameBoard: React.FC<PvPGameBoardProps> = ({ onGameEnd }) => {
       {/* Game Area */}
       <div className="flex-1 flex flex-col justify-center gap-y-10 gap-x-20 relative px-4 sm:px-4 py-8 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-slate-800 to-slate-900">
         {/* Opponent Field */}
-        <div className="relative">
+        <div className="relative z-[11]">
           <div className="flex justify-center gap-3 min-h-[140px]">
             {opponentPlayer.field.length === 0 ? (
               <div 
@@ -327,9 +327,10 @@ export const PvPGameBoard: React.FC<PvPGameBoardProps> = ({ onGameEnd }) => {
               ))
             )}
           </div>
+
           {/* Opponent Trap Zone */}
           {opponentPlayer.trapZone.length > 0 && (
-            <div className={`absolute -bottom-8 sm:bottom-0 right-3 flex gap-3 z-10 scale-50 sm:scale-75`}>
+            <div className={`absolute -bottom-14 sm:bottom-0 -right-8 sm:-right-3 flex gap-3 z-10 scale-50 sm:scale-75`}>
               {opponentPlayer.trapZone.map(trap => (
                 <div key={trap.uniqueId}>
                   <CardComponent card={trap} compact faceDown />
@@ -340,23 +341,17 @@ export const PvPGameBoard: React.FC<PvPGameBoardProps> = ({ onGameEnd }) => {
         </div>
 
         {/* Turn & Phase Indicator */}
-        <div className="flex items-center justify-center gap-6">
-          <div className={`px-4 py-2 rounded-lg ${isMyTurn() ? 'bg-green-500' : 'bg-red-500'}`}>
-            {isMyTurn() ? '🟢 Seu Turno' : '🔴 Turno do Oponente'}
-          </div>
+        <div className="flex items-center justify-center gap-3 sm:gap-6 text-xs sm:text-base">
           <div className="bg-gray-700 px-4 py-2 rounded-lg">
             Fase: {gameState.phase}
           </div>
           <div className={`px-4 py-2 rounded-lg bg-gray-700 ${getTimerColor()}`}>
             ⏱️ {formatTimer(turnTimeRemaining)}
           </div>
-          <div className="bg-gray-700 px-4 py-2 rounded-lg">
-            Turno #{gameState.turnNumber}
-          </div>
         </div>
 
         {/* My Field */}
-        <div className="relative">
+        <div className="relative z-[11]">
           <div className="flex justify-center gap-3 min-h-[140px]">
             {myPlayer.field.length === 0 ? (
               <div className="w-24 h-32 border-2 border-dashed border-gray-600 rounded-lg flex items-center justify-center text-gray-600">
@@ -380,9 +375,10 @@ export const PvPGameBoard: React.FC<PvPGameBoardProps> = ({ onGameEnd }) => {
               ))
             )}
           </div>
+
           {/* My Trap Zone (compact corner, outside the field like PvE) */}
           {myPlayer.trapZone.length > 0 && (
-            <div className={`absolute -bottom-8 sm:bottom-0 right-3 flex gap-3 z-10 scale-50 sm:scale-75`}>
+            <div className={`absolute -bottom-14 sm:bottom-0 -right-8 sm:-right-3 flex gap-3 z-10 scale-50 sm:scale-75`}>
               {myPlayer.trapZone.map(trap => (
                 <div key={trap.uniqueId}>
                   <CardComponent card={trap} compact />
@@ -394,13 +390,10 @@ export const PvPGameBoard: React.FC<PvPGameBoardProps> = ({ onGameEnd }) => {
         </div>
       </div>
 
-
       {/* Bottom Bar - My Info & Hand */}
-      <div className="bg-gray-800/80 border-t border-gray-700 p-3">
-        
-
+      <div className="bg-slate-900 p-2 sm:p-5 border-t-8 border-white/5 shadow-[0_-30px_60px_rgba(0,0,0,0.6)] min-h-[266px]">
         {/* My Hand */}
-        <div className="flex justify-center gap-2 overflow-x-auto pb-2 min-h-[187px]">
+        <div className="flex justify-start sm:justify-center gap-2 overflow-x-auto pb-2">
           {myPlayer.hand.map(card => (
             <div 
               key={card.uniqueId}

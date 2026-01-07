@@ -505,7 +505,7 @@ export default function App() {
           ⚙️
         </button>
 
-        <div className="flex items-center gap-2 md:gap-2 flex-1 md:flex-none">
+        <div className="flex gap-2 md:gap-2 flex-1 md:flex-none">
           <div className="w-12 md:w-20 h-12 md:h-20 bg-blue-600 rounded-3xl border-4 border-white flex items-center justify-center text-2xl md:text-5xl shadow-lg flex-shrink-0">{player.avatar || '👤'}</div>
           <div className="flex flex-col">
             <div className="font-black text-xs sm:text-lg drop-shadow-md">{player.name || 'Player'}</div>
@@ -530,7 +530,7 @@ export default function App() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 md:gap-2 flex-1 md:flex-none justify-end">
+        <div className="flex gap-2 md:gap-2 flex-1 md:flex-none justify-end">
           <div className="flex flex-col">
             <div className="font-black text-xs sm:text-lg drop-shadow-md text-right">{npc.name || 'NPC'}</div>
             <div className="relative">
