@@ -53,6 +53,7 @@ export const MatchmakingView: React.FC<MatchmakingViewProps> = ({ onBack, onGame
   // Connect on mount
   useEffect(() => {
     console.log('[MatchmakingView] Mounting, connecting...');
+    console.log('[MatchmakingView] Initial gameState:', gameState);
     connect();
     
     // Don't disconnect on unmount - the connection should persist
@@ -63,11 +64,14 @@ export const MatchmakingView: React.FC<MatchmakingViewProps> = ({ onBack, onGame
       // 1. If going to game, we need the connection
       // 2. If going back to menu, the singleton will handle reconnect if needed
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Redirect to game when match starts
   useEffect(() => {
+    console.log('[MatchmakingView] gameState changed:', gameState);
     if (gameState) {
+      console.log('[MatchmakingView] Calling onGameStart()...');
       onGameStart();
     }
   }, [gameState, onGameStart]);

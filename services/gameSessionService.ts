@@ -40,6 +40,7 @@ class GameSessionService {
   stats: PvPStats | null = null;
   gameId: string | null = null;
   playerRole: 'player1' | 'player2' | null = null;
+  currentGameState: PvPGameState | null = null;
 
   constructor() {
     // Get or create sessionId
@@ -174,7 +175,9 @@ class GameSessionService {
             this.gameId = auth.reconnectedToGame;
             console.log('[PvP] Reconnected to game:', auth.reconnectedToGame);
           }
-          break;
+          // Explicitly emit so hooks update on reconnect
+          this.emit(ServerEvent.AUTH_SUCCESS, auth);
+          return; // Already emitted, skip double emit at end
         }
         
         case ServerEvent.MATCH_FOUND: {
@@ -186,8 +189,18 @@ class GameSessionService {
         }
         
         case ServerEvent.GAME_OVER: {
+          // Emit the event first so listeners can read `playerRole` and `gameId`
+          this.emit(ServerEvent.GAME_OVER, payload);
+          // Then clear local session state
           this.gameId = null;
           this.playerRole = null;
+          this.currentGameState = null;
+          return; // already emitted
+        }
+        
+        case ServerEvent.GAME_STATE: {
+          const state = payload as PvPGameState;
+          this.currentGameState = state;
           break;
         }
         
@@ -313,12 +326,18 @@ class GameSessionService {
   }
 
   getMyPlayer(gameState: PvPGameState): PvPGameState['player1'] | null {
-    if (!this.playerRole) return null;
+    if (!this.playerRole) {
+      console.warn('[GameSession] getMyPlayer called but playerRole is null!');
+      return null;
+    }
     return gameState[this.playerRole];
   }
 
   getOpponentPlayer(gameState: PvPGameState): PvPGameState['player1'] | null {
-    if (!this.playerRole) return null;
+    if (!this.playerRole) {
+      console.warn('[GameSession] getOpponentPlayer called but playerRole is null!');
+      return null;
+    }
     return gameState[this.playerRole === 'player1' ? 'player2' : 'player1'];
   }
 

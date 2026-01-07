@@ -224,10 +224,11 @@ export const PvPGameBoard: React.FC<PvPGameBoardProps> = ({ onGameEnd }) => {
         </div>
       )}
 
-      {/* Targeting Mode Overlay */}
+      {/* Targeting Mode Overlay: allow clicks to pass through to board (pointer-events-none),
+          but keep the small control clickable (pointer-events-auto) so Cancel works. */}
       {targetingMode && (
-        <div className="absolute inset-0 bg-black/30 z-30" onClick={cancelTargeting}>
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-purple-600 px-4 py-2 rounded-lg">
+        <div className="absolute inset-0 bg-black/30 z-0 pointer-events-none">
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-purple-600 px-4 py-2 rounded-lg pointer-events-auto">
             {targetingMode === 'attack' ? 'Selecione um alvo para atacar' : 'Selecione um alvo para a magia'}
             <button className="ml-4 text-red-300 hover:text-red-100" onClick={cancelTargeting}>
               ✕ Cancelar

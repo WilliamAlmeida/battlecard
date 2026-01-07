@@ -27,23 +27,37 @@ export interface PvPGameResult {
 }
 
 export function usePvPGameLogic() {
+  // Initialize from singleton to avoid loading flash on remount
+  const getInitialConnectionState = (): PvPConnectionState => {
+    const state = gameSessionService.getConnectionState();
+    if (state === 'connected') return 'connected';
+    if (state === 'connecting') return 'connecting';
+    return 'disconnected';
+  };
+
   // Connection state
-  const [connectionState, setConnectionState] = useState<PvPConnectionState>('disconnected');
+  const [connectionState, setConnectionState] = useState<PvPConnectionState>(getInitialConnectionState);
   const [error, setError] = useState<string | null>(null);
   
   // User info
-  const [displayName, setDisplayName] = useState<string | null>(null);
-  const [stats, setStats] = useState<PvPStats | null>(null);
+  const [displayName, setDisplayName] = useState<string | null>(gameSessionService.displayName);
+  const [stats, setStats] = useState<PvPStats | null>(gameSessionService.stats);
   
   // Matchmaking
   const [queuePosition, setQueuePosition] = useState<number | null>(null);
   const [queueTime, setQueueTime] = useState(0);
   const [opponent, setOpponent] = useState<MatchFoundPayload['opponent'] | null>(null);
   
-  // Game state
-  const [gameState, setGameState] = useState<PvPGameState | null>(null);
+  // Game state - initialize from singleton if reconnecting
+  const [gameState, setGameState] = useState<PvPGameState | null>(gameSessionService.currentGameState);
   const [gameResult, setGameResult] = useState<PvPGameResult | null>(null);
-  const [turnTimeRemaining, setTurnTimeRemaining] = useState(90);
+  const [turnTimeRemaining, setTurnTimeRemaining] = useState(() => {
+    if (gameSessionService.currentGameState) {
+      const elapsed = (Date.now() - gameSessionService.currentGameState.turnStartedAt) / 1000;
+      return Math.max(0, gameSessionService.currentGameState.turnTimeoutSeconds - elapsed);
+    }
+    return 90;
+  });
   const [opponentDisconnected, setOpponentDisconnected] = useState(false);
   const [reconnectTimeout, setReconnectTimeout] = useState(0);
   
@@ -208,22 +222,23 @@ export function usePvPGameLogic() {
   // ==================== EVENT HANDLERS ====================
 
   useEffect(() => {
-    // Initialize from existing session service state (handles remount without reconnect)
-    const initialConn = gameSessionService.getConnectionState();
-    setConnectionState(initialConn === 'connected' ? 'connected' : (initialConn === 'connecting' ? 'connecting' : 'disconnected'));
-    if (gameSessionService.displayName) setDisplayName(gameSessionService.displayName);
-    if (gameSessionService.stats) setStats(gameSessionService.stats);
-
     // Set up event listeners
     const unsubscribers: (() => void)[] = [];
 
     // Auth success
     unsubscribers.push(
       gameSessionService.on(ServerEvent.AUTH_SUCCESS, (data: unknown) => {
-        const auth = data as { displayName: string; stats: PvPStats };
+        const auth = data as { displayName: string; stats: PvPStats; reconnectedToGame?: string };
         setDisplayName(auth.displayName);
         setStats(auth.stats);
-        setConnectionState('connected');
+        
+        // If reconnecting to a game, transition to in-game state
+        if (auth.reconnectedToGame) {
+          console.log('[usePvPGameLogic] Reconnected to game:', auth.reconnectedToGame);
+          setConnectionState('in-game');
+        } else {
+          setConnectionState('connected');
+        }
       })
     );
 
