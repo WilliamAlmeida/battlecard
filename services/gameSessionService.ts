@@ -333,6 +333,8 @@ class GameSessionService {
         console.warn('[PvP] Failed to send update display name', err);
       }
     }
+    // Emit locally so UI updates immediately without waiting server
+    this.emit(ServerEvent.AUTH_SUCCESS, { displayName: name, stats: this.stats });
   }
 }
 

@@ -6,6 +6,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CustomDeck } from '../types';
 import { collectionService } from '../services/collectionService';
+import { gameSessionService } from '../services/gameSessionService';
 import { usePvPGameLogic, PvPConnectionState } from '../hooks/usePvPGameLogic';
 import { INITIAL_DECK, SPELL_CARDS, TRAP_CARDS } from '../constants';
 
@@ -115,7 +116,14 @@ export const MatchmakingView: React.FC<MatchmakingViewProps> = ({ onBack, onGame
 
   const handleSaveName = () => {
     if (tempName.trim()) {
-      localStorage.setItem('battlecard_display_name', tempName.trim());
+      // Use the GameSession service so the change is persisted to server and propagated
+      try {
+        gameSessionService.updateDisplayName(tempName.trim());
+      } catch (err) {
+        console.warn('[MatchmakingView] Failed to update display name via service', err);
+        // Fallback to localStorage
+        localStorage.setItem('battlecard_display_name', tempName.trim());
+      }
       setEditingName(false);
     }
   };
