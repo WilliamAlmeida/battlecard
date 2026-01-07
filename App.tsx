@@ -804,8 +804,10 @@ export default function App() {
             )}
             <button
               onClick={() => {
-                addLog('Você desistiu.','info');
-                handleBackToMenu();
+                if (confirm('Tem certeza que deseja desistir?')) {
+                  addLog('Você desistiu.','info');
+                  handleBackToMenu();
+                }
               }}
               className="px-4 py-2 bg-gray-600 rounded-lg hover:bg-gray-500 transition-all"
             >
