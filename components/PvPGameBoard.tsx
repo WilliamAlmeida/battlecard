@@ -111,6 +111,12 @@ export const PvPGameBoard: React.FC<PvPGameBoardProps> = ({ onGameEnd }) => {
   const handleMyFieldCardClick = (card: Card) => {
     if (!isMyTurn() || !gameState) return;
     
+    // Allow selecting own field cards as sacrifices when summoning in MAIN phase
+    if (selectedCard && selectedCard.cardType === CardType.POKEMON && gameState.phase === 'MAIN' && selectedCard.sacrificeRequired > 0) {
+      handleSacrificeClick(card);
+      return;
+    }
+
     // If in spell targeting mode for SINGLE_ALLY spells
     if (targetingMode === 'spell' && selectedCard) {
       useSpell(selectedCard.uniqueId, card.uniqueId);
@@ -364,12 +370,13 @@ export const PvPGameBoard: React.FC<PvPGameBoardProps> = ({ onGameEnd }) => {
             ) : (
               myPlayer.field.map(card => (
                 <div 
-                  key={card.uniqueId}
-                  className={`cursor-pointer transition-all
-                    ${attackingCard?.uniqueId === card.uniqueId ? 'scale-105 ring-0 ring-yellow-500' : ''}
-                    ${canAttack(card) && !attackingCard ? 'hover:ring-2 hover:ring-green-500' : ''}`}
-                  onClick={() => handleMyFieldCardClick(card)}
-                >
+                    key={card.uniqueId} 
+                    className={`cursor-pointer transition-all
+                      ${attackingCard?.uniqueId === card.uniqueId ? 'scale-105 ring-0 ring-yellow-500' : ''}
+                      ${canAttack(card) && !attackingCard ? 'hover:ring-2 hover:ring-green-500' : ''}
+                      ${selectedSacrifices.includes(card.uniqueId) ? 'ring-2 ring-red-500 opacity-70' : ''}`}
+                    onClick={() => handleMyFieldCardClick(card)}
+                  >
                   <CardComponent 
                     card={card} 
                     size="small" 
