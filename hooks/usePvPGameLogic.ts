@@ -60,9 +60,19 @@ export function usePvPGameLogic() {
   // ==================== CONNECTION ====================
 
   const connect = useCallback(async () => {
-    setConnectionState('connecting');
     setError(null);
-    
+    const svcState = gameSessionService.getConnectionState();
+    if (svcState === 'connected') {
+      setConnectionState('connected');
+      return;
+    }
+    if (svcState === 'connecting') {
+      setConnectionState('connecting');
+      return;
+    }
+
+    setConnectionState('connecting');
+
     try {
       await gameSessionService.connect();
     } catch (err) {
@@ -198,6 +208,12 @@ export function usePvPGameLogic() {
   // ==================== EVENT HANDLERS ====================
 
   useEffect(() => {
+    // Initialize from existing session service state (handles remount without reconnect)
+    const initialConn = gameSessionService.getConnectionState();
+    setConnectionState(initialConn === 'connected' ? 'connected' : (initialConn === 'connecting' ? 'connecting' : 'disconnected'));
+    if (gameSessionService.displayName) setDisplayName(gameSessionService.displayName);
+    if (gameSessionService.stats) setStats(gameSessionService.stats);
+
     // Set up event listeners
     const unsubscribers: (() => void)[] = [];
 
