@@ -38,6 +38,8 @@ export const PvPGameBoard: React.FC<PvPGameBoardProps> = ({ onGameEnd }) => {
     getOpponentPlayer,
     canSummon,
     canAttack,
+    lastAttack,
+    getPlayerRole,
   } = usePvPGameLogic();
 
   const [showBattleLog, setShowBattleLog] = useState(false);
@@ -45,6 +47,28 @@ export const PvPGameBoard: React.FC<PvPGameBoardProps> = ({ onGameEnd }) => {
   
   const myPlayer = getMyPlayer();
   const opponentPlayer = getOpponentPlayer();
+  const playerRole = getPlayerRole();
+
+  // Compute floating damage from lastAttack
+  const floatingDamage = lastAttack ? (() => {
+    const myDamage = playerRole === 'player1' ? lastAttack.damageToPlayer1 : lastAttack.damageToPlayer2;
+    const opponentDamage = playerRole === 'player1' ? lastAttack.damageToPlayer2 : lastAttack.damageToPlayer1;
+    if (myDamage > 0) return { value: myDamage, targetId: 'my-hp' };
+    if (opponentDamage > 0) return { value: opponentDamage, targetId: 'opponent-hp' };
+    return null;
+  })() : null;
+
+  // Refs to card DOM elements for computing target positions for animations
+  const cardRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+
+  const getTargetPosition = (attackerId: string, targetId: string) => {
+    const attackerEl = cardRefs.current.get(attackerId);
+    const targetEl = cardRefs.current.get(targetId);
+    if (!attackerEl || !targetEl) return undefined;
+    const a = attackerEl.getBoundingClientRect();
+    const b = targetEl.getBoundingClientRect();
+    return { x: b.left - a.left, y: b.top - a.top };
+  };
 
   // Format turn timer
   const formatTimer = (seconds: number) => {
@@ -265,7 +289,7 @@ export const PvPGameBoard: React.FC<PvPGameBoardProps> = ({ onGameEnd }) => {
                   <div className="h-full bg-gradient-to-r from-blue-600 to-blue-400 transition-all duration-700" style={{width: `${(myPlayer.hp/8000)*100}%`}}></div>
               </div>
               <span className="absolute inset-0 flex items-center justify-center text-xs md:text-lg font-black drop-shadow-md">{myPlayer.hp} LP</span>
-              {/* {floatingDamage?.targetId === 'player-hp' && <div className="damage-popup left-0 top-0 text-3xl md:text-5xl">-{floatingDamage.value}</div>} */}
+              {floatingDamage?.targetId === 'my-hp' && <div className="damage-popup left-0 top-0 text-3xl md:text-5xl">-{floatingDamage.value}</div>}
             </div>
             <div className="flex items-center gap-2">
               <div className="text-sm text-gray-400">🎴 {myPlayer.deckCount}</div>
@@ -292,7 +316,7 @@ export const PvPGameBoard: React.FC<PvPGameBoardProps> = ({ onGameEnd }) => {
                   <div className="h-full bg-gradient-to-r from-red-600 to-red-400 transition-all duration-700" style={{width: `${(opponentPlayer.hp/8000)*100}%`}}></div>
               </div>
               <span className="absolute inset-0 flex items-center justify-center text-xs md:text-lg font-black drop-shadow-md">{opponentPlayer.hp} LP</span>
-              {/* {floatingDamage?.targetId === 'player-hp' && <div className="damage-popup left-0 top-0 text-3xl md:text-5xl">-{floatingDamage.value}</div>} */}
+              {floatingDamage?.targetId === 'opponent-hp' && <div className="damage-popup right-0 top-0 text-3xl md:text-5xl">-{floatingDamage.value}</div>}
             </div>
             <div className="flex items-center gap-2">
               <div className="text-sm text-gray-400">🃏 {opponentPlayer.handCount}</div>
@@ -319,10 +343,11 @@ export const PvPGameBoard: React.FC<PvPGameBoardProps> = ({ onGameEnd }) => {
               >
                 {targetingMode === 'attack' ? '⚔️ Ataque Direto' : 'Vazio'}
               </div>
-            ) : (
+              ) : (
               opponentPlayer.field.map(card => (
                 <div 
                   key={card.uniqueId}
+                  ref={(el) => el && cardRefs.current.set(card.uniqueId, el)}
                   className={`cursor-pointer transition-transform ${
                     targetingMode ? 'hover:scale-110 ring-2 ring-red-500' : ''
                   }`}
@@ -331,6 +356,11 @@ export const PvPGameBoard: React.FC<PvPGameBoardProps> = ({ onGameEnd }) => {
                   <CardComponent 
                     card={card} 
                     size="small" 
+                    isOpponent
+                    isAttacking={lastAttack?.attackerUniqueId === card.uniqueId}
+                    isDamaged={lastAttack?.defenderUniqueId === card.uniqueId}
+                    attackTargetActive={lastAttack?.attackerUniqueId === card.uniqueId && !!lastAttack?.defenderUniqueId}
+                    targetPosition={lastAttack?.attackerUniqueId === card.uniqueId && lastAttack?.defenderUniqueId ? getTargetPosition(lastAttack.attackerUniqueId, lastAttack.defenderUniqueId) : undefined}
                     hasStatusEffects={card.statusEffects?.some(s => s !== 'NONE')}
                   />
                 </div>
@@ -371,6 +401,7 @@ export const PvPGameBoard: React.FC<PvPGameBoardProps> = ({ onGameEnd }) => {
               myPlayer.field.map(card => (
                 <div 
                     key={card.uniqueId} 
+                    ref={(el) => el && cardRefs.current.set(card.uniqueId, el)}
                     className={`cursor-pointer transition-all
                       ${attackingCard?.uniqueId === card.uniqueId ? 'scale-105 ring-0 ring-yellow-500' : ''}
                       ${canAttack(card) && !attackingCard ? 'hover:ring-2 hover:ring-green-500' : ''}
@@ -383,6 +414,10 @@ export const PvPGameBoard: React.FC<PvPGameBoardProps> = ({ onGameEnd }) => {
                     showAttacked={card.hasAttacked}
                     canAttack={canAttack(card) && !attackingCard}
                     isActive={attackingCard?.uniqueId === card.uniqueId}
+                    isAttacking={lastAttack?.attackerUniqueId === card.uniqueId}
+                    isDamaged={lastAttack?.defenderUniqueId === card.uniqueId}
+                    attackTargetActive={lastAttack?.attackerUniqueId === card.uniqueId && !!lastAttack?.defenderUniqueId}
+                    targetPosition={lastAttack?.attackerUniqueId === card.uniqueId && lastAttack?.defenderUniqueId ? getTargetPosition(lastAttack.attackerUniqueId, lastAttack.defenderUniqueId) : undefined}
                     hasStatusEffects={card.statusEffects?.some(s => s !== 'NONE')}
                   />
                 </div>

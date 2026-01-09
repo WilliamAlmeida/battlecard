@@ -65,6 +65,8 @@ export function usePvPGameLogic() {
   const [selectedCard, setSelectedCard] = useState<Card | null>(null);
   const [selectedSacrifices, setSelectedSacrifices] = useState<string[]>([]);
   const [attackingCard, setAttackingCard] = useState<Card | null>(null);
+  // Last attack payload received from server (used to drive animations)
+  const [lastAttack, setLastAttack] = useState<AttackResolvedPayload | null>(null);
   
   // Refs for intervals
   const queueTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -322,6 +324,10 @@ export function usePvPGameLogic() {
         if (result.attackerDestroyed || result.defenderDestroyed) {
           soundService.playDestroy();
         }
+        // Expose last attack to UI for animations (short lived)
+        setLastAttack(result);
+        // Clear lastAttack after animation window
+        setTimeout(() => setLastAttack(null), 1200);
       })
     );
 
@@ -445,6 +451,7 @@ export function usePvPGameLogic() {
     setSelectedSacrifices,
     attackingCard,
     setAttackingCard,
+    lastAttack,
     
     // Actions
     summonCard,
@@ -461,5 +468,7 @@ export function usePvPGameLogic() {
     getOpponentPlayer,
     canSummon,
     canAttack,
+    // Player role for damage calculations
+    getPlayerRole: () => gameSessionService.playerRole,
   };
 }
