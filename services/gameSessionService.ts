@@ -22,6 +22,29 @@ const WS_URL = (typeof __VITE_WS_URL__ !== 'undefined' ? __VITE_WS_URL__ : null)
   || (globalThis as Record<string, unknown>).VITE_WS_URL as string | undefined
   || 'ws://localhost:3001/ws';
 
+// Safe UUID generator: prefer crypto.randomUUID, fallback to getRandomValues or Math.random
+function generateUUID(): string {
+  const g = globalThis as any;
+  const gc = g.crypto || (g.window && g.window.crypto);
+  if (gc && typeof gc.randomUUID === 'function') {
+    try { return gc.randomUUID(); } catch (e) { /* continue to fallback */ }
+  }
+
+  const bytes = new Uint8Array(16);
+  if (gc && typeof gc.getRandomValues === 'function') {
+    gc.getRandomValues(bytes);
+  } else {
+    for (let i = 0; i < 16; i++) bytes[i] = Math.floor(Math.random() * 256);
+  }
+
+  // Per RFC4122 v4
+  bytes[6] = (bytes[6] & 0x0f) | 0x40;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+
+  const hex = Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+  return `${hex.substr(0,8)}-${hex.substr(8,4)}-${hex.substr(12,4)}-${hex.substr(16,4)}-${hex.substr(20,12)}`;
+}
+
 type EventCallback<T = unknown> = (data: T) => void;
 
 class GameSessionService {
@@ -48,7 +71,7 @@ class GameSessionService {
     if (stored) {
       this.sessionId = stored;
     } else {
-      this.sessionId = crypto.randomUUID();
+      this.sessionId = generateUUID();
       localStorage.setItem('battlecard_session_id', this.sessionId);
     }
   }
@@ -262,7 +285,7 @@ class GameSessionService {
     // Send only card IDs with uniqueIds for deck
     const deckData = deck.map(card => ({
       ...card,
-      uniqueId: card.uniqueId || crypto.randomUUID(),
+      uniqueId: card.uniqueId || generateUUID(),
     }));
     
     this.send(ClientEvent.JOIN_QUEUE, { deck: deckData });
