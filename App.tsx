@@ -564,8 +564,8 @@ export default function App() {
         
         <div className="absolute -top-2 left-1/2 -translate-x-1/2 mt-2">
           <div className="text-center bg-black/30 px-2 md:px-5 py-[2px] sm:py-2 rounded-b-lg sm:rounded-b-3xl border-b-2 border-x-2 border-white/10 shadow-2xl flex gap-x-1">
-            <div className="text-[10px] sm:text-xl font-bold text-yellow-500 tracking-tighter">TURNO {turnCount} -</div>
-            <div className={`text-[10px] sm:text-xl font-bold uppercase tracking-widest ${currentTurnPlayer === 'player' ? 'text-blue-400 animate-pulse' : 'text-red-400'}`}>
+            <div className="text-[10px] sm:text-base lg:text-xl font-bold text-yellow-500 tracking-tighter">TURNO {turnCount} -</div>
+            <div className={`text-[10px] sm:text-base lg:text-xl font-bold uppercase tracking-widest ${currentTurnPlayer === 'player' ? 'text-blue-400 animate-pulse' : 'text-red-400'}`}>
               {currentTurnPlayer === 'player' ? 'SEU TURNO' : 'CPU JOGANDO'}
             </div>
           </div>
