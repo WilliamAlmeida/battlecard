@@ -174,7 +174,7 @@ export const CardComponent: React.FC<CardProps> = ({
   if (card.cardType === CardType.SPELL) {
     return (
       <div className={baseClasses}>
-        <div className="absolute top-2 right-2 text-2xl">
+        <div className="absolute top-6 right-2 text-2xl">
           <Tooltip content={(
             <div>
               <div className="font-black text-base">{card.name}</div>
@@ -201,7 +201,7 @@ export const CardComponent: React.FC<CardProps> = ({
   if (card.cardType === CardType.TRAP) {
     return (
       <div className={baseClasses}>
-        <div className="absolute top-2 right-2 text-2xl">
+        <div className="absolute top-6 right-2 text-2xl">
           <Tooltip content={(
             <div>
               <div className="font-black text-base">{card.name}</div>
@@ -218,7 +218,7 @@ export const CardComponent: React.FC<CardProps> = ({
           <span className="text-6xl">{card.isSet ? '❓' : '⚠️'}</span>
         </div>
         <div className="bg-black/60 rounded-xl p-2 text-xs text-center">
-          <span className="text-orange-300">{card.isSet ? 'SETADA' : 'ARMADILHA'}</span>
+          <span className="text-orange-300">{card.isSet ? 'ARMADILHA' : 'ARMADILHA'}</span>
         </div>
       </div>
     );
@@ -262,7 +262,7 @@ export const CardComponent: React.FC<CardProps> = ({
         </div>
       )}
 
-      <div className="flex justify-between items-start pointer-events-none mt-1 mb-2 z-[2]">
+      <div className="flex justify-between items-start pointer-events-none lg:mt-1 mb-2 z-[2]">
         <span className="font-semibold sm:font-bold md:text-sm lg:text-base truncate leading-tight drop-shadow-lg tracking-tighter italic max-w-full overflow-hidden">{card.name}</span>
       </div>
 
