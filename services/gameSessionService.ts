@@ -16,13 +16,13 @@ import {
   AttackResolvedPayload,
 } from './pvpTypes';
 
-// Server URL - change for production
-declare const __VITE_WS_URL__: string | undefined;
-// Determine WebSocket URL: prefer Vite env, then global var, then derive from page host
+// Determine WebSocket URL: prefer Vite env (build-time), then runtime `window.VITE_WS_URL`,
+// then derive sensible default (use WSS when page is HTTPS).
 const defaultHost = (typeof location !== 'undefined' && location.hostname) ? location.hostname : 'localhost';
-const WS_URL = (typeof __VITE_WS_URL__ !== 'undefined' ? __VITE_WS_URL__ : null)
-  || (globalThis as Record<string, unknown>).VITE_WS_URL as string | undefined
-  || `ws://${defaultHost}:3001/ws`;
+const isSecure = (typeof location !== 'undefined' && location.protocol === 'https:');
+const viteWs = (import.meta as any)?.env?.VITE_WS_URL as string | undefined;
+const runtimeWs = (globalThis as Record<string, unknown>).VITE_WS_URL as string | undefined;
+const WS_URL = viteWs || runtimeWs || `${isSecure ? 'wss' : 'ws'}://${defaultHost}${isSecure ? '' : ':3001'}/ws`;
 
 // Safe UUID generator: prefer crypto.randomUUID, fallback to getRandomValues or Math.random
 function generateUUID(): string {
