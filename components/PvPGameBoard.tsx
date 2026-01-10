@@ -44,6 +44,7 @@ export const PvPGameBoard: React.FC<PvPGameBoardProps> = ({ onGameEnd }) => {
 
   const [showBattleLog, setShowBattleLog] = useState(false);
   const [targetingMode, setTargetingMode] = useState<'attack' | 'spell' | null>(null);
+  const [spellTargetSide, setSpellTargetSide] = useState<'ally' | 'enemy' | 'both' | null>(null);
   // Attack animation state - set BEFORE sending attack to server
   const [attackAnimation, setAttackAnimation] = useState<{ attackerId: string; targetId: string; position: { x: number; y: number } } | null>(null);
   
@@ -168,9 +169,13 @@ export const PvPGameBoard: React.FC<PvPGameBoardProps> = ({ onGameEnd }) => {
       }
     } else if (card.cardType === CardType.SPELL) {
       // Check if spell needs target
-      if (card.spellEffect?.target === 'SINGLE_ENEMY' || card.spellEffect?.target === 'SINGLE_ALLY') {
+      if (card.spellEffect?.target === 'SINGLE_ENEMY' || card.spellEffect?.target === 'SINGLE_ALLY' || card.spellEffect?.target === 'ALL_ALLIES') {
         setSelectedCard(card);
         setTargetingMode('spell');
+        // Determine which side should be selectable
+        if (card.spellEffect?.target === 'SINGLE_ENEMY') setSpellTargetSide('enemy');
+        else if (card.spellEffect?.target === 'SINGLE_ALLY' || card.spellEffect?.target === 'SELF') setSpellTargetSide('ally');
+        else setSpellTargetSide('both');
       } else {
         // Use immediately
         useSpell(card.uniqueId);
@@ -212,9 +217,12 @@ export const PvPGameBoard: React.FC<PvPGameBoardProps> = ({ onGameEnd }) => {
 
     // If in spell targeting mode for SINGLE_ALLY spells
     if (targetingMode === 'spell' && selectedCard) {
+      // Only allow selecting own field when spell expects ally
+      if (spellTargetSide === 'enemy') return;
       useSpell(selectedCard.uniqueId, card.uniqueId);
       setSelectedCard(null);
       setTargetingMode(null);
+      setSpellTargetSide(null);
       return;
     }
     
@@ -255,9 +263,12 @@ export const PvPGameBoard: React.FC<PvPGameBoardProps> = ({ onGameEnd }) => {
       setAttackingCard(null);
       setTargetingMode(null);
     } else if (targetingMode === 'spell' && selectedCard) {
+      // Only allow selecting opponent field when spell expects enemy
+      if (spellTargetSide === 'ally') return;
       useSpell(selectedCard.uniqueId, card.uniqueId);
       setSelectedCard(null);
       setTargetingMode(null);
+      setSpellTargetSide(null);
     }
   };
 
