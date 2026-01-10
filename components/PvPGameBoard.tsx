@@ -168,16 +168,15 @@ export const PvPGameBoard: React.FC<PvPGameBoardProps> = ({ onGameEnd }) => {
         setSelectedSacrifices([]);
       }
     } else if (card.cardType === CardType.SPELL) {
-      // Check if spell needs target
-      if (card.spellEffect?.target === 'SINGLE_ENEMY' || card.spellEffect?.target === 'SINGLE_ALLY' || card.spellEffect?.target === 'ALL_ALLIES') {
+      // Check if spell needs a single target (enemy or ally). ALL_ALLIES should apply immediately.
+      if (card.spellEffect?.target === 'SINGLE_ENEMY' || card.spellEffect?.target === 'SINGLE_ALLY' || card.spellEffect?.target === 'SELF') {
         setSelectedCard(card);
         setTargetingMode('spell');
         // Determine which side should be selectable
         if (card.spellEffect?.target === 'SINGLE_ENEMY') setSpellTargetSide('enemy');
-        else if (card.spellEffect?.target === 'SINGLE_ALLY' || card.spellEffect?.target === 'SELF') setSpellTargetSide('ally');
-        else setSpellTargetSide('both');
+        else setSpellTargetSide('ally');
       } else {
-        // Use immediately
+        // ALL_ALLIES and other non-target spells are used immediately
         useSpell(card.uniqueId);
       }
     } else if (card.cardType === CardType.TRAP) {
@@ -298,6 +297,7 @@ export const PvPGameBoard: React.FC<PvPGameBoardProps> = ({ onGameEnd }) => {
     setTargetingMode(null);
     setAttackingCard(null);
     setSelectedCard(null);
+    setSpellTargetSide(null);
   };
 
   // Render game over modal
@@ -380,7 +380,11 @@ export const PvPGameBoard: React.FC<PvPGameBoardProps> = ({ onGameEnd }) => {
       {targetingMode && (
         <div className="absolute inset-0 bg-black/30 z-[10] pointer-events-none">
           <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-purple-600 px-4 py-2 rounded-lg pointer-events-auto">
-            {targetingMode === 'attack' ? 'Selecione um alvo para atacar' : 'Selecione um alvo para a magia'}
+            {targetingMode === 'attack' ? 'Selecione um alvo para atacar' : (
+              spellTargetSide === 'ally' ? 'Selecione um aliado para a magia'
+              : spellTargetSide === 'enemy' ? 'Selecione um inimigo para a magia'
+              : 'Selecione um alvo para a magia'
+            )}
             <button className="ml-4 text-red-300 hover:text-red-100" onClick={cancelTargeting}>
               ✕ Cancelar
             </button>
@@ -461,7 +465,7 @@ export const PvPGameBoard: React.FC<PvPGameBoardProps> = ({ onGameEnd }) => {
                   key={card.uniqueId}
                   ref={(el) => el && cardRefs.current.set(card.uniqueId, el)}
                   className={`cursor-pointer transition-transform ${
-                    targetingMode ? 'hover:scale-110 ring-2 ring-red-500' : ''
+                    (targetingMode && (targetingMode === 'attack' || (targetingMode === 'spell' && spellTargetSide !== 'ally'))) ? 'hover:scale-110 ring-2 ring-red-500' : ''
                   }`}
                   onClick={() => targetingMode && handleOpponentFieldCardClick(card)}
                 >
@@ -517,6 +521,7 @@ export const PvPGameBoard: React.FC<PvPGameBoardProps> = ({ onGameEnd }) => {
                     className={`cursor-pointer transition-all
                       ${attackingCard?.uniqueId === card.uniqueId ? 'scale-105 ring-0 ring-yellow-500' : ''}
                       ${canAttack(card) && !attackingCard ? 'hover:ring-2 hover:ring-green-500' : ''}
+                      ${targetingMode === 'spell' && spellTargetSide === 'ally' ? 'hover:scale-110 ring-2 ring-red-500' : ''}
                       ${selectedSacrifices.includes(card.uniqueId) ? 'ring-2 ring-red-500 opacity-70' : ''}`}
                     onClick={() => handleMyFieldCardClick(card)}
                   >
