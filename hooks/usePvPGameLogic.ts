@@ -331,6 +331,57 @@ export function usePvPGameLogic() {
       })
     );
 
+    // Damage dealt (direct attacks and trap/spell damage to player HP)
+    unsubscribers.push(
+      gameSessionService.on(ServerEvent.DAMAGE_DEALT, (data: unknown) => {
+        const payload = data as { attackerUniqueId: string; damage: number; isDirect?: boolean };
+
+        // Build a minimal AttackResolved-like object so UI code can reuse the same rendering
+        let damageToPlayer1 = 0;
+        let damageToPlayer2 = 0;
+
+        if (gameSessionService.currentGameState) {
+          const state = gameSessionService.currentGameState;
+          const p1HasAttacker = state.player1.field.some(c => c.uniqueId === payload.attackerUniqueId);
+          const p2HasAttacker = state.player2.field.some(c => c.uniqueId === payload.attackerUniqueId);
+
+          if (p1HasAttacker) {
+            damageToPlayer2 = payload.damage;
+          } else if (p2HasAttacker) {
+            damageToPlayer1 = payload.damage;
+          } else {
+            // Fallback: assume damage applies to opponent of the attacker based on our role
+            if (gameSessionService.playerRole === 'player1') {
+              // If we are player1 and we don't find attacker, assume damage was to player2
+              damageToPlayer2 = payload.damage;
+            } else {
+              damageToPlayer1 = payload.damage;
+            }
+          }
+        } else {
+          // No game state available - default to damageToPlayer2
+          damageToPlayer2 = payload.damage;
+        }
+
+        const attackLike = {
+          attackerUniqueId: payload.attackerUniqueId,
+          defenderUniqueId: null as any,
+          attackerDestroyed: false,
+          defenderDestroyed: false,
+          damageToPlayer1,
+          damageToPlayer2,
+          multiplier: 1
+        } as AttackResolvedPayload;
+
+        if (attackLike.damageToPlayer1 > 0 || attackLike.damageToPlayer2 > 0) {
+          soundService.playDamage();
+        }
+
+        setLastAttack(attackLike);
+        setTimeout(() => setLastAttack(null), 1200);
+      })
+    );
+
     // Action rejected
     unsubscribers.push(
       gameSessionService.on(ServerEvent.ACTION_REJECTED, (data: unknown) => {
