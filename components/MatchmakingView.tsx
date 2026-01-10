@@ -9,6 +9,7 @@ import { collectionService } from '../services/collectionService';
 import { gameSessionService } from '../services/gameSessionService';
 import { usePvPGameLogic, PvPConnectionState } from '../hooks/usePvPGameLogic';
 import { INITIAL_DECK, SPELL_CARDS, TRAP_CARDS } from '../constants';
+import { fetchLobbyStats, subscribeLobbyStats } from '../services/pvpLobbyService';
 
 interface MatchmakingViewProps {
   onBack: () => void;
@@ -35,6 +36,8 @@ export const MatchmakingView: React.FC<MatchmakingViewProps> = ({ onBack, onGame
   const [customDecks, setCustomDecks] = useState<CustomDeck[]>([]);
   const [editingName, setEditingName] = useState(false);
   const [tempName, setTempName] = useState('');
+  const [queueSize, setQueueSize] = useState<number | null>(null);
+  const [activeGames, setActiveGames] = useState<number | null>(null);
 
   // Load decks on mount
   useEffect(() => {
@@ -65,6 +68,22 @@ export const MatchmakingView: React.FC<MatchmakingViewProps> = ({ onBack, onGame
       // 2. If going back to menu, the singleton will handle reconnect if needed
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Lobby stats polling
+  useEffect(() => {
+    let unsub: (() => void) | null = null;
+    void fetchLobbyStats().then(s => {
+      setQueueSize(s.queueSize);
+      setActiveGames(s.activeGames);
+    }).catch(() => {});
+
+    unsub = subscribeLobbyStats((s) => {
+      setQueueSize(s.queueSize);
+      setActiveGames(s.activeGames);
+    }, 5000);
+
+    return () => { if (unsub) unsub(); };
   }, []);
 
   // Redirect to game when match starts
@@ -246,6 +265,18 @@ export const MatchmakingView: React.FC<MatchmakingViewProps> = ({ onBack, onGame
               </div>
             </div>
           )}
+        </div>
+
+        {/* Lobby Info */}
+        <div className="grid grid-cols-2 gap-4 mb-6 justify-center">
+          <div className="bg-gray-800/50 px-4 py-2 rounded-xl text-center border border-gray-700">
+            <div className="text-sm text-gray-400">Players Na Fila</div>
+            <div className="text-xl font-bold text-indigo-300">{queueSize !== null ? queueSize : '—'}</div>
+          </div>
+          <div className="bg-gray-800/50 px-4 py-2 rounded-xl text-center border border-gray-700">
+            <div className="text-sm text-gray-400">Partidas Ao Vivo</div>
+            <div className="text-xl font-bold text-indigo-300">{activeGames !== null ? activeGames : '—'}</div>
+          </div>
         </div>
 
         {/* Deck Selection */}
