@@ -168,7 +168,28 @@ export function usePvPGameLogic() {
   }, []);
 
   const endPhase = useCallback(() => {
+    if (!gameState) {
+      gameSessionService.endPhase();
+      return;
+    }
+
+    // Send endPhase to server. If this is turn 1 and we are the starting player,
+    // the PvE client auto-passes when entering BATTLE. To mimic that behavior in PvP
+    // we optimistically send a second endPhase shortly after to advance the turn.
+    const amStarterOnFirstTurn = gameState.turnNumber === 1 && gameSessionService.playerRole === gameState.currentTurn && gameState.phase === 'MAIN';
+
     gameSessionService.endPhase();
+
+    if (amStarterOnFirstTurn) {
+      // small delay to allow server to process phase change to BATTLE first
+      setTimeout(() => {
+        try {
+          gameSessionService.endPhase();
+        } catch (e) {
+          console.warn('[usePvPGameLogic] second endPhase failed', e);
+        }
+      }, 150);
+    }
   }, []);
 
   const surrender = useCallback(() => {
