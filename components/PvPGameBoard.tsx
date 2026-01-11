@@ -8,6 +8,7 @@ import { usePvPGameLogic } from '../hooks/usePvPGameLogic';
 import { Card, Phase, CardType } from '../types';
 import { CardComponent } from './CardComponent';
 import { BattleLog } from './BattleLog';
+import { Graveyard } from './Graveyard';
 
 interface PvPGameBoardProps {
   onGameEnd: () => void;
@@ -43,6 +44,7 @@ export const PvPGameBoard: React.FC<PvPGameBoardProps> = ({ onGameEnd }) => {
   } = usePvPGameLogic();
 
   const [showBattleLog, setShowBattleLog] = useState(false);
+  const [showGraveyard, setShowGraveyard] = useState(false);
   const [targetingMode, setTargetingMode] = useState<'attack' | 'spell' | null>(null);
   const [spellTargetSide, setSpellTargetSide] = useState<'ally' | 'enemy' | 'both' | null>(null);
   // Attack animation state - set BEFORE sending attack to server
@@ -660,6 +662,15 @@ export const PvPGameBoard: React.FC<PvPGameBoardProps> = ({ onGameEnd }) => {
         logs={[...gameState.gameLog].reverse()}
         isOpen={showBattleLog}
         onToggle={() => setShowBattleLog(v => !v)}
+      />
+
+      {/* Graveyard */}
+      <Graveyard
+        playerGrave={myPlayer.graveyard || []}
+        npcGrave={opponentPlayer.graveyard || []}
+        isOpen={showGraveyard}
+        onToggle={() => setShowGraveyard(v => !v)}
+        restrictToMine={false}
       />
     </div>
   );
