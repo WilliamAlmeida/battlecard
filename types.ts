@@ -169,6 +169,17 @@ export interface FloatingEffect {
   animation: 'up' | 'down' | 'none';
   targetId: string;
 }
+// Which stat/area this floating effect refers to — used to position the popup
+export type FloatingEffectStat = 'ATK' | 'DEF' | 'HP' | 'BOTH' | 'STATUS' | undefined;
+
+export interface FloatingEffect {
+  id: string;
+  text: string;
+  color: string;
+  animation: 'up' | 'down' | 'none';
+  targetId: string;
+  stat?: FloatingEffectStat;
+}
 
 export type AIActionType = 'SUMMON' | 'ATTACK' | 'END_TURN' | 'GO_TO_BATTLE' | 'WAIT' | 'USE_SPELL' | 'SET_TRAP';
 

@@ -334,20 +334,37 @@ export const CardComponent: React.FC<CardProps> = ({
       )}
       
       {/* Floating Effects */}
-      {floatingEffects.filter(e => e.targetId === card.uniqueId).map(effect => (
-        <div 
-          key={effect.id} 
-          className={`effect-popup anim-${effect.animation}`}
-          style={{ 
-            color: effect.color,
-            left: '50%',
-            top: '50%',
-            transform: 'translate(-50%, -50%)'
-          }}
-        >
-          {effect.text}
-        </div>
-      ))}
+      {floatingEffects.filter(e => e.targetId === card.uniqueId).map(effect => {
+        let style: React.CSSProperties = { color: effect.color };
+
+        console.log('Rendering floating effect:', effect);
+
+        // Position by stat: ATK -> left, DEF -> right, HP/STATUS/BOTH -> center/top
+        switch (effect.stat) {
+          case 'ATK':
+            style = { ...style, left: '25%', top: '60%', transform: 'translate(-50%, -50%)' };
+            break;
+          case 'DEF':
+            style = { ...style, left: '25%', top: '60%', transform: 'translate(-50%, -50%)' };
+            break;
+          case 'STATUS':
+            style = { ...style, left: '40%', top: '8%', transform: 'translate(-50%, 0)' };
+            break;
+          default:
+            // BOTH / HP / undefined -> center
+            style = { ...style, left: '50%', top: '50%', transform: 'translate(-50%, -50%)' };
+        }
+
+        return (
+          <div
+            key={effect.id}
+            className={`effect-popup anim-${effect.animation}`}
+            style={style}
+          >
+            {effect.text}
+          </div>
+        );
+      })}
     </div>
     </>
   );
