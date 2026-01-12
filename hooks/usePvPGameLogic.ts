@@ -320,6 +320,24 @@ export function usePvPGameLogic() {
               autoPassRef.current = { turnNumber: state.turnNumber, player: state.currentTurn };
             }
           }
+          // If it's our battle turn and we have no pokemons on field, auto-pass
+          if (
+            state.phase === 'BATTLE' &&
+            gameSessionService.playerRole === state.currentTurn
+          ) {
+            try {
+              const myPlayer = gameSessionService.getMyPlayer(state);
+              if (myPlayer && myPlayer.field.length === 0) {
+                const already = autoPassRef.current;
+                if (!already || already.turnNumber !== state.turnNumber || already.player !== state.currentTurn) {
+                  gameSessionService.endPhase();
+                  autoPassRef.current = { turnNumber: state.turnNumber, player: state.currentTurn };
+                }
+              }
+            } catch (e) {
+              // ignore getMyPlayer failures
+            }
+          }
         } catch (e) {
           console.warn('[usePvPGameLogic] auto-pass check failed', e);
         }

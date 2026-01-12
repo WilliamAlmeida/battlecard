@@ -272,14 +272,29 @@ export const useGameLogic = () => {
   };
 
   useEffect(() => {
-    // Se entrarmos em BATTLE no primeiro turno, quem iniciou não pode atacar — passar a vez imediatamente
-    if (phase === Phase.BATTLE && gameStarted && !gameOver && gameStateRef.current.turnCount === 1) {
+    // Ao entrar em BATTLE: tratar regra de quem iniciou no turno 1 e auto-pass se campo vazio
+    if (phase === Phase.BATTLE && gameStarted && !gameOver) {
       const current = gameStateRef.current.currentTurnPlayer;
       const whoStarted = gameStateRef.current.starter;
-      if (current === whoStarted) {
+
+      // Regra: quem iniciou não pode atacar no primeiro turno
+      if (gameStateRef.current.turnCount === 1 && current === whoStarted) {
         addLog('Quem iniciou não pode atacar no primeiro turno. Passando a vez...');
         setPhase(Phase.DRAW);
         setCurrentTurnPlayer(current === 'player' ? 'npc' : 'player');
+        setTurnCount(c => c + 1);
+        setPlayer(p => ({ ...p, field: p.field.map(c => ({ ...c, hasAttacked: false })) }));
+        setNpc(p => ({ ...p, field: p.field.map(c => ({ ...c, hasAttacked: false })) }));
+        return;
+      }
+
+      // Se o jogador atual não tem pokémons no campo, passar a vez automaticamente
+      const cur = current;
+      const curPlayerState = cur === 'player' ? gameStateRef.current.player : gameStateRef.current.npc;
+      if (curPlayerState && curPlayerState.field.length === 0) {
+        addLog(`${cur === 'player' ? 'Você' : 'Oponente'} não tem pokémons em campo. Passando a vez...`);
+        setPhase(Phase.DRAW);
+        setCurrentTurnPlayer(cur === 'player' ? 'npc' : 'player');
         setTurnCount(c => c + 1);
         setPlayer(p => ({ ...p, field: p.field.map(c => ({ ...c, hasAttacked: false })) }));
         setNpc(p => ({ ...p, field: p.field.map(c => ({ ...c, hasAttacked: false })) }));
