@@ -42,6 +42,7 @@ export const PvPGameBoard: React.FC<PvPGameBoardProps> = ({ onGameEnd }) => {
     canAttack,
     lastAttack,
     getPlayerRole,
+    floatingEffects,
   } = usePvPGameLogic();
 
   const [showBattleLog, setShowBattleLog] = useState(false);
@@ -55,6 +56,7 @@ export const PvPGameBoard: React.FC<PvPGameBoardProps> = ({ onGameEnd }) => {
   const myPlayer = getMyPlayer();
   const opponentPlayer = getOpponentPlayer();
   const playerRole = getPlayerRole();
+  
   
   // Refs to card DOM elements for computing target positions for animations
   const cardRefs = useRef<Map<string, HTMLDivElement>>(new Map());
@@ -482,6 +484,7 @@ export const PvPGameBoard: React.FC<PvPGameBoardProps> = ({ onGameEnd }) => {
                     attackTargetActive={attackAnimation?.attackerId === card.uniqueId && !!attackAnimation?.targetId}
                     targetPosition={attackAnimation?.attackerId === card.uniqueId ? attackAnimation.position : undefined}
                     hasStatusEffects={card.statusEffects?.some(s => s !== 'NONE')}
+                    floatingEffects={floatingEffects}
                   />
                 </div>
               ))
@@ -493,7 +496,9 @@ export const PvPGameBoard: React.FC<PvPGameBoardProps> = ({ onGameEnd }) => {
             <div className={`absolute -bottom-14 sm:bottom-0 -right-8 sm:-right-3 flex gap-3 z-10 scale-50 sm:scale-75`}>
               {opponentPlayer.trapZone.map(trap => (
                 <div key={trap.uniqueId}>
-                  <CardComponent card={trap} compact faceDown />
+                  <CardComponent card={trap} compact faceDown floatingEffects={floatingEffects} />
+                  
+                
                 </div>
               ))}
             </div>
@@ -540,6 +545,7 @@ export const PvPGameBoard: React.FC<PvPGameBoardProps> = ({ onGameEnd }) => {
                     attackTargetActive={attackAnimation?.attackerId === card.uniqueId && !!attackAnimation?.targetId}
                     targetPosition={attackAnimation?.attackerId === card.uniqueId ? attackAnimation.position : undefined}
                     hasStatusEffects={card.statusEffects?.some(s => s !== 'NONE')}
+                    floatingEffects={floatingEffects}
                   />
                 </div>
               ))
@@ -551,7 +557,8 @@ export const PvPGameBoard: React.FC<PvPGameBoardProps> = ({ onGameEnd }) => {
             <div className={`absolute -bottom-14 sm:bottom-0 -right-8 sm:-right-3 flex gap-3 z-10 scale-50 sm:scale-75`}>
               {myPlayer.trapZone.map(trap => (
                 <div key={trap.uniqueId}>
-                  <CardComponent card={trap} compact />
+                  <CardComponent card={trap} compact floatingEffects={floatingEffects} />
+                
                 </div>
               ))}
             </div>

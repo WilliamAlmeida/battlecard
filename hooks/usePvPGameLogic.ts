@@ -50,6 +50,7 @@ export function usePvPGameLogic() {
   
   // Game state - initialize from singleton if reconnecting
   const [gameState, setGameState] = useState<PvPGameState | null>(gameSessionService.currentGameState);
+  const [floatingEffects, setFloatingEffects] = useState<Array<{ id: string; text: string; color: string; animation: 'up' | 'down' | 'none'; targetId: string; stat?: 'ATK' | 'DEF' | 'HP' | 'BOTH' | 'STATUS' }>>([]);
   const [gameResult, setGameResult] = useState<PvPGameResult | null>(null);
   const [turnTimeRemaining, setTurnTimeRemaining] = useState(() => {
     if (gameSessionService.currentGameState) {
@@ -344,6 +345,23 @@ export function usePvPGameLogic() {
       })
     );
 
+    // Ability triggered (from server) - show floating effects
+    unsubscribers.push(
+      gameSessionService.on(ServerEvent.ABILITY_TRIGGERED, (data: unknown) => {
+        try {
+          const ev = data as { playerId: 'player1' | 'player2'; cardUniqueId: string; abilityId?: string; message: string; type: string };
+          // show a floating effect near the card that triggered the ability
+          const id = `${ev.cardUniqueId}-${Date.now()}`;
+          const text = ev.abilityId ? ev.abilityId : ev.message;
+          setFloatingEffects(prev => [...prev, { id, text: ev.message, color: 'yellow', animation: 'up', targetId: ev.cardUniqueId }]);
+          // auto-remove
+          setTimeout(() => setFloatingEffects(prev => prev.filter(f => f.id !== id)), 1200);
+        } catch (e) {
+          // ignore
+        }
+      })
+    );
+
     // Turn changed
     unsubscribers.push(
       gameSessionService.on(ServerEvent.TURN_CHANGED, () => {
@@ -590,5 +608,6 @@ export function usePvPGameLogic() {
     canAttack,
     // Player role for damage calculations
     getPlayerRole: () => gameSessionService.playerRole,
+    floatingEffects,
   };
 }

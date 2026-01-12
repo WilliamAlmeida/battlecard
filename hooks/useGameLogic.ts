@@ -525,6 +525,30 @@ export const useGameLogic = () => {
         const attackerDebuffs = calculateOpponentPassiveDebuffs(attacker, defenderState);
         const defenderDebuffs = calculateOpponentPassiveDebuffs(defender, attackerState);
 
+        // Debug: show passive activations (floating + logs)
+        if (attackerPassive.attack && attackerPassive.attack > 0) {
+          const name = attacker.ability?.name || 'Passiva';
+          addLog(`${attacker.name} recebeu +${attackerPassive.attack} ATK (${name})`, 'ability');
+          showFloatingEffect(`+${attackerPassive.attack} ATK`, '#ef4444', 'up', attacker.uniqueId, 'ATK');
+        }
+        if (defenderPassive.attack && defenderPassive.attack > 0) {
+          const name = defender.ability?.name || 'Passiva';
+          addLog(`${defender.name} recebeu +${defenderPassive.attack} ATK (${name})`, 'ability');
+          showFloatingEffect(`+${defenderPassive.attack} ATK`, '#ef4444', 'up', defender.uniqueId, 'ATK');
+        }
+        if (attackerDebuffs.attack && attackerDebuffs.attack < 0) {
+          addLog(`${attacker.name} recebeu ${attackerDebuffs.attack} nos stats por habilidade inimiga`, 'ability');
+          showFloatingEffect(`${attackerDebuffs.attack} ATK`, '#ef4444', 'down', attacker.uniqueId, 'ATK');
+        }
+        if (defenderDebuffs.attack && defenderDebuffs.attack < 0) {
+          addLog(`${defender.name} recebeu ${defenderDebuffs.attack} nos stats por habilidade inimiga`, 'ability');
+          showFloatingEffect(`${defenderDebuffs.attack} ATK`, '#ef4444', 'down', defender.uniqueId, 'ATK');
+        }
+        if (defenderPassive.evasion && defenderPassive.evasion > 0) {
+          const name = defender.ability?.name || 'Passiva';
+          addLog(`${defender.name} tem ${Math.round(defenderPassive.evasion * 100)}% de evasão (${name})`, 'ability');
+        }
+
         // Check sand_veil evasion
         if (defenderPassive.evasion && Math.random() < defenderPassive.evasion) {
           addLog(`${defender.name} evadiu o ataque! (Véu de Areia)`, 'effect');

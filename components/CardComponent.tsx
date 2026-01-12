@@ -352,7 +352,7 @@ export const CardComponent: React.FC<CardProps> = ({
             break;
           default:
             // BOTH / HP / undefined -> center
-            style = { ...style, left: '50%', top: '50%', transform: 'translate(-50%, -50%)' };
+            style = { ...style, left: '5%', top: '50%', transform: 'translate(-50%, -50%)' };
         }
 
         return (
