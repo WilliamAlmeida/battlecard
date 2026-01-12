@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardType, Rarity, ElementType } from '../types';
 import { collectionService } from '../services/collectionService';
+import { t } from '../utils/i18n';
 import { campaignService } from '../services/campaignService';
 import { INITIAL_DECK, SPELL_CARDS, TRAP_CARDS, MIN_DECK_SIZE, MAX_DECK_SIZE } from '../constants';
 import { soundService } from '../services/soundService';
@@ -41,11 +42,11 @@ const getRarityColor = (rarity: Rarity) => {
 
 const getRarityLabel = (rarity: Rarity) => {
   switch (rarity) {
-    case Rarity.COMMON: return '⚪ Comum';
-    case Rarity.UNCOMMON: return '🟢 Incomum';
-    case Rarity.RARE: return '🔵 Raro';
-    case Rarity.EPIC: return '🟣 Épico';
-    case Rarity.LEGENDARY: return '🌟 Lendário';
+    case Rarity.COMMON: return `⚪ ${t('rarity.common')}`;
+    case Rarity.UNCOMMON: return `🟢 ${t('rarity.uncommon')}`;
+    case Rarity.RARE: return `🔵 ${t('rarity.rare')}`;
+    case Rarity.EPIC: return `🟣 ${t('rarity.epic')}`;
+    case Rarity.LEGENDARY: return `🌟 ${t('rarity.legendary')}`;
   }
 };
 
@@ -126,18 +127,18 @@ export const DeckBuilderView: React.FC<DeckBuilderViewProps> = ({ onBack, onClos
   const handleSaveDeck = () => {
     if (!deckName.trim()) {
       soundService.playError();
-      alert('Digite um nome para o deck!');
+      alert(t('deck.enterDeckName'));
       return;
     }
       if (deckCards.length < MIN_DECK_SIZE) {
         soundService.playError();
-        alert(`Um deck precisa ter pelo menos ${MIN_DECK_SIZE} cartas!`);
+        alert(t('deck.minCards', { min: MIN_DECK_SIZE }));
         return;
       }
 
       if (deckCards.length > MAX_DECK_SIZE) {
         soundService.playError();
-        alert(`Um deck pode ter no máximo ${MAX_DECK_SIZE} cartas!`);
+        alert(t('deck.maxCards', { max: MAX_DECK_SIZE }));
         return;
       }
 
@@ -181,15 +182,15 @@ export const DeckBuilderView: React.FC<DeckBuilderViewProps> = ({ onBack, onClos
     try {
       await navigator.clipboard.writeText(arrString);
       soundService.playAchievement();
-      alert('Array copiado para a área de transferência!');
+      alert(t('deck.arrayCopied'));
     } catch (e) {
       // fallback
-      prompt('Copiar este array e cole no código:', arrString);
+      prompt(t('deck.copyArrayPrompt'), arrString);
     }
   };
 
   const handleDeleteDeck = (deckId: string) => {
-    if (confirm('Tem certeza que deseja excluir este deck?')) {
+    if (confirm(t('deck.confirmDelete'))) {
       collectionService.deleteDeck(deckId);
       soundService.playClick();
       if (selectedDeckId === deckId) {
@@ -232,14 +233,14 @@ export const DeckBuilderView: React.FC<DeckBuilderViewProps> = ({ onBack, onClos
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-4xl font-black text-yellow-500">🔧 Deck Builder</h1>
-            <p className="text-sm sm:text-base text-slate-400">Crie e edite seus decks personalizados</p>
+            <h1 className="text-4xl font-black text-yellow-500">🔧 {t('deck.title')}</h1>
+            <p className="text-sm sm:text-base text-slate-400">{t('deck.subtitle')}</p>
           </div>
           <button 
             onClick={handleClose}
             className="bg-slate-700 px-4 py-2 sm:px-6 sm:py-3 rounded-xl font-bold hover:bg-slate-600"
           >
-            ✕ <span className="hidden sm:inline">Fechar</span>
+            ✕ <span className="hidden sm:inline">{t('common.close')}</span>
           </button>
         </div>
 
@@ -249,10 +250,10 @@ export const DeckBuilderView: React.FC<DeckBuilderViewProps> = ({ onBack, onClos
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-y-1 sm:gap-y-0">
               <div>
                 <h2 className="text-xl font-bold">
-                  {bossEditMode ? 'Decks dos Bosses' : 'Meus Decks'}
+                  {bossEditMode ? t('deck.bossDecks') : t('deck.myDecks')}
                   <span className="ml-2 text-sm text-slate-400">({bossEditMode ? bosses.length : customDecks.length})</span>
                 </h2>
-                <div className="text-sm text-slate-400">{bossEditMode ? 'Selecione um boss para editar o deck' : 'Gerencie decks salvos e decks de bosses'}</div>
+                <div className="text-sm text-slate-400">{bossEditMode ? t('deck.selectBossToEdit') : t('deck.manageSavedDecks')}</div>
               </div>
               <div className="flex items-center gap-3 self-end">
                 {!bossEditMode && (
@@ -260,7 +261,7 @@ export const DeckBuilderView: React.FC<DeckBuilderViewProps> = ({ onBack, onClos
                     onClick={handleCreateNewDeck}
                     className="bg-green-600 px-4 py-2 rounded-xl font-bold text-sm hover:bg-green-500"
                   >
-                    + Novo
+                    + {t('deck.new')}
                   </button>
                 )}
                 <button
@@ -276,7 +277,7 @@ export const DeckBuilderView: React.FC<DeckBuilderViewProps> = ({ onBack, onClos
                   }}
                   className={`px-4 py-2 rounded-xl font-bold text-sm ${bossEditMode ? 'bg-amber-600 hover:bg-amber-500' : 'bg-slate-700 hover:bg-slate-600'}`}
                 >
-                  {bossEditMode ? '✖ Sair do Modo Boss' : '✏️ Boss Decks'}
+                  {bossEditMode ? `✖ ${t('deck.exitBossMode')}` : `✏️ ${t('deck.bossDecks')}`}
                 </button>
               </div>
             </div>
@@ -284,7 +285,7 @@ export const DeckBuilderView: React.FC<DeckBuilderViewProps> = ({ onBack, onClos
             <div className="bg-slate-900/50 rounded-xl p-4 overflow-y-auto flex-1 space-y-3 min-h-0">
               {bossEditMode ? (
                 <>
-                  <div className="text-xs text-slate-400 mt-2">Ao selecionar, o deck do boss será carregado no editor. Use "Copiar Array" para exportar.</div>
+                  <div className="text-xs text-slate-400 mt-2">{t('deck.bossEditHint')}</div>
 
                   {bosses.map(b => (
                     <div 
@@ -304,14 +305,14 @@ export const DeckBuilderView: React.FC<DeckBuilderViewProps> = ({ onBack, onClos
                             <span className="text-2xl">{b.avatar || '🎯'}</span>
                             <span>{b.name}</span>
                           </div>
-                          <div className="text-sm text-slate-400">{(b.deck || []).length} cartas</div>
+                          <div className="text-sm text-slate-400">{(b.deck || []).length} {t('deck.cards')}</div>
                         </div>
                       </div>
                     </div>
                   ))}
 
                   {bosses.length === 0 && (
-                    <div className="text-center text-slate-500 py-8">Nenhum boss disponível</div>
+                    <div className="text-center text-slate-500 py-8">{t('deck.noBossAvailable')}</div>
                   )}
                 </>
               ) : (
@@ -333,10 +334,10 @@ export const DeckBuilderView: React.FC<DeckBuilderViewProps> = ({ onBack, onClos
                           <div className="font-bold flex items-center gap-2">
                             {deck.name}
                             {customDecks[0]?.id === deck.id && (
-                              <span className="ml-2 px-2 py-0.5 rounded-full bg-yellow-500 text-xs text-black font-bold">Padrão</span>
+                              <span className="ml-2 px-2 py-0.5 rounded-full bg-yellow-500 text-xs text-black font-bold">{t('deck.default')}</span>
                             )}
                           </div>
-                          <div className="text-sm text-slate-400">{deck.cards.length} cartas</div>
+                          <div className="text-sm text-slate-400">{deck.cards.length} {t('deck.cards')}</div>
                         </div>
                         <button
                           onClick={(e) => {
@@ -353,7 +354,7 @@ export const DeckBuilderView: React.FC<DeckBuilderViewProps> = ({ onBack, onClos
 
                   {customDecks.length === 0 && (
                     <div className="text-center text-slate-500 py-8">
-                      Nenhum deck criado ainda
+                      {t('deck.noDeckCreated')}
                     </div>
                   )}
                 </>
@@ -365,17 +366,17 @@ export const DeckBuilderView: React.FC<DeckBuilderViewProps> = ({ onBack, onClos
           <div className={`bg-slate-800 p-6 rounded-2xl flex flex-col max-h-screen sm:max-h-[50vh] lg:max-h-none min-h-0 ${(isCreatingNew || selectedDeckId) ? '' : 'hidden'}`}>
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold">
-                {isCreatingNew || selectedDeckId ? 'Editando Deck' : 'Selecione um deck'}
+                {isCreatingNew || selectedDeckId ? t('deck.editingDeck') : t('deck.selectDeck')}
               </h2>
               {(isCreatingNew || selectedDeckId) && (
                 bossEditMode && editingBossId ? (
                   <div className="flex items-center gap-2">
-                    <div className="text-sm text-slate-400 max-w-40">Copie o array pronto para colar no código do jogo</div>
+                    <div className="text-sm text-slate-400 max-w-40">{t('deck.copyArrayHint')}</div>
                     <button
                       onClick={handleCopyArray}
                       className={`px-4 py-2 rounded-xl font-bold text-sm bg-amber-600 hover:bg-amber-500`}
                     >
-                      📋 Copiar Array
+                      📋 {t('deck.copyArray')}
                     </button>
                   </div>
                 ) : (
@@ -390,7 +391,7 @@ export const DeckBuilderView: React.FC<DeckBuilderViewProps> = ({ onBack, onClos
                       }
                     `}
                   >
-                    💾 Salvar
+                    💾 {t('common.save')}
                   </button>
                 )
               )}
@@ -401,21 +402,21 @@ export const DeckBuilderView: React.FC<DeckBuilderViewProps> = ({ onBack, onClos
                   type="text"
                   value={deckName}
                   onChange={(e) => setDeckName(e.target.value)}
-                  placeholder="Nome do deck..."
+                  placeholder={t('deck.deckNamePlaceholder')}
                   className="w-full bg-slate-700 px-4 py-1 sm:py-3 rounded-xl mb-4 font-bold text-lg"
                 />
 
                 <div className="mb-4">
                   <div className="flex justify-between text-sm mb-2">
-                    <span className="text-slate-400">Cartas: {deckCards.length}</span>
+                    <span className="text-slate-400">{t('deck.cardsLabel')}: {deckCards.length}</span>
                     <span className={`font-bold ${
                       deckCards.length < MIN_DECK_SIZE ? 'text-red-400' :
                       deckCards.length > MAX_DECK_SIZE ? 'text-red-400' :
                       'text-green-400'
                     }`}>
-                      {deckCards.length < MIN_DECK_SIZE && `Mínimo: ${MIN_DECK_SIZE}`}
+                      {deckCards.length < MIN_DECK_SIZE && `${t('deck.minimum')}: ${MIN_DECK_SIZE}`}
                       {deckCards.length >= MIN_DECK_SIZE && deckCards.length <= MAX_DECK_SIZE && `✓ OK`}
-                      {deckCards.length > MAX_DECK_SIZE && `Máximo: ${MAX_DECK_SIZE}`}
+                      {deckCards.length > MAX_DECK_SIZE && `${t('deck.maximum')}: ${MAX_DECK_SIZE}`}
                     </span>
                   </div>
                   <div className="bg-slate-700 rounded-full h-3 overflow-hidden">
@@ -434,7 +435,7 @@ export const DeckBuilderView: React.FC<DeckBuilderViewProps> = ({ onBack, onClos
                 <div className="bg-slate-900/50 rounded-xl p-4 overflow-y-auto flex-1 min-h-0">
                   {deckCards.length === 0 ? (
                     <div className="text-center text-slate-500 py-8">
-                      Adicione cartas ao deck
+                      {t('deck.addCardsToDeck')}
                     </div>
                   ) : (
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -498,7 +499,7 @@ export const DeckBuilderView: React.FC<DeckBuilderViewProps> = ({ onBack, onClos
           {/* Cartas Disponíveis */}
           <div className={`bg-slate-800 p-6 rounded-2xl flex flex-col max-h-screen sm:max-h-[50vh] lg:max-h-none min-h-0 ${(isCreatingNew || selectedDeckId) ? '' : 'col-span-2'}`}>
             <h2 className="text-xl font-bold mb-4">
-              Cartas Disponíveis
+              {t('deck.availableCards')}
               <span className="ml-2 text-sm text-slate-400">
                 ({sortedAvailableCards.length})
               </span>
@@ -510,7 +511,7 @@ export const DeckBuilderView: React.FC<DeckBuilderViewProps> = ({ onBack, onClos
                 type="text"
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
-                placeholder="Procurar por nome..."
+                placeholder={t('collection.searchByName')}
                 className="w-full bg-slate-700 px-3 py-2 rounded-xl text-sm"
               />
               <select 
@@ -518,10 +519,10 @@ export const DeckBuilderView: React.FC<DeckBuilderViewProps> = ({ onBack, onClos
                 onChange={e => setFilter(e.target.value as any)}
                 className="w-full bg-slate-700 px-3 py-2 rounded-xl text-sm"
               >
-                <option value="all">Todos os Tipos</option>
-                <option value="pokemon">Pokémon</option>
-                <option value="spell">Magias</option>
-                <option value="trap">Armadilhas</option>
+                <option value="all">{t('collection.allTypes')}</option>
+                <option value="pokemon">{t('collection.pokemon')}</option>
+                <option value="spell">{t('collection.spells')}</option>
+                <option value="trap">{t('collection.traps')}</option>
               </select>
 
               <select 
@@ -529,7 +530,7 @@ export const DeckBuilderView: React.FC<DeckBuilderViewProps> = ({ onBack, onClos
                 onChange={e => setTypeFilter(e.target.value as any)}
                 className="w-full bg-slate-700 px-3 py-2 rounded-xl text-sm"
               >
-                <option value="all">Todos os Elementos</option>
+                <option value="all">{t('collection.allElements')}</option>
                 {Object.values(ElementType).map(type => (
                   <option key={type} value={type}>{getTypeIcon(type)} {type}</option>
                 ))}
@@ -540,7 +541,7 @@ export const DeckBuilderView: React.FC<DeckBuilderViewProps> = ({ onBack, onClos
                 onChange={e => setRarityFilter(e.target.value as any)}
                 className="w-full bg-slate-700 px-3 py-2 rounded-xl text-sm"
               >
-                <option value="all">Todas as Raridades</option>
+                <option value="all">{t('collection.allRarities')}</option>
                 {Object.values(Rarity).map(r => (
                   <option key={r} value={r}>{getRarityLabel(r)}</option>
                 ))}
@@ -553,10 +554,10 @@ export const DeckBuilderView: React.FC<DeckBuilderViewProps> = ({ onBack, onClos
                     onChange={e => setSortBy(e.target.value as any)}
                     className="w-full bg-slate-700 px-3 py-2 rounded-xl text-sm"
                   >
-                    <option value="none">Ordenar (Nenhum)</option>
-                    <option value="atk">Ordenar por Ataque</option>
-                    <option value="def">Ordenar por Defesa</option>
-                    <option value="star">Ordenar por Estrelas</option>
+                    <option value="none">{t('collection.sortNone')}</option>
+                    <option value="atk">{t('collection.sortByAttack')}</option>
+                    <option value="def">{t('collection.sortByDefense')}</option>
+                    <option value="star">{t('collection.sortByStars')}</option>
                   </select>
 
                   <label className="flex items-center gap-2 bg-slate-700 px-4 py-2 rounded-xl cursor-pointer">
@@ -566,7 +567,7 @@ export const DeckBuilderView: React.FC<DeckBuilderViewProps> = ({ onBack, onClos
                       onChange={e => setAbilityOnly(e.target.checked)}
                       className="w-5 h-5"
                     />
-                    <span className="text-sm text-slate-400">Somente com habilidade</span>
+                    <span className="text-sm text-slate-400">{t('collection.onlyWithAbility')}</span>
                   </label>
                 </>
               )}
@@ -628,10 +629,10 @@ export const DeckBuilderView: React.FC<DeckBuilderViewProps> = ({ onBack, onClos
                           <Tooltip content={(
                             <div>
                               <div className="font-black text-sm">{card.name}</div>
-                              <div className="text-xs mt-1">{card.spellEffect ? String(card.spellEffect.type) + (card.spellEffect.value ? ` (${card.spellEffect.value})` : '') : 'Efeito desconhecido'}</div>
+                              <div className="text-xs mt-1">{card.spellEffect ? String(card.spellEffect.type) + (card.spellEffect.value ? ` (${card.spellEffect.value})` : '') : t('collection.unknownEffect')}</div>
                             </div>
                           )}>
-                            <span className="cursor-help">🪄 Magia</span>
+                            <span className="cursor-help">🪄 {t('collection.spell')}</span>
                           </Tooltip>
                         </div>
                       )}
@@ -641,10 +642,10 @@ export const DeckBuilderView: React.FC<DeckBuilderViewProps> = ({ onBack, onClos
                           <Tooltip content={(
                             <div>
                               <div className="font-black text-sm">{card.name}</div>
-                              <div className="text-xs mt-1">{card.trapEffect ? String(card.trapEffect.type) + (card.trapEffect.value ? ` (${card.trapEffect.value})` : '') : 'Efeito desconhecido'}</div>
+                              <div className="text-xs mt-1">{card.trapEffect ? String(card.trapEffect.type) + (card.trapEffect.value ? ` (${card.trapEffect.value})` : '') : t('collection.unknownEffect')}</div>
                             </div>
                           )}>
-                            <span className="cursor-help">🪤 Armadilha</span>
+                            <span className="cursor-help">🪤 {t('collection.trap')}</span>
                           </Tooltip>
                         </div>
                       )}
@@ -661,7 +662,7 @@ export const DeckBuilderView: React.FC<DeckBuilderViewProps> = ({ onBack, onClos
 
               {sortedAvailableCards.length === 0 && (
                 <div className="text-center text-slate-500 py-8">
-                  Nenhuma carta disponível
+                  {t('deck.noCardsAvailable')}
                 </div>
               )}
             </div>

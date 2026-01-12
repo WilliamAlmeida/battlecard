@@ -4,6 +4,7 @@ import { soundService } from '../services/soundService';
 import { GEN1_RAW } from '../pokemons/gen1';
 import { Card, CardType } from '../types';
 import { CardComponent } from './CardComponent';
+import { t } from '../utils/i18n';
 
 interface DailyRewardTimelineProps {
   onClose: () => void;
@@ -47,15 +48,15 @@ export const DailyRewardTimeline: React.FC<DailyRewardTimelineProps> = ({ onClos
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h1 className="text-4xl font-black text-yellow-500 mb-2">🎁 Recompensas Diárias</h1>
-            <p className="text-slate-400">Progresso: <span className="text-yellow-400 font-bold">{claimedCount}/30</span> dias reivindicados</p>
+            <h1 className="text-4xl font-black text-yellow-500 mb-2">🎁 {t('dailyReward.title')}</h1>
+            <p className="text-slate-400">{t('dailyReward.progress')}: <span className="text-yellow-400 font-bold">{claimedCount}/30</span> {t('dailyReward.daysClaimed')}</p>
           </div>
           <div className="flex gap-3">
             <button
               onClick={() => { soundService.playClick(); onClose(); }}
               className="px-6 py-3 rounded-xl bg-slate-700 hover:bg-slate-600 font-bold"
             >
-              ✕ Fechar
+              ✕ {t('common.close')}
             </button>
           </div>
         </div>
@@ -110,7 +111,7 @@ export const DailyRewardTimeline: React.FC<DailyRewardTimelineProps> = ({ onClos
                       state === 'available' ? 'bg-yellow-500 text-black shadow-yellow-500/50 shadow-2xl animate-bounce' : 
                       'bg-slate-700 text-slate-300'}
                   `}>
-                    {isDay30 && '🌟 '}Dia {day}
+                    {isDay30 && '🌟 '}{t('dailyReward.day', { day })}
                   </div>
 
                   {/* Reward Display */}
@@ -176,9 +177,9 @@ export const DailyRewardTimeline: React.FC<DailyRewardTimelineProps> = ({ onClos
                         state === 'available' ? 'bg-yellow-500/30 text-yellow-300 animate-pulse' :
                         'bg-slate-700/50 text-slate-400'
                       }`}>
-                        {state === 'claimed' ? '✓ Reivindicado' :
-                         state === 'available' ? '→ Disponível Agora' :
-                         '○ Em breve'}
+                        {state === 'claimed' ? `✓ ${t('dailyReward.claimed')}` :
+                         state === 'available' ? `→ ${t('dailyReward.availableNow')}` :
+                         `○ ${t('dailyReward.comingSoon')}`}
                       </div>
                     </div>
                   </div>

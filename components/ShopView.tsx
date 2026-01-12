@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { shopService, ShopOffer, ShopCategory } from '../services/shopService';
 import { collectionService } from '../services/collectionService';
 import { soundService } from '../services/soundService';
+import { t } from '../utils/i18n';
 import { CardComponent } from './CardComponent';
 import { CardType, ElementType } from '../types';
 
@@ -58,13 +59,13 @@ export const ShopView: React.FC<ShopViewProps> = ({ onClose }) => {
     const end = new Date(endDate);
     const diff = end.getTime() - now.getTime();
 
-    if (diff <= 0) return 'Expirado';
+    if (diff <= 0) return t('shop.expired');
 
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
     const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
 
-    if (days > 0) return `${days}d ${hours}h restantes`;
-    return `${hours}h restantes`;
+    if (days > 0) return t('shop.timeRemainingDays', { days, hours });
+    return t('shop.timeRemainingHours', { hours });
   };
 
   const renderOfferCard = (offer: ShopOffer) => {
@@ -130,7 +131,7 @@ export const ShopView: React.FC<ShopViewProps> = ({ onClose }) => {
         <h3 className="text-xl font-black text-center mb-2">
           {card.name}
           {alreadyOwned && (
-            <span className="ml-2 text-xs bg-green-600 px-2 py-1 rounded-full">✓ Possui x{ownedCard?.quantity}</span>
+            <span className="ml-2 text-xs bg-green-600 px-2 py-1 rounded-full">✓ {t('shop.owned')} x{ownedCard?.quantity}</span>
           )}
         </h3>
 
@@ -156,13 +157,13 @@ export const ShopView: React.FC<ShopViewProps> = ({ onClose }) => {
               : 'bg-slate-700 text-slate-500 cursor-not-allowed'
           }`}
         >
-          {canPurchase.can ? '🛒 Comprar' : canPurchase.reason}
+          {canPurchase.can ? `🛒 ${t('shop.buy')}` : canPurchase.reason}
         </button>
 
         {/* Additional Info */}
         {offer.maxPurchasesPerPlayer !== undefined && (
           <div className="text-xs text-center mt-2 text-slate-400">
-            Compras: {shopService.getPurchaseCount(offer.id)}/{offer.maxPurchasesPerPlayer}
+            {t('shop.purchases')}: {shopService.getPurchaseCount(offer.id)}/{offer.maxPurchasesPerPlayer}
           </div>
         )}
       </div>
@@ -179,20 +180,20 @@ export const ShopView: React.FC<ShopViewProps> = ({ onClose }) => {
               onClick={() => { soundService.playClick(); onClose(); }}
               className="bg-slate-700 px-4 py-2 md:px-6 md:py-3 rounded-xl font-bold hover:bg-slate-600 transition-colors text-sm md:text-base"
             >
-              👈 Voltar
+              👈 {t('common.back')}
             </button>
 
             <div className="bg-gradient-to-r from-yellow-600 to-amber-600 px-4 py-2 md:px-8 md:py-3 rounded-xl border-2 md:border-4 border-yellow-500 shadow-lg">
               <div className="text-center">
-                <div className="text-xs md:text-sm font-bold text-yellow-200">Seus Coins</div>
+                <div className="text-xs md:text-sm font-bold text-yellow-200">{t('shop.yourCoinsLabel')}</div>
                 <div className="text-xl md:text-3xl font-black text-white">💰 {coins}</div>
               </div>
             </div>
           </div>
 
           <div className="text-center">
-            <h1 className="text-3xl md:text-5xl font-black text-yellow-500 italic mb-1 md:mb-2">🛒 LOJA POKÉCARD</h1>
-            <p className="text-slate-400 text-sm md:text-base">Compre cartas exclusivas com seus coins!</p>
+            <h1 className="text-3xl md:text-5xl font-black text-yellow-500 italic mb-1 md:mb-2">🛒 {t('shop.titleFull')}</h1>
+            <p className="text-slate-400 text-sm md:text-base">{t('shop.subtitle')}</p>
           </div>
         </div>
       </div>
@@ -242,7 +243,7 @@ export const ShopView: React.FC<ShopViewProps> = ({ onClose }) => {
                 <h3 className="text-lg font-black mb-1">{category.name}</h3>
                 <p className="text-xs text-slate-300 mb-2">{category.description}</p>
                 <div className="text-xs font-bold text-yellow-400">
-                  {hasOffers ? `${categoryOffers.length} ofertas` : 'Em breve'}
+                  {hasOffers ? t('shop.offersCount', { count: categoryOffers.length }) : t('shop.comingSoon')}
                 </div>
               </button>
             );
@@ -266,9 +267,9 @@ export const ShopView: React.FC<ShopViewProps> = ({ onClose }) => {
                 </div>
                 {(selectedCategory === 'weekly' || selectedCategory === 'featured') && (
                   <div className="bg-slate-900 px-6 py-4 rounded-xl border-2 border-yellow-500/50">
-                    <div className="text-sm text-slate-400">Ofertas acabam em:</div>
+                    <div className="text-sm text-slate-400">{t('shop.offersEndIn')}</div>
                     <div className="text-xl font-bold text-yellow-400">
-                      ⏰ {offers[0]?.endDate ? formatTimeRemaining(offers[0].endDate) : 'Em breve'}
+                      ⏰ {offers[0]?.endDate ? formatTimeRemaining(offers[0].endDate) : t('shop.comingSoon')}
                     </div>
                   </div>
                 )}
@@ -283,8 +284,8 @@ export const ShopView: React.FC<ShopViewProps> = ({ onClose }) => {
         ) : (
           <div className="bg-slate-800 rounded-2xl p-16 text-center border-4 border-dashed border-slate-700">
             <div className="text-8xl mb-6">🔒</div>
-            <h3 className="text-3xl font-black text-slate-400 mb-4">Nenhuma oferta disponível</h3>
-            <p className="text-slate-500">Volte mais tarde para ver novas ofertas!</p>
+            <h3 className="text-3xl font-black text-slate-400 mb-4">{t('shop.noOffers')}</h3>
+            <p className="text-slate-500">{t('shop.comeBackLater')}</p>
           </div>
         )}
       </div>
@@ -295,12 +296,12 @@ export const ShopView: React.FC<ShopViewProps> = ({ onClose }) => {
           <div className="flex items-start gap-4">
             <div className="text-4xl">💡</div>
             <div>
-              <h3 className="text-xl font-bold text-blue-300 mb-2">Dicas da Loja</h3>
+              <h3 className="text-xl font-bold text-blue-300 mb-2">{t('shop.tips')}</h3>
               <ul className="text-slate-300 space-y-1 text-sm">
-                <li>• As ofertas semanais mudam toda segunda-feira!</li>
-                <li>• Cartas em destaque têm os melhores descontos</li>
-                <li>• Ganhe coins vencendo batalhas e completando conquistas</li>
-                <li>• Cartas lendárias são raras - aproveite quando aparecerem!</li>
+                <li>• {t('shop.tip1')}</li>
+                <li>• {t('shop.tip2')}</li>
+                <li>• {t('shop.tip3')}</li>
+                <li>• {t('shop.tip4')}</li>
               </ul>
             </div>
           </div>

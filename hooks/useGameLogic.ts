@@ -7,6 +7,8 @@ import { soundService } from '../services/soundService';
 import { statsService } from '../services/statsService';
 import { achievementsService } from '../services/achievementsService';
 import { collectionService } from '../services/collectionService';
+import { formatAbilityMessage } from '../utils/abilityMessages';
+import { t } from '../utils/i18n';
 
 // Import refactored modules
 import {
@@ -93,7 +95,7 @@ export const useGameLogic = () => {
     setWinner(who);
     setGameOver(true);
     const reasonText = reason ? ` (${reason})` : '';
-    addLog(`${who === 'player' ? 'Jogador' : 'CPU'} venceu o jogo${reasonText}`, 'info');
+    addLog(t('battle.playerWon', { player: who === 'player' ? t('common.player') : t('common.cpu') }) + reasonText, 'info');
     // also helpful in console for debugging simultaneous updates
     console.debug('finishGame called ->', { winner: who, reason });
   }, [addLog]);
@@ -166,7 +168,7 @@ export const useGameLogic = () => {
         finishGame(isPlayer ? 'npc' : 'player', 'deck_out');
         return;
       } else {
-        addLog(`${isPlayer ? 'Você' : 'Oponente'} não tem cartas no deck. Nenhuma carta comprada.`, 'info');
+        addLog(t('battle.noDeckCards', { player: isPlayer ? t('common.you') : t('common.opponent') }), 'info');
         // Stay in MAIN phase (no draw) — end draw phase early
         setPhase(Phase.MAIN);
         return;
@@ -180,7 +182,7 @@ export const useGameLogic = () => {
     fn(p => ({ ...p, deck: newDeck, hand: [...p.hand, card] }));
     soundService.playDraw();
     setPhase(Phase.MAIN);
-    addLog(`${isPlayer ? 'Você' : 'Oponente'} comprou uma carta.`);
+    addLog(t('battle.drewCard', { player: isPlayer ? t('common.you') : t('common.opponent') }));
   }, [addLog, processFieldStatusEffects, allowDeckOut]);
 
   const startGame = (options?: { difficulty?: AIDifficulty, mode?: GameMode, customDeck?: CardBase[], npcDeck?: CardBase[], npcHp?: number, npcName?: string, npcAvatar?: string, sacrificeStrategy?: SacrificeStrategy }) => {
@@ -229,7 +231,7 @@ export const useGameLogic = () => {
     setGameStarted(true);
     setGameOver(false);
     setWinner(null);
-    addLog(starterChoice === 'player' ? "Batalha iniciada! Seu turno." : "Batalha iniciada! CPU começa.");
+    addLog(t('battle.battleStarted', { starter: starterChoice === 'player' ? t('common.you') : t('common.cpu') }));
   };
 
   // Start the next wave in Survival mode without resetting the player state
@@ -268,7 +270,7 @@ export const useGameLogic = () => {
     setTotalDamageDealt(0);
     setCardsDestroyed(0);
     setStatusInflicted({});
-    addLog(starterChoice === 'player' ? "Próxima onda iniciada! Seu turno." : "Próxima onda iniciada! CPU começa.");
+    addLog(t('survival.nextWaveStarted', { starter: starterChoice === 'player' ? t('common.you') : t('common.cpu') }));
   };
 
   useEffect(() => {
@@ -279,7 +281,7 @@ export const useGameLogic = () => {
 
       // Regra: quem iniciou não pode atacar no primeiro turno
       if (gameStateRef.current.turnCount === 1 && current === whoStarted) {
-        addLog('Quem iniciou não pode atacar no primeiro turno. Passando a vez...');
+        addLog(t('game.cantAttackFirstTurn') + ' ' + t('battle.passingTurn'));
         setPhase(Phase.DRAW);
         setCurrentTurnPlayer(current === 'player' ? 'npc' : 'player');
         setTurnCount(c => c + 1);
@@ -292,7 +294,7 @@ export const useGameLogic = () => {
       const cur = current;
       const curPlayerState = cur === 'player' ? gameStateRef.current.player : gameStateRef.current.npc;
       if (curPlayerState && curPlayerState.field.length === 0) {
-        addLog(`${cur === 'player' ? 'Você' : 'Oponente'} não tem pokémons em campo. Passando a vez...`);
+        addLog(t('battle.noMonstersOnField', { player: cur === 'player' ? t('common.you') : t('common.opponent') }));
         setPhase(Phase.DRAW);
         setCurrentTurnPlayer(cur === 'player' ? 'npc' : 'player');
         setTurnCount(c => c + 1);
@@ -308,7 +310,7 @@ export const useGameLogic = () => {
 
     // Não permitir atacar no primeiro turno quem iniciou o jogo (starter)
     if (gameStateRef.current.turnCount === 1 && ownerId === gameStateRef.current.starter) {
-      addLog('Quem começou o jogo não pode atacar no primeiro turno.');
+      addLog(t('game.cantAttackFirstTurn'));
       return;
     }
 
@@ -365,7 +367,7 @@ export const useGameLogic = () => {
 
     // Handle negate attack trap
     if (trapResult.negateAttack) {
-      addLog('Ataque negado pela armadilha!', 'trap');
+      addLog(t('battle.attackNegated'), 'trap');
       setAttackingCardId(null);
       setAttackTargetId(null);
       setDamagedCardId(null);
@@ -447,7 +449,7 @@ export const useGameLogic = () => {
         field: p.field.filter(c => c.uniqueId !== attacker.uniqueId),
         graveyard: [...p.graveyard, { ...attacker, destroyedAt: Date.now() }]
       }));
-      addLog(`${attacker.name} foi destruído pela armadilha!`, 'trap');
+      addLog(t('battle.destroyedByTrap', { cardName: attacker.name }), 'trap');
       setAttackingCardId(null);
       setAttackTargetId(null);
       setDamagedCardId(null);
@@ -458,7 +460,7 @@ export const useGameLogic = () => {
 
     if (!targetId) {
       const damage = attacker.attack;
-      addLog(`ATAQUE DIRETO! ${attacker.name} causou ${damage} de dano!`, 'combat');
+      addLog(t('battle.directAttackDealt', { attacker: attacker.name, damage: damage.toString() }), 'combat');
       setFloatingDamage({ id: generateUniqueId(), value: damage, targetId: isPlayer ? 'npc-hp' : 'player-hp' });
       
       const fn = isPlayer ? setNpc : setPlayer;
@@ -527,31 +529,49 @@ export const useGameLogic = () => {
 
         // Debug: show passive activations (floating + logs)
         if (attackerPassive.attack && attackerPassive.attack > 0) {
-          const name = attacker.ability?.name || 'Passiva';
-          addLog(`${attacker.name} recebeu +${attackerPassive.attack} ATK (${name})`, 'ability');
-          showFloatingEffect(`+${attackerPassive.attack} ATK`, '#ef4444', 'up', attacker.uniqueId, 'ATK');
+          const formatted = formatAbilityMessage({
+            abilityId: attacker.ability?.id,
+            cardName: attacker.name,
+            value: attackerPassive.attack
+          });
+          addLog(t('battle.receivedBonus', { cardName: attacker.name, value: '+' + attackerPassive.attack, stat: 'ATK', abilityName: attacker.ability?.name || t('abilities.passive') }), 'ability');
+          showFloatingEffect(formatted.text, formatted.color, formatted.animation, attacker.uniqueId, formatted.stat);
         }
         if (defenderPassive.attack && defenderPassive.attack > 0) {
-          const name = defender.ability?.name || 'Passiva';
-          addLog(`${defender.name} recebeu +${defenderPassive.attack} ATK (${name})`, 'ability');
-          showFloatingEffect(`+${defenderPassive.attack} ATK`, '#ef4444', 'up', defender.uniqueId, 'ATK');
+          const formatted = formatAbilityMessage({
+            abilityId: defender.ability?.id,
+            cardName: defender.name,
+            value: defenderPassive.attack
+          });
+          addLog(t('battle.receivedBonus', { cardName: defender.name, value: '+' + defenderPassive.attack, stat: 'ATK', abilityName: defender.ability?.name || t('abilities.passive') }), 'ability');
+          showFloatingEffect(formatted.text, formatted.color, formatted.animation, defender.uniqueId, formatted.stat);
         }
         if (attackerDebuffs.attack && attackerDebuffs.attack < 0) {
-          addLog(`${attacker.name} recebeu ${attackerDebuffs.attack} nos stats por habilidade inimiga`, 'ability');
-          showFloatingEffect(`${attackerDebuffs.attack} ATK`, '#ef4444', 'down', attacker.uniqueId, 'ATK');
+          const formatted = formatAbilityMessage({
+            abilityId: 'pressure', // debuff from opponent
+            cardName: attacker.name,
+            value: Math.abs(attackerDebuffs.attack)
+          });
+          addLog(t('battle.receivedDebuff', { cardName: attacker.name, value: attackerDebuffs.attack }), 'ability');
+          showFloatingEffect(formatted.text, formatted.color, formatted.animation, attacker.uniqueId, formatted.stat);
         }
         if (defenderDebuffs.attack && defenderDebuffs.attack < 0) {
-          addLog(`${defender.name} recebeu ${defenderDebuffs.attack} nos stats por habilidade inimiga`, 'ability');
-          showFloatingEffect(`${defenderDebuffs.attack} ATK`, '#ef4444', 'down', defender.uniqueId, 'ATK');
+          const formatted = formatAbilityMessage({
+            abilityId: 'pressure', // debuff from opponent
+            cardName: defender.name,
+            value: Math.abs(defenderDebuffs.attack)
+          });
+          addLog(t('battle.receivedDebuff', { cardName: defender.name, value: defenderDebuffs.attack }), 'ability');
+          showFloatingEffect(formatted.text, formatted.color, formatted.animation, defender.uniqueId, formatted.stat);
         }
         if (defenderPassive.evasion && defenderPassive.evasion > 0) {
-          const name = defender.ability?.name || 'Passiva';
-          addLog(`${defender.name} tem ${Math.round(defenderPassive.evasion * 100)}% de evasão (${name})`, 'ability');
+          const name = defender.ability?.name || t('abilities.passive');
+          addLog(t('abilities.evasion', { cardName: defender.name, percent: Math.round(defenderPassive.evasion * 100).toString() }) + ` (${name})`, 'ability');
         }
 
         // Check sand_veil evasion
         if (defenderPassive.evasion && Math.random() < defenderPassive.evasion) {
-          addLog(`${defender.name} evadiu o ataque! (Véu de Areia)`, 'effect');
+          addLog(t('abilities.evaded', { cardName: defender.name }), 'effect');
           setDamagedCardId(null);
           setAttackingCardId(null);
           setAttackTargetId(null);
@@ -573,14 +593,14 @@ export const useGameLogic = () => {
         };
 
         const result = GameRules.resolveCombat(modifiedAttacker, modifiedDefender);
-        addLog(`${attacker.name} efetivo ${result.attackerEffective} (x${result.multiplier}) vs ${defender.name} efetivo ${result.defenderEffective}`, 'combat');
+        addLog(t('battle.combatResult', { attacker: attacker.name, attackerEffective: result.attackerEffective, multiplier: result.multiplier, defender: defender.name, defenderEffective: result.defenderEffective }), 'combat');
         
         if (result.damageToDefenderOwner > 0) {
           setFloatingDamage({ id: generateUniqueId(), value: result.damageToDefenderOwner, targetId: isPlayer ? 'npc-hp' : 'player-hp' });
           const fn = isPlayer ? setNpc : setPlayer;
           defenderWouldDie = (defenderState.hp - result.damageToDefenderOwner) <= 0;
           fn(p => ({ ...p, hp: Math.max(0, p.hp - result.damageToDefenderOwner) }));
-          addLog(`Dono de ${defender.name} sofreu ${result.damageToDefenderOwner} de dano (DEF ${defender.defense} reduzido).`, 'combat');
+          addLog(t('battle.ownerTookDamage', { cardName: defender.name, damage: result.damageToDefenderOwner, defense: defender.defense }), 'combat');
         }
 
         if (result.damageToAttackerOwner > 0) {
@@ -588,10 +608,10 @@ export const useGameLogic = () => {
           const fn = isPlayer ? setPlayer : setNpc;
           fn(p => ({ ...p, hp: Math.max(0, p.hp - result.damageToAttackerOwner) }));
           if (attackerState.hp - result.damageToAttackerOwner <= 0) { finishGame(isPlayer ? 'npc' : 'player', 'combat_attacker_dead'); }
-          addLog(`Dono de ${attacker.name} sofreu ${result.damageToAttackerOwner} de dano (DEF ${attacker.defense} reduzido).`, 'combat');
+          addLog(t('battle.ownerTookDamage', { cardName: attacker.name, damage: result.damageToAttackerOwner, defense: attacker.defense }), 'combat');
         }
 
-        addLog(`${attacker.name} (ATK ${attacker.attack}) desafiou ${defender.name} (ATK ${defender.attack} / DEF ${defender.defense})!`, 'combat');
+        addLog(t('battle.combatChallenge', { attacker: attacker.name, attackerAtk: attacker.attack, defender: defender.name, defenderAtk: defender.attack, defenderDef: defender.defense }), 'combat');
 
         // Track stats for player
         if (isPlayer) {
@@ -681,7 +701,7 @@ export const useGameLogic = () => {
                         graveyard: newGrave
                       };
                     });
-                    addLog(`${destroyAbilityResult.reviveCard!.name} renasceu na mão!`, 'effect');
+                    addLog(t('abilities.revived', { cardName: destroyAbilityResult.reviveCard!.name }), 'effect');
                   }, 500);
                 }
               }
@@ -689,7 +709,7 @@ export const useGameLogic = () => {
 
             const fn = isPlayer ? setNpc : setPlayer;
             fn(p => ({ ...p, field: p.field.filter(c => c.uniqueId !== targetId), graveyard: [...p.graveyard, { ...defender, destroyedAt: Date.now() }] }));
-            addLog(`${defender.name} foi nocauteado!`, 'info');
+            addLog(t('battle.knockedOut', { cardName: defender.name }), 'info');
             soundService.playDestroy();
             
             // Track destruction for player
@@ -726,7 +746,7 @@ export const useGameLogic = () => {
                   field: p.field.filter(c => c.uniqueId !== attacker.uniqueId),
                   graveyard: [...p.graveyard, { ...attacker, destroyedAt: Date.now() }]
                 }));
-                addLog(`${attacker.name} também foi destruído pela armadilha!`, 'trap');
+                addLog(t('battle.destroyedByTrap', { cardName: attacker.name }), 'trap');
                 setAttackTargetId(null);
               }
 
@@ -734,7 +754,7 @@ export const useGameLogic = () => {
               if (destroyTrapResult.surviveTrap) {
                 const ownerSetFn = isPlayer ? setNpc : setPlayer;
                 ownerSetFn(p => ({ ...p, hp: 1 }));
-                addLog(`${defender.name} foi salvo pela armadilha e o dono permaneceu com 1 HP!`, 'trap');
+                addLog(t('battle.survivedByTrap', { cardName: defender.name }), 'trap');
               }
             }
 
@@ -747,7 +767,7 @@ export const useGameLogic = () => {
           if (!result.attackerSurvived) {
             const fn = isPlayer ? setPlayer : setNpc;
             fn(p => ({ ...p, field: p.field.filter(c => c.uniqueId !== attackerId), graveyard: [...p.graveyard, { ...attacker, destroyedAt: Date.now() }] }));
-            addLog(`${attacker.name} foi nocauteado no contra-ataque!`, 'info');
+            addLog(t('battle.knockedOutCounter', { cardName: attacker.name }), 'info');
             soundService.playDestroy();
           }
         }, 200);
@@ -812,7 +832,7 @@ export const useGameLogic = () => {
         const amount = Math.floor(Math.random() * (max - min + 1)) + min;
         try {
           collectionService.addCoins(amount);
-          addLog(`Você ganhou ${amount} moedas por vencer a Batalha Rápida (${difficulty})`, 'info');
+          addLog(t('battle.coinsEarned', { amount: amount, mode: t('menu.quickBattle'), difficulty: difficulty }), 'info');
         } catch (e) {
           console.warn('Falha ao adicionar coins da Batalha Rápida', e);
         }
@@ -844,7 +864,7 @@ export const useGameLogic = () => {
             setTurnCount(c => c + 1);
             setPlayer(p => ({ ...p, field: p.field.map(c => ({ ...c, hasAttacked: false })) }));
             setNpc(p => ({ ...p, field: p.field.map(c => ({ ...c, hasAttacked: false })) }));
-            addLog("Seu Turno! Compre uma carta.");
+            addLog(t('battle.yourTurnStart') + ' ' + t('battle.drawCardHint'));
           }
         }
       }, 1000);
@@ -894,14 +914,14 @@ export const useGameLogic = () => {
       const sacrificedFromHand = state.hand.filter(c => sacrifices.includes(c.uniqueId));
       
       if (sacrificedFromField.length > 0) {
-        sacrificedFromField.forEach(c => addLog(`${owner === 'player' ? 'Você' : 'CPU'} sacrificou ${c.name} do campo`, 'info'));
+        sacrificedFromField.forEach(c => addLog(t('battle.sacrificed', { player: owner === 'player' ? t('common.you') : t('common.cpu'), cardName: c.name, location: t('game.field') }), 'info'));
       }
       if (sacrificedFromHand.length > 0) {
-        sacrificedFromHand.forEach(c => addLog(`${owner === 'player' ? 'Você' : 'CPU'} sacrificou ${c.name} da mão`, 'info'));
+        sacrificedFromHand.forEach(c => addLog(t('battle.sacrificed', { player: owner === 'player' ? t('common.you') : t('common.cpu'), cardName: c.name, location: t('game.hand') }), 'info'));
       }
     }
     
-    addLog(`${owner === 'player' ? 'Você' : 'CPU'} invocou ${card.name}!`);
+    addLog(t('battle.summoned', { player: owner === 'player' ? t('common.you') : t('common.cpu'), cardName: card.name }));
     
     // Trigger ON_SUMMON ability
     if (card.ability?.trigger === AbilityTrigger.ON_SUMMON) {
@@ -1025,7 +1045,7 @@ export const useGameLogic = () => {
     
     if (!card || card.cardType !== CardType.TRAP) return;
     if (state.trapZone.length >= 2) {
-      addLog('Zona de armadilhas cheia! (máximo 2)');
+      addLog(t('battle.trapZoneFull'));
       return;
     }
     
@@ -1035,7 +1055,7 @@ export const useGameLogic = () => {
       trapZone: [...p.trapZone, { ...card, isSet: true }]
     }));
     
-    addLog(`${owner === 'player' ? 'Você' : 'CPU'} setou uma armadilha!`);
+    addLog(t('battle.trapSet', { player: owner === 'player' ? t('common.you') : t('common.cpu') }));
     soundService.playBuff();
   }, [addLog]);
 
@@ -1060,7 +1080,7 @@ export const useGameLogic = () => {
       graveyard: [...p.graveyard, { ...card, destroyedAt: Date.now() }]
     }));
     
-    addLog(`${ownerName} usou ${card.name}!`, 'spell');
+    addLog(t('battle.spellUsed', { player: ownerName, spellName: card.name }), 'spell');
     soundService.playBuff();
     
     // Apply effect
@@ -1069,14 +1089,14 @@ export const useGameLogic = () => {
       // Validar target: OWNER/SELF cura o dono. SINGLE_ALLY agora cura o dono (monstros não têm HP).
       if (effect.target === 'OWNER' || effect.target === 'SELF' || !effect.target) {
         setFn(p => ({ ...p, hp: Math.min(8000, p.hp + healAmount) }));
-        addLog(`${ownerName} recuperou ${healAmount} HP!`, 'effect');
+        addLog(t('spell.healed', { player: ownerName, amount: healAmount }), 'effect');
         showFloatingEffect(`+${healAmount} HP`, '#10b981', 'up', owner === 'player' ? 'player-hp' : 'npc-hp', 'HP');
       } else if (effect.target === 'SINGLE_ALLY' && targetId) {
         // Monsters don't have HP — heal the owner instead, but mention the targeted ally in the log
         const target = state.field.find(c => c.uniqueId === targetId);
         if (target) {
           setFn(p => ({ ...p, hp: Math.min(8000, p.hp + healAmount) }));
-          addLog(`${ownerName} recuperou ${healAmount} HP (alvo: ${target.name})!`, 'effect');
+          addLog(t('spell.healedTarget', { player: ownerName, amount: healAmount, target: target.name }), 'effect');
           showFloatingEffect(`+${healAmount} HP`, '#10b981', 'up', owner === 'player' ? 'player-hp' : 'npc-hp', 'HP');
         }
       }
@@ -1092,7 +1112,7 @@ export const useGameLogic = () => {
               field: p.field.filter(c => c.uniqueId !== targetId),
               graveyard: [...p.graveyard, { ...target, destroyedAt: Date.now() }]
             }));
-            addLog(`${card.name} destruiu ${target.name}!`, 'combat');
+            addLog(t('spell.destroyed', { spellName: card.name, target: target.name }), 'combat');
             // show floating damage / destroy feedback on the card
             showFloatingEffect(`-${damage}`, '#dc2626', 'down', targetId, 'DEF');
           } else {
@@ -1101,7 +1121,7 @@ export const useGameLogic = () => {
               ...p,
               field: p.field.map(c => c.uniqueId === targetId ? { ...c, defense: Math.max(0, c.defense - damage) } : c)
             }));
-            addLog(`${card.name} causou ${damage} de dano em ${target.name}!`, 'combat');
+            addLog(t('spell.damaged', { spellName: card.name, damage: damage, target: target.name }), 'combat');
             showFloatingEffect(`-${damage}`, '#dc2626', 'down', targetId, 'DEF');
           }
         }
@@ -1127,9 +1147,9 @@ export const useGameLogic = () => {
         }));
 
         // Logs per target for clarity
-        destroyed.forEach(d => addLog(`${card.name} destruiu ${d.name}!`, 'combat'));
-        damaged.forEach(d => addLog(`${card.name} causou ${damage} de dano em ${d.name}!`, 'combat'));
-        addLog(`${card.name} causou ${damage} de dano em todos os inimigos!`, 'combat');
+        destroyed.forEach(d => addLog(t('spell.destroyed', { spellName: card.name, target: d.name }), 'combat'));
+        damaged.forEach(d => addLog(t('spell.damaged', { spellName: card.name, damage: damage, target: d.name }), 'combat'));
+        addLog(t('spell.damagedAll', { spellName: card.name, damage: damage }), 'combat');
         // Show floating effects per target
         destroyed.forEach(d => showFloatingEffect(`-${damage}`, '#dc2626', 'down', d.uniqueId, 'DEF'));
         damaged.forEach(d => showFloatingEffect(`-${damage}`, '#dc2626', 'down', d.uniqueId, 'DEF'));
@@ -1137,7 +1157,7 @@ export const useGameLogic = () => {
       else if (effect.target === 'OWNER') {
         // OWNER = dano direto ao oponente (HP do oponente)
         opponentSetFn(p => ({ ...p, hp: Math.max(0, p.hp - damage) }));
-        addLog(`${card.name} causou ${damage} de dano direto ao oponente!`, 'combat');
+        addLog(t('spell.directDamage', { spellName: card.name, damage: damage }), 'combat');
         // Show floating damage on HP bar
         const hpTarget = owner === 'player' ? 'npc-hp' : 'player-hp';
         showFloatingEffect(`-${damage} HP`, '#dc2626', 'down', hpTarget, 'HP');
@@ -1159,11 +1179,11 @@ export const useGameLogic = () => {
               : { ...c, attack: c.attack + buffAmount, defense: c.defense + buffAmount }
             ) : c)
           }));
-          addLog(`${target.name} ganhou +${buffAmount} ${statName}!`, 'effect');
+          addLog(t('spell.buffed', { target: target.name, amount: buffAmount, stat: statName }), 'effect');
           const statPos = statToIncrease ? (statToIncrease === 'DEFENSE' ? 'DEF' : 'ATK') : 'BOTH';
           showFloatingEffect(`+${buffAmount} ${statName}`, '#22c55e', 'up', targetId, statPos as any);
         } else {
-          addLog(`Alvo inválido para ${card.name}!`, 'effect');
+          addLog(t('spell.invalidTarget', { spellName: card.name }), 'effect');
         }
       } else if (effect.target === 'ALL_ALLIES') {
         // Apply buff to all allied cards on field
@@ -1175,14 +1195,14 @@ export const useGameLogic = () => {
             : { ...c, attack: c.attack + buffAmount, defense: c.defense + buffAmount }
           ))
         }));
-        addLog(`${ownerName} aplicou +${buffAmount} ${statName} a todos os aliados!`, 'effect');
+        addLog(t('spell.buffedAll', { player: ownerName, amount: buffAmount, stat: statName }), 'effect');
         // Show floating effect on each ally
         allies.forEach(ally => {
           const statPos = statToIncrease ? (statToIncrease === 'DEFENSE' ? 'DEF' : 'ATK') : 'BOTH';
           showFloatingEffect(`+${buffAmount} ${statName}`, '#22c55e', 'up', ally.uniqueId, statPos as any);
         });
       } else {
-        addLog(`Alvo inválido para ${card.name}!`, 'effect');
+        addLog(t('spell.invalidTarget', { spellName: card.name }), 'effect');
       }
     }
     else if (effect.type === 'DRAW') {
@@ -1195,7 +1215,7 @@ export const useGameLogic = () => {
           deck: p.deck.slice(drawCount)
         };
       });
-      addLog(`${ownerName} comprou ${drawCount} carta(s)!`, 'effect');
+      addLog(t('spell.drew', { player: ownerName, count: drawCount }), 'effect');
     }
     else if (effect.type === 'DESTROY' && targetId) {
       const target = opponent.field.find(c => c.uniqueId === targetId);
@@ -1205,7 +1225,7 @@ export const useGameLogic = () => {
           field: p.field.filter(c => c.uniqueId !== targetId),
           graveyard: [...p.graveyard, { ...target, destroyedAt: Date.now() }]
         }));
-        addLog(`${card.name} destruiu ${target.name}!`, 'combat');
+        addLog(t('spell.destroyed', { spellName: card.name, target: target.name }), 'combat');
       }
     }
     else if (effect.type === 'STATUS' && effect.statusEffect && targetId) {
@@ -1215,7 +1235,7 @@ export const useGameLogic = () => {
           ...p,
           field: p.field.map(c => c.uniqueId === targetId ? applyStatusEffect(c, effect.statusEffect!, effect.duration || 3) : c)
         }));
-        addLog(`${card.name} aplicou ${effect.statusEffect} em ${target.name}!`, 'status');
+        addLog(t('spell.appliedStatus', { spellName: card.name, status: effect.statusEffect, target: target.name }), 'status');
         
         // Show floating effect for status
         const statusIcons: Record<string, string> = {
@@ -1252,7 +1272,7 @@ export const useGameLogic = () => {
             graveyard: newGrave
           };
         });
-        addLog(`${ownerName} reviveu ${toRevive.name} para a mão!`, 'effect');
+        addLog(t('spell.revived', { player: ownerName, cardName: toRevive.name }), 'effect');
       }
     }
   }, [addLog]);
@@ -1277,7 +1297,7 @@ export const useGameLogic = () => {
       AIController.resetTurnCounters();
       setPlayer(p => ({ ...p, field: p.field.map(c => ({ ...c, hasAttacked: false })) }));
       setNpc(p => ({ ...p, field: p.field.map(c => ({ ...c, hasAttacked: false })) }));
-      addLog("Encerrando turno. CPU está pensando...");
+      addLog(t('battle.endingTurn'));
     },
     addLog,
     // Reset game

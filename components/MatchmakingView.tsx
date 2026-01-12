@@ -6,6 +6,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CustomDeck } from '../types';
 import { collectionService } from '../services/collectionService';
+import { t } from '../utils/i18n';
 import { gameSessionService } from '../services/gameSessionService';
 import { usePvPGameLogic, PvPConnectionState } from '../hooks/usePvPGameLogic';
 import { INITIAL_DECK, SPELL_CARDS, TRAP_CARDS } from '../constants';
@@ -113,7 +114,7 @@ export const MatchmakingView: React.FC<MatchmakingViewProps> = ({ onBack, onGame
     }).filter((c): c is Card => c !== null);
 
     if (deckCards.length < 15) {
-      alert('Deck precisa ter pelo menos 15 cartas!');
+      alert(t('deck.minCards', { min: 15 }));
       return;
     }
 
@@ -161,11 +162,11 @@ export const MatchmakingView: React.FC<MatchmakingViewProps> = ({ onBack, onGame
     };
 
     const statusText: Record<PvPConnectionState, string> = {
-      disconnected: 'Desconectado',
-      connecting: 'Conectando...',
-      connected: 'Conectado',
-      'in-queue': 'Na Fila',
-      'in-game': 'Em Jogo',
+      disconnected: t('pvp.disconnected'),
+      connecting: t('pvp.connecting'),
+      connected: t('pvp.connected'),
+      'in-queue': t('pvp.inQueue'),
+      'in-game': t('pvp.inGame'),
     };
 
     return (
@@ -186,7 +187,7 @@ export const MatchmakingView: React.FC<MatchmakingViewProps> = ({ onBack, onGame
             className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
           >
             <span>←</span>
-            <span>Voltar</span>
+            <span>{t('common.back')}</span>
           </button>
           {renderConnectionStatus()}
         </div>
@@ -218,7 +219,7 @@ export const MatchmakingView: React.FC<MatchmakingViewProps> = ({ onBack, onGame
                       value={tempName}
                       onChange={(e) => setTempName(e.target.value)}
                       className="bg-gray-700 px-3 py-1 rounded text-white"
-                      placeholder="Seu nome"
+                      placeholder={t('pvp.yourName')}
                       autoFocus
                     />
                     <button
@@ -236,10 +237,10 @@ export const MatchmakingView: React.FC<MatchmakingViewProps> = ({ onBack, onGame
                       setEditingName(true);
                     }}
                   >
-                    {displayName || 'Jogador Anônimo'} ✏️
+                    {displayName || t('pvp.anonymousPlayer')} ✏️
                   </h2>
                 )}
-                <p className="text-gray-400">Clique para editar nome</p>
+                <p className="text-gray-400">{t('pvp.clickToEditName')}</p>
               </div>
             </div>
           </div>
@@ -249,19 +250,19 @@ export const MatchmakingView: React.FC<MatchmakingViewProps> = ({ onBack, onGame
             <div className="grid grid-cols-4 gap-4 text-center">
               <div className="bg-gray-700/50 rounded-lg p-3">
                 <div className="text-2xl font-bold text-green-400">{stats.wins}</div>
-                <div className="text-xs text-gray-400">Vitórias</div>
+                <div className="text-xs text-gray-400">{t('pvp.wins')}</div>
               </div>
               <div className="bg-gray-700/50 rounded-lg p-3">
                 <div className="text-2xl font-bold text-red-400">{stats.losses}</div>
-                <div className="text-xs text-gray-400">Derrotas</div>
+                <div className="text-xs text-gray-400">{t('pvp.losses')}</div>
               </div>
               <div className="bg-gray-700/50 rounded-lg p-3">
                 <div className="text-2xl font-bold text-yellow-400">{stats.currentStreak}</div>
-                <div className="text-xs text-gray-400">Sequência</div>
+                <div className="text-xs text-gray-400">{t('pvp.winStreak')}</div>
               </div>
               <div className="bg-gray-700/50 rounded-lg p-3">
                 <div className="text-2xl font-bold text-purple-400">{stats.elo}</div>
-                <div className="text-xs text-gray-400">ELO</div>
+                <div className="text-xs text-gray-400">{t('pvp.elo')}</div>
               </div>
             </div>
           )}
@@ -270,11 +271,11 @@ export const MatchmakingView: React.FC<MatchmakingViewProps> = ({ onBack, onGame
         {/* Lobby Info */}
         <div className="grid grid-cols-2 gap-4 mb-6 justify-center">
           <div className="bg-gray-800/50 px-4 py-2 rounded-xl text-center border border-gray-700">
-            <div className="text-sm text-gray-400">Players Na Fila</div>
+            <div className="text-sm text-gray-400">{t('pvp.playersInQueue')}</div>
             <div className="text-xl font-bold text-indigo-300">{queueSize !== null ? queueSize : '—'}</div>
           </div>
           <div className="bg-gray-800/50 px-4 py-2 rounded-xl text-center border border-gray-700">
-            <div className="text-sm text-gray-400">Partidas Ao Vivo</div>
+            <div className="text-sm text-gray-400">{t('pvp.liveMatches')}</div>
             <div className="text-xl font-bold text-indigo-300">{activeGames !== null ? activeGames : '—'}</div>
           </div>
         </div>
@@ -282,11 +283,11 @@ export const MatchmakingView: React.FC<MatchmakingViewProps> = ({ onBack, onGame
         {/* Deck Selection */}
         {connectionState === 'connected' && (
           <div className="bg-gray-800/50 rounded-xl p-6 mb-6 border border-gray-700">
-            <h3 className="text-lg font-bold text-white mb-4">Selecionar Deck</h3>
+            <h3 className="text-lg font-bold text-white mb-4">{t('menu.selectDeck')}</h3>
             
             {customDecks.length === 0 ? (
               <p className="text-gray-400 text-center py-4">
-                Nenhum deck criado. Crie um deck no Deck Builder primeiro!
+                {t('pvp.noDeckCreated')}
               </p>
             ) : (
               <div className="space-y-2">
@@ -302,7 +303,7 @@ export const MatchmakingView: React.FC<MatchmakingViewProps> = ({ onBack, onGame
                   >
                     <div className="flex items-center justify-between">
                       <span className="font-medium text-white">{deck.name}</span>
-                      <span className="text-sm text-gray-400">{deck.cards.length} cartas</span>
+                      <span className="text-sm text-gray-400">{deck.cards.length} {t('deck.cards')}</span>
                     </div>
                   </button>
                 ))}
@@ -315,17 +316,17 @@ export const MatchmakingView: React.FC<MatchmakingViewProps> = ({ onBack, onGame
         {connectionState === 'in-queue' && (
           <div className="bg-gray-800/50 rounded-xl p-8 mb-6 border border-blue-500 text-center">
             <div className="text-6xl mb-4 animate-bounce">🔍</div>
-            <h3 className="text-2xl font-bold text-white mb-2">Procurando Oponente...</h3>
-            <p className="text-gray-400 mb-4">Tempo na fila: {formatTime(queueTime)}</p>
+            <h3 className="text-2xl font-bold text-white mb-2">{t('pvp.searchingMatch')}</h3>
+            <p className="text-gray-400 mb-4">{t('pvp.queueTime', { time: formatTime(queueTime) })}</p>
             {queuePosition && (
-              <p className="text-sm text-gray-500">Posição na fila: #{queuePosition}</p>
+              <p className="text-sm text-gray-500">{t('pvp.queuePosition', { position: queuePosition })}</p>
             )}
             
             <button
               onClick={handleCancelQueue}
               className="mt-6 px-6 py-3 bg-red-500 hover:bg-red-600 rounded-lg font-bold transition-colors"
             >
-              Cancelar
+              {t('common.cancel')}
             </button>
           </div>
         )}
@@ -334,7 +335,7 @@ export const MatchmakingView: React.FC<MatchmakingViewProps> = ({ onBack, onGame
         {opponent && connectionState === 'in-game' && !gameState && (
           <div className="bg-gray-800/50 rounded-xl p-8 mb-6 border border-green-500 text-center">
             <div className="text-6xl mb-4">⚔️</div>
-            <h3 className="text-2xl font-bold text-white mb-4">Oponente Encontrado!</h3>
+            <h3 className="text-2xl font-bold text-white mb-4">{t('pvp.matchFound')}</h3>
             <div className="flex items-center justify-center gap-4 mb-4">
               <div className="text-center">
                 <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-2xl mx-auto mb-2">
@@ -353,7 +354,7 @@ export const MatchmakingView: React.FC<MatchmakingViewProps> = ({ onBack, onGame
                 </p>
               </div>
             </div>
-            <p className="text-gray-400 animate-pulse">Iniciando partida...</p>
+            <p className="text-gray-400 animate-pulse">{t('pvp.startingMatch')}</p>
           </div>
         )}
 
@@ -364,7 +365,7 @@ export const MatchmakingView: React.FC<MatchmakingViewProps> = ({ onBack, onGame
             disabled={!selectedDeck || selectedDeck.cards.length < 15}
             className="w-full py-4 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 disabled:from-gray-500 disabled:to-gray-600 rounded-xl font-bold text-xl transition-all transform hover:scale-[1.02] disabled:cursor-not-allowed"
           >
-            🎮 Buscar Partida
+            🎮 {t('pvp.findMatch')}
           </button>
         )}
 
@@ -373,20 +374,20 @@ export const MatchmakingView: React.FC<MatchmakingViewProps> = ({ onBack, onGame
             onClick={connect}
             className="w-full py-4 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 rounded-xl font-bold text-xl transition-all"
           >
-            🔌 Conectar ao Servidor
+            🔌 {t('pvp.connectToServer')}
           </button>
         )}
 
         {connectionState === 'connecting' && (
           <div className="w-full py-4 bg-gray-600 rounded-xl font-bold text-xl text-center">
-            Conectando...
+            {t('pvp.connecting')}
           </div>
         )}
 
         {/* Info */}
         <div className="mt-8 text-center text-gray-500 text-sm">
-          <p>💡 O primeiro jogador a zerar o HP do oponente vence!</p>
-          <p className="mt-1">⏱️ Cada turno tem um limite de tempo</p>
+          <p>💡 {t('pvp.tipWinCondition')}</p>
+          <p className="mt-1">⏱️ {t('pvp.tipTurnTime')}</p>
         </div>
       </div>
     </div>

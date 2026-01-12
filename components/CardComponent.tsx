@@ -1,6 +1,7 @@
 import React from 'react';
 import { Card, ElementType, StatusEffect, CardType, Rarity, FloatingEffect } from '../types';
 import Tooltip from './Tooltip';
+import { t } from '../utils/i18n';
 
 interface CardProps {
   card: Card;
@@ -126,7 +127,7 @@ export const CardComponent: React.FC<CardProps> = ({
   };
 
   const renderEffect = (effect: any) => {
-    if (!effect) return 'Nenhum';
+    if (!effect) return t('card.none');
     const parts: string[] = [];
     parts.push(effect.type);
     if (typeof effect.value !== 'undefined') parts.push(`value: ${effect.value}`);
@@ -163,7 +164,7 @@ export const CardComponent: React.FC<CardProps> = ({
          <div className="w-24 h-24 rounded-full bg-slate-800 flex items-center justify-center border-2 border-slate-600 shadow-inner group-hover:scale-125 transition-transform duration-500">
             <span className="text-6xl filter grayscale opacity-30">⚡</span>
          </div>
-         <div className="absolute top-4 left-4 text-xs text-slate-500 font-black uppercase tracking-[0.2em]">OPONENTE</div>
+         <div className="absolute top-4 left-4 text-xs text-slate-500 font-black uppercase tracking-[0.2em]">{t('common.opponent')}</div>
          <div className="absolute bottom-6 px-4 py-2 bg-black/60 rounded-xl text-lg font-mono font-black text-slate-400 border border-white/5">
             ????
          </div>
@@ -180,7 +181,7 @@ export const CardComponent: React.FC<CardProps> = ({
           <Tooltip content={(
             <div>
               <div className="font-black text-base">{card.name}</div>
-              <div className="text-sm mt-1 leading-tight">{card.spellEffect ? renderEffect(card.spellEffect) : 'Efeito desconhecido'}</div>
+              <div className="text-sm mt-1 leading-tight">{card.spellEffect ? renderEffect(card.spellEffect) : t('card.unknownEffect')}</div>
             </div>
           )}>
             <span className="cursor-help">🪄</span>
@@ -193,7 +194,7 @@ export const CardComponent: React.FC<CardProps> = ({
           <span className="text-6xl">✨</span>
         </div>
         <div className="bg-black/60 rounded-xl p-2 text-xs text-center">
-          <span className="text-purple-300">MAGIA</span>
+          <span className="text-purple-300">{t('card.spell')}</span>
         </div>
       </div>
     );
@@ -207,7 +208,7 @@ export const CardComponent: React.FC<CardProps> = ({
           <Tooltip content={(
             <div>
               <div className="font-black text-base">{card.name}</div>
-              <div className="text-sm mt-1 leading-tight">{card.trapEffect ? renderEffect(card.trapEffect) : 'Efeito desconhecido'}</div>
+              <div className="text-sm mt-1 leading-tight">{card.trapEffect ? renderEffect(card.trapEffect) : t('card.unknownEffect')}</div>
             </div>
           )}>
             <span className="cursor-help">🪤</span>
@@ -220,7 +221,7 @@ export const CardComponent: React.FC<CardProps> = ({
           <span className="text-6xl">{card.isSet ? '❓' : '⚠️'}</span>
         </div>
         <div className="bg-black/60 rounded-xl p-2 text-xs text-center">
-          <span className="text-orange-300">{card.isSet ? 'ARMADILHA' : 'ARMADILHA'}</span>
+          <span className="text-orange-300">{t('card.trap')}</span>
         </div>
       </div>
     );
@@ -304,8 +305,8 @@ export const CardComponent: React.FC<CardProps> = ({
               <div>
                 <div className="font-black text-base">{card.ability.name}</div>
                 <div className="text-sm mt-1 leading-tight">{card.ability.description}</div>
-                <div className="text-sm mt-2 opacity-80">Trigger: <span className="font-mono">{card.ability.trigger}</span></div>
-                <div className="text-sm mt-1 opacity-80">Effect: <span className="font-mono">{renderEffect(card.ability.effect)}</span></div>
+                <div className="text-sm mt-2 opacity-80">{t('card.trigger')}: <span className="font-mono">{card.ability.trigger}</span></div>
+                <div className="text-sm mt-1 opacity-80">{t('card.effect')}: <span className="font-mono">{renderEffect(card.ability.effect)}</span></div>
               </div>
             )}>
               <span className="cursor-help text-2xl">💫</span>
@@ -329,7 +330,7 @@ export const CardComponent: React.FC<CardProps> = ({
       
       {(showAttacked || card.hasAttacked) && (
         <div className="absolute inset-0 bg-black/70 flex items-center justify-center pointer-events-none backdrop-blur-[2px] z-20">
-            <span className={`${compact ? 'text-sm px-2 py-1 border-4' : 'text-sm px-2 py-1 border-4'} font-black text-white/80 uppercase -rotate-12 border-white/30 rounded-2xl scale-125 tracking-tighter italic shadow-2xl`}>EXAUSTO</span>
+            <span className={`${compact ? 'text-sm px-2 py-1 border-4' : 'text-sm px-2 py-1 border-4'} font-black text-white/80 uppercase -rotate-12 border-white/30 rounded-2xl scale-125 tracking-tighter italic shadow-2xl`}>{t('game.exhausted')}</span>
         </div>
       )}
       

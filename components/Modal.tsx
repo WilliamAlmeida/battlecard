@@ -1,4 +1,5 @@
 import React from 'react';
+import { t } from '../utils/i18n';
 
 interface ModalProps {
   title: string;
@@ -24,7 +25,7 @@ export const Modal: React.FC<ModalProps> = ({ title, children, onClose, onBack }
             onClick={handleClose}
             className="px-4 py-2 bg-slate-800 text-white rounded hover:bg-slate-700 transition-colors"
           >
-            Fechar
+            {t('common.close')}
           </button>
         </div>
       </div>

@@ -5,6 +5,7 @@ import { collectionService } from '../services/collectionService';
 import Tooltip from './Tooltip';
 import { INITIAL_DECK, SPELL_CARDS, TRAP_CARDS } from '../constants';
 import { soundService } from '../services/soundService';
+import { t } from '../utils/i18n';
 
 interface CollectionViewProps {
   onClose?: () => void;
@@ -24,11 +25,11 @@ const getRarityColor = (rarity: Rarity) => {
 
 const getRarityLabel = (rarity: Rarity) => {
   switch (rarity) {
-    case Rarity.COMMON: return '⚪ Comum';
-    case Rarity.UNCOMMON: return '🟢 Incomum';
-    case Rarity.RARE: return '🔵 Raro';
-    case Rarity.EPIC: return '🟣 Épico';
-    case Rarity.LEGENDARY: return '🌟 Lendário';
+    case Rarity.COMMON: return `⚪ ${t('rarity.common')}`;
+    case Rarity.UNCOMMON: return `🟢 ${t('rarity.uncommon')}`;
+    case Rarity.RARE: return `🟥 ${t('rarity.rare')}`;
+    case Rarity.EPIC: return `🟣 ${t('rarity.epic')}`;
+    case Rarity.LEGENDARY: return `🌟 ${t('rarity.legendary')}`;
   }
 };
 
@@ -197,11 +198,11 @@ export const CollectionView: React.FC<CollectionViewProps> = ({ onClose, onBack 
         {packResults.length === 0 ? (
           <div className="text-center">
             <div className="text-9xl animate-bounce mb-8">📦</div>
-            <h2 className="text-4xl font-black text-yellow-500 animate-pulse">Abrindo pacote...</h2>
+            <h2 className="text-4xl font-black text-yellow-500 animate-pulse">{t('collection.openingPack')}</h2>
           </div>
         ) : (
           <div className="text-center">
-            <h2 className="text-4xl font-black text-yellow-500 mb-8">Você obteve!</h2>
+            <h2 className="text-4xl font-black text-yellow-500 mb-8">{t('collection.youObtained')}</h2>
             <div className="mb-8 flex justify-center">
               <div className="w-[90vw] sm:w-[90vw] mx-auto overflow-x-auto overflow-y-hidden pt-4 pb-8">
                 <div className="grid grid-flow-col auto-cols-min grid-rows-2 gap-4 items-start justify-normal md:justify-center">
@@ -228,7 +229,7 @@ export const CollectionView: React.FC<CollectionViewProps> = ({ onClose, onBack 
                 onClick={() => { setOpeningPack(false); setPackResults([]); }}
                 className="bg-yellow-500 text-black px-8 py-4 rounded-xl font-bold text-xl hover:bg-yellow-400"
               >
-                Continuar
+                {t('common.continue')}
               </button>
 
               {collection.packs > 0 && (
@@ -236,7 +237,7 @@ export const CollectionView: React.FC<CollectionViewProps> = ({ onClose, onBack 
                   onClick={handleOpenAnother}
                   className="bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-indigo-500"
                 >
-                  Abrir outro
+                  {t('collection.openAnother')}
                 </button>
               )}
 
@@ -245,7 +246,7 @@ export const CollectionView: React.FC<CollectionViewProps> = ({ onClose, onBack 
                   onClick={handleOpenAll}
                   className="bg-green-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-green-500"
                 >
-                  Abrir todos ({collection.packs})
+                  {t('collection.openAll', { count: collection.packs })}
                 </button>
               )}
             </div>
@@ -261,16 +262,16 @@ export const CollectionView: React.FC<CollectionViewProps> = ({ onClose, onBack 
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-4xl font-black text-yellow-500">📚 Coleção</h1>
+            <h1 className="text-4xl font-black text-yellow-500">📚 {t('collection.title')}</h1>
             <p className="text-slate-400">
-              {collectionService.getObtainedCardsCount()} / {allCards.length} cartas coletadas
+              {t('collection.totalCards', { owned: collectionService.getObtainedCardsCount(), total: allCards.length })}
             </p>
           </div>
           <button 
             onClick={handleClose}
             className="bg-slate-700 px-4 py-2 sm:px-6 sm:py-3 rounded-xl font-bold hover:bg-slate-600"
           >
-            ✕ <span className="hidden sm:inline">Fechar</span>
+            ✕ <span className="hidden sm:inline">{t('common.close')}</span>
           </button>
         </div>
 
@@ -279,8 +280,8 @@ export const CollectionView: React.FC<CollectionViewProps> = ({ onClose, onBack 
           <div className="flex items-center gap-4">
             <div className="text-6xl">📦</div>
             <div>
-              <div className="text-2xl font-bold">{collection.packs} Pacotes</div>
-              <div className="text-slate-400">💰 {collection.coins} moedas</div>
+              <div className="text-2xl font-bold">{collection.packs} {t('collection.packs')}</div>
+              <div className="text-slate-400">💰 {collection.coins} {t('common.coins')}</div>
             </div>
           </div>
           
@@ -294,7 +295,7 @@ export const CollectionView: React.FC<CollectionViewProps> = ({ onClose, onBack 
                   : 'bg-slate-700 text-slate-500 cursor-not-allowed'
               }`}
             >
-              Abrir Pacote
+              {t('collection.openPack')}
             </button>
             <button
               onClick={handleBuyPack}
@@ -305,7 +306,7 @@ export const CollectionView: React.FC<CollectionViewProps> = ({ onClose, onBack 
                   : 'bg-slate-700 text-slate-500 cursor-not-allowed'
               }`}
             >
-              Comprar (💰 200)
+              {t('collection.buyPack', { price: '💰 200' })}
             </button>
             {/* {(import.meta as any).env?.DEV && (
               <button
@@ -324,7 +325,7 @@ export const CollectionView: React.FC<CollectionViewProps> = ({ onClose, onBack 
             type="text"
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
-            placeholder="Procurar por nome..."
+            placeholder={t('collection.searchByName')}
             className="bg-slate-800 px-4 py-2 rounded-xl w-full sm:w-auto"
           />
           <select 
@@ -332,10 +333,10 @@ export const CollectionView: React.FC<CollectionViewProps> = ({ onClose, onBack 
             onChange={e => setFilter(e.target.value as any)}
             className="bg-slate-800 px-4 py-2 rounded-xl"
           >
-            <option value="all">Todos os Tipos</option>
-            <option value="pokemon">Pokémon</option>
-            <option value="spell">Magias</option>
-            <option value="trap">Armadilhas</option>
+            <option value="all">{t('collection.allTypes')}</option>
+            <option value="pokemon">{t('collection.pokemon')}</option>
+            <option value="spell">{t('collection.spells')}</option>
+            <option value="trap">{t('collection.traps')}</option>
           </select>
 
           <div className="flex items-center gap-2 ml-2">
@@ -343,13 +344,13 @@ export const CollectionView: React.FC<CollectionViewProps> = ({ onClose, onBack 
               onClick={() => setViewMode('tiles')}
               className={`px-4 py-2 rounded-xl font-bold ${viewMode === 'tiles' ? 'bg-slate-600' : 'bg-slate-800'}`}
             >
-              Grade
+              {t('collection.grid')}
             </button>
             <button
               onClick={() => setViewMode('component')}
               className={`px-4 py-2 rounded-xl font-bold ${viewMode === 'component' ? 'bg-slate-600' : 'bg-slate-800'}`}
             >
-              Cartas
+              {t('collection.cards')}
             </button>
 
             {/* Component view is always compact by design */}
@@ -360,7 +361,7 @@ export const CollectionView: React.FC<CollectionViewProps> = ({ onClose, onBack 
             onChange={e => setTypeFilter(e.target.value as any)}
             className="bg-slate-800 px-4 py-2 rounded-xl"
           >
-            <option value="all">Todos os Elementos</option>
+            <option value="all">{t('collection.allElements')}</option>
             {Object.values(ElementType).map(type => (
               <option key={type} value={type}>{getTypeIcon(type)} {type}</option>
             ))}
@@ -371,7 +372,7 @@ export const CollectionView: React.FC<CollectionViewProps> = ({ onClose, onBack 
             onChange={e => setRarityFilter(e.target.value as any)}
             className="bg-slate-800 px-4 py-2 rounded-xl"
           >
-            <option value="all">Todas as Raridades</option>
+            <option value="all">{t('collection.allRarities')}</option>
             {Object.values(Rarity).map(rarity => (
               <option key={rarity} value={rarity}>{getRarityLabel(rarity)}</option>
             ))}
@@ -384,10 +385,10 @@ export const CollectionView: React.FC<CollectionViewProps> = ({ onClose, onBack 
                 onChange={e => setSortBy(e.target.value as any)}
                 className="bg-slate-800 px-4 py-2 rounded-xl"
               >
-                <option value="none">Ordenar (Nenhum)</option>
-                <option value="atk">Ordenar por Ataque</option>
-                <option value="def">Ordenar por Defesa</option>
-                <option value="star">Ordenar por Estrelas</option>
+                <option value="none">{t('collection.sortNone')}</option>
+                <option value="atk">{t('collection.sortByAttack')}</option>
+                <option value="def">{t('collection.sortByDefense')}</option>
+                <option value="star">{t('collection.sortByStars')}</option>
               </select>
 
               <label className="flex items-center gap-2 bg-slate-800 px-4 py-2 rounded-xl cursor-pointer">
@@ -397,7 +398,7 @@ export const CollectionView: React.FC<CollectionViewProps> = ({ onClose, onBack 
                   onChange={e => setAbilityOnly(e.target.checked)}
                   className="w-5 h-5"
                 />
-                Mostrar apenas com habilidade
+                {t('collection.onlyWithAbility')}
               </label>
             </>
           )}
@@ -409,7 +410,7 @@ export const CollectionView: React.FC<CollectionViewProps> = ({ onClose, onBack 
               onChange={e => setShowOnlyOwned(e.target.checked)}
               className="w-5 h-5"
             />
-            Mostrar apenas obtidas
+            {t('collection.onlyOwned')}
           </label>
         </div>
 
@@ -464,10 +465,10 @@ export const CollectionView: React.FC<CollectionViewProps> = ({ onClose, onBack 
                       <Tooltip content={(
                         <div>
                           <div className="font-black text-sm">{card.name}</div>
-                          <div className="text-xs mt-1">{card.spellEffect ? String(card.spellEffect.type) + (card.spellEffect.value ? ` (${card.spellEffect.value})` : '') : 'Efeito desconhecido'}</div>
+                          <div className="text-xs mt-1">{card.spellEffect ? String(card.spellEffect.type) + (card.spellEffect.value ? ` (${card.spellEffect.value})` : '') : t('collection.unknownEffect')}</div>
                         </div>
                       )}>
-                        <span className="cursor-help">🪄 Magia</span>
+                        <span className="cursor-help">🪄 {t('collection.spell')}</span>
                       </Tooltip>
                     </div>
                   )}
@@ -477,10 +478,10 @@ export const CollectionView: React.FC<CollectionViewProps> = ({ onClose, onBack 
                       <Tooltip content={(
                         <div>
                           <div className="font-black text-sm">{card.name}</div>
-                          <div className="text-xs mt-1">{card.trapEffect ? String(card.trapEffect.type) + (card.trapEffect.value ? ` (${card.trapEffect.value})` : '') : 'Efeito desconhecido'}</div>
+                          <div className="text-xs mt-1">{card.trapEffect ? String(card.trapEffect.type) + (card.trapEffect.value ? ` (${card.trapEffect.value})` : '') : t('collection.unknownEffect')}</div>
                         </div>
                       )}>
-                        <span className="cursor-help">🪤 Armadilha</span>
+                        <span className="cursor-help">🫤 {t('collection.trap')}</span>
                       </Tooltip>
                     </div>
                   )}
@@ -499,7 +500,7 @@ export const CollectionView: React.FC<CollectionViewProps> = ({ onClose, onBack 
                   onClick={() => setVisibleCount(c => Math.min(sortedCards.length, c + ITEMS_PER_BATCH))}
                   className="px-6 py-3 rounded-xl bg-slate-700 hover:bg-slate-600 font-bold"
                 >
-                  Carregar mais
+                  {t('collection.loadMore')}
                 </button>
               </div>
             )}

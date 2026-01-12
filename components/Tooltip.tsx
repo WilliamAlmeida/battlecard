@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import ReactDOM from 'react-dom';
+import { t } from '../utils/i18n';
 
 interface TooltipProps {
   content: React.ReactNode;

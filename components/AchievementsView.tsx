@@ -1,5 +1,6 @@
 import React from 'react';
 import { achievementsService } from '../services/achievementsService';
+import { t } from '../utils/i18n';
 
 interface AchievementsViewProps {
   onClose?: () => void;
@@ -18,16 +19,16 @@ export const AchievementsView: React.FC<AchievementsViewProps> = ({ onClose, onB
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-4xl font-black text-yellow-500">🏅 Conquistas</h1>
+            <h1 className="text-4xl font-black text-yellow-500">🏅 {t('achievements.title')}</h1>
             <p className="text-slate-400">
-              {unlockedCount} / {totalCount} desbloqueadas
+              {t('achievements.unlockedCount', { current: unlockedCount, total: totalCount })}
             </p>
           </div>
           <button 
             onClick={handleClose}
             className="bg-slate-700 px-4 py-2 sm:px-6 sm:py-3 rounded-xl font-bold hover:bg-slate-600"
           >
-            ✕ <span className="hidden sm:inline">Fechar</span>
+            ✕ <span className="hidden sm:inline">{t('common.close')}</span>
           </button>
         </div>
 
@@ -64,7 +65,7 @@ export const AchievementsView: React.FC<AchievementsViewProps> = ({ onClose, onB
               {achievement.maxProgress && !achievement.unlocked && (
                 <div className="mb-4">
                   <div className="flex justify-between text-xs text-slate-500 mb-1">
-                    <span>Progresso</span>
+                    <span>{t('achievements.progressLabel')}</span>
                     <span>{achievement.progress || 0} / {achievement.maxProgress}</span>
                   </div>
                   <div className="bg-slate-700 rounded-full h-2 overflow-hidden">
@@ -79,15 +80,15 @@ export const AchievementsView: React.FC<AchievementsViewProps> = ({ onClose, onB
               {/* Reward */}
               {achievement.reward && (
                 <div className="bg-black/30 px-3 py-2 rounded-lg text-sm inline-block">
-                  <span className="text-slate-500">Recompensa: </span>
+                  <span className="text-slate-500">{t('achievements.rewardLabel')} </span>
                   {achievement.reward.type === 'COINS' && (
-                    <span className="text-yellow-400">💰 {achievement.reward.value} moedas</span>
+                    <span className="text-yellow-400">💰 {t('achievements.rewardCoins', { value: achievement.reward.value })}</span>
                   )}
                   {achievement.reward.type === 'PACK' && (
-                    <span className="text-blue-400">📦 {achievement.reward.value} pacote(s)</span>
+                    <span className="text-blue-400">📦 {t('achievements.rewardPacks', { value: achievement.reward.value })}</span>
                   )}
                   {achievement.reward.type === 'CARD' && (
-                    <span className="text-purple-400">🎴 Carta especial</span>
+                    <span className="text-purple-400">🎴 {t('achievements.rewardCard')}</span>
                   )}
                   {achievement.reward.type === 'TITLE' && (
                     <span className="text-green-400">👑 {achievement.reward.value}</span>
@@ -97,7 +98,7 @@ export const AchievementsView: React.FC<AchievementsViewProps> = ({ onClose, onB
 
               {achievement.unlocked && achievement.unlockedAt && (
                 <div className="text-xs text-slate-600 mt-4">
-                  Desbloqueado em {new Date(achievement.unlockedAt).toLocaleDateString()}
+                  {t('achievements.unlockedAt', { date: new Date(achievement.unlockedAt).toLocaleDateString() })}
                 </div>
               )}
             </div>

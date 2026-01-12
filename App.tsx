@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, Phase, ElementType, AIDifficulty, GameMode } from './types';
 import { GameRules } from './utils/gameRules';
+import { t } from './utils/i18n';
 import { TypeTable } from './components/TypeTable';
 import { Graveyard } from './components/Graveyard';
 import { OpponentPanel } from './components/OpponentPanel';
@@ -203,7 +204,7 @@ export default function App() {
     if (location === 'hand' && phase === Phase.MAIN) {
       // Bloquear troca automática de seleção entre Pokémon na mão: exigir deseleção primeiro
       if (card.cardType === 'POKEMON' && selectedCardId && selectedCardId !== card.uniqueId) {
-        addLog('Remova a seleção atual antes de selecionar outro Pokémon.');
+        addLog(t('game.deselectFirst'));
         return;
       }
       // Handle SPELL cards
@@ -211,7 +212,7 @@ export default function App() {
         const effect = card.spellEffect;
         if (effect?.target === 'SINGLE_ENEMY' || effect?.target === 'SINGLE_ALLY') {
           // Need to select target
-          addLog(`Selecione um alvo para ${card.name}`);
+          addLog(t('game.selectTargetFor', { cardName: card.name }));
           setSelectedCardId(card.uniqueId);
           setAttackMode(true); // Reuse attack mode for target selection
           return;
@@ -225,7 +226,7 @@ export default function App() {
       // Handle TRAP cards
       if (card.cardType === 'TRAP') {
         if (player.trapZone.length >= 2) {
-          addLog("Zona de armadilhas cheia! (máximo 2)");
+          addLog(t('battle.trapZoneFull'));
           return;
         }
         setTrap('player', card.uniqueId);
@@ -236,7 +237,7 @@ export default function App() {
       if (card.cardType === 'POKEMON') {
         // Verificar limite de campo — bloquear apenas se não houver sacrifício que libere espaço
         if (card.sacrificeRequired === 0 && player.field.length >= GameRules.MAX_FIELD_SIZE) {
-          addLog(`CAMPO CHEIO! Você não pode ter mais de ${GameRules.MAX_FIELD_SIZE} Pokémon simultâneos.`);
+          addLog(t('game.fieldFullMax', { max: GameRules.MAX_FIELD_SIZE }));
           return;
         }
 
@@ -253,7 +254,7 @@ export default function App() {
           const pokemonsInHand = player.hand.filter(c => c.cardType === 'POKEMON' && c.uniqueId !== card.uniqueId).length;
           const availableTotal = pokemonsInHand + player.field.length;
           if (availableTotal < card.sacrificeRequired) {
-            addLog(`Sacrifícios insuficientes! ${card.name} exige ${card.sacrificeRequired} Pokémon entre mão e campo.`);
+            addLog(t('game.notEnoughSacrificesDetailed', { cardName: card.name, required: card.sacrificeRequired }));
             return;
           }
           // Entrar em modo sacrifício mesmo que o campo esteja cheio — jogador selecionará as cartas a sacrificar
@@ -314,7 +315,7 @@ export default function App() {
         playerDeckBase = getCardsByIds(targetDeck.cards);
         console.log('Using player custom deck:', targetDeck.name, 'with', targetDeck.cards.length, 'cards');
       } else {
-        addLog('Deck selecionado não encontrado. Por favor selecione outro deck.');
+        addLog(t('deck.notFound'));
         setShowNeedDeckModal(true);
         return;
       }
@@ -387,8 +388,8 @@ export default function App() {
         {showNeedDeckModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
             <div className="bg-slate-800 p-8 rounded-3xl border-2 border-white/10 max-w-lg text-center">
-              <h2 className="text-2xl font-bold mb-2">Deck necessário</h2>
-              <p className="text-slate-300 mb-6">Você precisa criar ou selecionar um deck antes de iniciar a batalha.</p>
+              <h2 className="text-2xl font-bold mb-2">{t('deck.required')}</h2>
+              <p className="text-slate-300 mb-6">{t('deck.requiredMessage')}</p>
               <div className="flex justify-center gap-4">
                 <button
                   onClick={() => {
@@ -398,13 +399,13 @@ export default function App() {
                   }}
                   className="bg-yellow-600 hover:bg-yellow-500 px-4 py-2 rounded-xl font-bold"
                 >
-                  Criar / Selecionar Deck
+                  {t('deck.createOrSelect')}
                 </button>
                 <button
                   onClick={() => { soundService.playClick(); setShowNeedDeckModal(false); }}
                   className="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-xl"
                 >
-                  Fechar
+                  {t('common.close')}
                 </button>
               </div>
             </div>
@@ -519,12 +520,12 @@ export default function App() {
             {(() => {
               const selectedSpell = player.hand.find(c => c.uniqueId === selectedCardId);
               if (selectedSpell?.cardType === 'SPELL') {
-                const t = selectedSpell.spellEffect?.target;
-                if (t === 'SINGLE_ALLY') return 'Selecione um alvo aliado para a magia';
-                if (t === 'SINGLE_ENEMY') return 'Selecione um alvo inimigo para a magia';
+                const target = selectedSpell.spellEffect?.target;
+                if (target === 'SINGLE_ALLY') return t('game.selectAllyTarget');
+                if (target === 'SINGLE_ENEMY') return t('game.selectEnemyTarget');
               }
-              if (npc.field.length === 0) return 'Clique para atacar diretamente';
-              return 'Selecione um alvo para atacar';
+              if (npc.field.length === 0) return t('game.clickToDirectAttack');
+              return t('game.selectAttackTarget');
             })()}
             <button 
               className="ml-4 text-red-300 hover:text-red-100" 
@@ -533,7 +534,7 @@ export default function App() {
                 setSelectedCardId(null);
               }}
             >
-              ✕ Cancelar
+              ✕ {t('common.cancel')}
             </button>
           </div>
         </div>
@@ -570,9 +571,9 @@ export default function App() {
         
         <div className="absolute -top-2 left-1/2 -translate-x-1/2 mt-2">
           <div className="text-center bg-black/30 px-2 md:px-5 py-[2px] sm:py-2 rounded-b-lg sm:rounded-b-3xl border-b-2 border-x-2 border-white/10 shadow-2xl flex gap-x-1">
-            <div className="text-[10px] sm:text-base lg:text-xl font-bold text-yellow-500 tracking-tighter">TURNO {turnCount} -</div>
+            <div className="text-[10px] sm:text-base lg:text-xl font-bold text-yellow-500 tracking-tighter">{t('game.turn', { turn: turnCount })} -</div>
             <div className={`text-[10px] sm:text-base lg:text-xl font-bold uppercase tracking-widest ${currentTurnPlayer === 'player' ? 'text-blue-400 animate-pulse' : 'text-red-400'}`}>
-              {currentTurnPlayer === 'player' ? 'SEU TURNO' : 'CPU JOGANDO'}
+              {currentTurnPlayer === 'player' ? t('game.yourTurn') : t('game.cpuPlaying')}
             </div>
           </div>
         </div>
@@ -609,7 +610,7 @@ export default function App() {
                 }`}
                 onClick={attackMode ? handleDirectAttack : undefined}
               >
-                {attackMode ? '⚔️ Ataque Direto' : 'Vazio'}
+                {attackMode ? `⚔️ ${t('game.directAttack')}` : t('common.empty')}
               </div>
             ) : (
               npc.field.map(card => (
@@ -662,7 +663,7 @@ export default function App() {
           <div className="flex justify-center gap-3 min-h-[140px]">
             {player.field.length === 0 ? (
               <div className="w-24 h-32 border-2 border-dashed border-gray-600 rounded-lg flex items-center justify-center text-gray-600">
-                Vazio
+                {t('common.empty')}
               </div>
             ) : (
               player.field.map(card => {
@@ -750,13 +751,13 @@ export default function App() {
                 }}
                 className="px-6 py-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg font-bold hover:from-green-600 hover:to-emerald-600 transition-all"
               >
-                Invocar {selectedCard.name}
+                {t('game.summonCard', { cardName: selectedCard.name })}
               </button>
               <button
                 onClick={() => setSelectedCardId(null)}
                 className="px-4 py-2 bg-gray-600 rounded-lg hover:bg-gray-500 transition-all"
               >
-                Cancelar
+                {t('common.cancel')}
               </button>
             </div>
           );
@@ -765,7 +766,7 @@ export default function App() {
         {tributeSelectionMode && pendingSummonCardId && (
           <div className="flex justify-center gap-4 mt-3">
             <span className="text-gray-400 self-center">
-              Sacrifícios: {cardsToSacrifice.length}/{player.hand.find(c => c.uniqueId === pendingSummonCardId)?.sacrificeRequired || 0}
+              {t('game.sacrificesCount', { current: cardsToSacrifice.length, required: player.hand.find(c => c.uniqueId === pendingSummonCardId)?.sacrificeRequired || 0 })}
             </span>
             <button
               onClick={() => {
@@ -782,7 +783,7 @@ export default function App() {
               disabled={cardsToSacrifice.length !== (player.hand.find(c => c.uniqueId === pendingSummonCardId)?.sacrificeRequired || 0)}
               className="px-6 py-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg font-bold disabled:opacity-50 disabled:cursor-not-allowed hover:from-green-600 hover:to-emerald-600 transition-all"
             >
-              Invocar {player.hand.find(c => c.uniqueId === pendingSummonCardId)?.name}
+              {t('game.summonCard', { cardName: player.hand.find(c => c.uniqueId === pendingSummonCardId)?.name || '' })}
             </button>
             <button
               onClick={() => {
@@ -792,7 +793,7 @@ export default function App() {
               }}
               className="px-4 py-2 bg-gray-600 rounded-lg hover:bg-gray-500 transition-all"
             >
-              Cancelar
+              {t('common.cancel')}
             </button>
           </div>
         )}
@@ -805,7 +806,7 @@ export default function App() {
                 onClick={() => setPhase(Phase.BATTLE)}
                 className="px-6 py-2 bg-gradient-to-r from-orange-500 to-red-500 rounded-lg font-bold hover:from-orange-600 hover:to-red-600 transition-all"
               >
-                ⚔️ Ir para Batalha
+                ⚔️ {t('game.goToBattle')}
               </button>
             )}
             {phase === Phase.BATTLE && (
@@ -813,19 +814,19 @@ export default function App() {
                 onClick={handlePhaseButton}
                 className="px-6 py-2 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-lg font-bold hover:from-blue-600 hover:to-indigo-600 transition-all"
               >
-                ➡️ Encerrar Turno
+                ➡️ {t('game.endTurn')}
               </button>
             )}
             <button
               onClick={() => {
-                if (confirm('Tem certeza que deseja desistir?')) {
-                  addLog('Você desistiu.','info');
+                if (confirm(t('game.surrenderConfirm'))) {
+                  addLog(t('game.youSurrendered'),'info');
                   handleBackToMenu();
                 }
               }}
               className="px-4 py-2 bg-gray-600 rounded-lg hover:bg-gray-500 transition-all"
             >
-              🏳️ Desistir
+              🏳️ {t('game.surrender')}
             </button>
           </div>
         )}
@@ -863,7 +864,7 @@ export default function App() {
       {gameOver && (
         <div className="absolute inset-0 bg-black/98 z-50 flex flex-col items-center justify-center animate-in fade-in zoom-in duration-700 backdrop-blur-3xl">
           <div className={`text-7xl sm:text-[10rem] md:text-[15rem] font-black italic mb-12 drop-shadow-[0_0_100px_rgba(255,255,255,0.2)] ${winner === 'player' ? 'text-yellow-500' : 'text-red-600'}`}>
-            {winner === 'player' ? 'VITÓRIA!' : 'DERROTA!'}
+            {winner === 'player' ? t('battle.victoryTitle') : t('battle.defeatTitle')}
           </div>
           <div className="flex flex-col sm:flex-row gap-8">
             {gameMode === GameMode.SURVIVAL && winner === 'player' ? (
@@ -871,21 +872,21 @@ export default function App() {
                 onClick={() => startNextSurvivalWave()}
                 className="bg-white text-black px-12 py-4 sm:px-24 sm:py-8 rounded-full font-black text-2xl sm:text-4xl hover:scale-110 active:scale-95 transition-all shadow-[0_0_50px_rgba(255,255,255,0.3)]"
               >
-                ➡️ PRÓXIMO DESAFIO
+                ➡️ {t('game.nextChallenge')}
               </button>
             ) : (
               <button 
                 onClick={() => handleStartGame(gameMode, difficulty, lastBossId || undefined, selectedDeckId || undefined)} 
                 className="bg-white text-black px-12 py-4 sm:px-24 sm:py-8 rounded-full font-black text-2xl sm:text-4xl hover:scale-110 active:scale-95 transition-all shadow-[0_0_50px_rgba(255,255,255,0.3)]"
               >
-                🔄 REVANCHE
+                🔄 {t('game.rematch')}
               </button>
             )}
             <button 
               onClick={handleBackToMenu} 
               className="bg-slate-700 text-white px-12 py-4 sm:px-24 sm:py-8 rounded-full font-black text-2xl sm:text-4xl hover:scale-110 active:scale-95 transition-all shadow-[0_0_50px_rgba(0,0,0,0.3)]"
             >
-              📋 MENU
+              📋 {t('menu.title').split(' ')[0].toUpperCase() || 'MENU'}
             </button>
           </div>
         </div>

@@ -7,6 +7,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { usePvPGameLogic } from '../hooks/usePvPGameLogic';
 import { Card, Phase, CardType } from '../types';
 import { CardComponent } from './CardComponent';
+import { t } from '../utils/i18n';
 import { BattleLog } from './BattleLog';
 import { Graveyard } from './Graveyard';
 import { TypeTable } from './TypeTable';
@@ -315,25 +316,25 @@ export const PvPGameBoard: React.FC<PvPGameBoardProps> = ({ onGameEnd }) => {
             {gameResult.won ? '🏆' : '💀'}
           </div>
           <h2 className={`text-3xl font-bold mb-4 ${gameResult.won ? 'text-green-400' : 'text-red-400'}`}>
-            {gameResult.won ? 'VITÓRIA!' : 'DERROTA'}
+            {gameResult.won ? t('battle.victoryTitle') : t('battle.defeatTitle')}
           </h2>
           <p className="text-gray-400 mb-6">
-            {gameResult.reason === 'surrender' && 'Oponente desistiu'}
-            {gameResult.reason === 'timeout' && 'Tempo esgotado'}
-            {gameResult.reason === 'disconnect' && 'Oponente desconectou'}
-            {gameResult.reason === 'victory' && (gameResult.won ? 'Você venceu a batalha!' : 'Você foi derrotado')}
+            {gameResult.reason === 'surrender' && t('pvp.opponentSurrendered')}
+            {gameResult.reason === 'timeout' && t('pvp.timeout')}
+            {gameResult.reason === 'disconnect' && t('pvp.opponentDisconnected')}
+            {gameResult.reason === 'victory' && (gameResult.won ? t('battle.youWon') : t('battle.youLost'))}
           </p>
           
           <div className="grid grid-cols-2 gap-4 mb-6">
             <div className="bg-gray-700 rounded-lg p-3">
               <div className="text-xl font-bold text-white">{gameResult.stats.totalTurns}</div>
-              <div className="text-xs text-gray-400">Turnos</div>
+              <div className="text-xs text-gray-400">{t('pvp.turns')}</div>
             </div>
             <div className="bg-gray-700 rounded-lg p-3">
               <div className="text-xl font-bold text-white">
                 {Math.floor(gameResult.stats.durationSeconds / 60)}:{(gameResult.stats.durationSeconds % 60).toString().padStart(2, '0')}
               </div>
-              <div className="text-xs text-gray-400">Duração</div>
+              <div className="text-xs text-gray-400">{t('pvp.duration')}</div>
             </div>
           </div>
           
@@ -345,7 +346,7 @@ export const PvPGameBoard: React.FC<PvPGameBoardProps> = ({ onGameEnd }) => {
             onClick={onGameEnd}
             className="w-full py-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg font-bold hover:from-purple-600 hover:to-pink-600 transition-all"
           >
-            Voltar ao Menu
+            {t('pvp.backToMenu')}
           </button>
         </div>
       </div>
@@ -355,7 +356,7 @@ export const PvPGameBoard: React.FC<PvPGameBoardProps> = ({ onGameEnd }) => {
   if (!gameState || !myPlayer || !opponentPlayer) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="text-xl text-gray-400 animate-pulse">Carregando jogo...</div>
+        <div className="text-xl text-gray-400 animate-pulse">{t('pvp.loadingGame')}</div>
       </div>
     );
   }
@@ -367,9 +368,9 @@ export const PvPGameBoard: React.FC<PvPGameBoardProps> = ({ onGameEnd }) => {
         <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-40">
           <div className="bg-gray-800 rounded-xl p-6 text-center">
             <div className="text-4xl mb-4">⚠️</div>
-            <h3 className="text-xl font-bold text-white mb-2">Oponente Desconectou</h3>
+            <h3 className="text-xl font-bold text-white mb-2">{t('pvp.opponentDisconnected')}</h3>
             <p className="text-gray-400 mb-4">
-              Aguardando reconexão... {reconnectTimeout}s
+              {t('pvp.waitingReconnect', { seconds: reconnectTimeout })}
             </p>
             <div className="w-48 h-2 bg-gray-700 rounded-full overflow-hidden">
               <div 
@@ -386,13 +387,13 @@ export const PvPGameBoard: React.FC<PvPGameBoardProps> = ({ onGameEnd }) => {
       {targetingMode && (
         <div className="absolute inset-0 bg-black/30 z-[10] pointer-events-none">
           <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-purple-600 px-4 py-2 rounded-lg pointer-events-auto">
-            {targetingMode === 'attack' ? 'Selecione um alvo para atacar' : (
-              spellTargetSide === 'ally' ? 'Selecione um aliado para a magia'
-              : spellTargetSide === 'enemy' ? 'Selecione um inimigo para a magia'
-              : 'Selecione um alvo para a magia'
+            {targetingMode === 'attack' ? t('game.selectAttackTarget') : (
+              spellTargetSide === 'ally' ? t('game.selectAllyTarget')
+              : spellTargetSide === 'enemy' ? t('game.selectEnemyTarget')
+              : t('game.selectTarget')
             )}
             <button className="ml-4 text-red-300 hover:text-red-100" onClick={cancelTargeting}>
-              ✕ Cancelar
+              ✕ {t('common.cancel')}
             </button>
           </div>
         </div>
@@ -421,9 +422,9 @@ export const PvPGameBoard: React.FC<PvPGameBoardProps> = ({ onGameEnd }) => {
         
         <div className="absolute -top-2 left-1/2 -translate-x-1/2 mt-2">
           <div className="text-center bg-black/30 px-2 md:px-5 py-[2px] sm:py-2 rounded-b-lg sm:rounded-b-3xl border-b-2 border-x-2 border-white/10 shadow-2xl flex gap-x-1">
-            <div className="text-[10px] sm:text-base lg:text-xl font-bold text-yellow-500 tracking-tighter">TURNO {gameState.turnNumber} -</div>
+            <div className="text-[10px] sm:text-base lg:text-xl font-bold text-yellow-500 tracking-tighter">{t('game.turn', { turn: gameState.turnNumber })} -</div>
             <div className={`text-[10px] sm:text-base lg:text-xl font-bold uppercase tracking-widest ${isMyTurn() ? 'text-blue-400 animate-pulse' : 'text-red-400'}`}>
-              {isMyTurn() ? 'SEU TURNO' : 'OPONENTE'}
+              {isMyTurn() ? t('game.yourTurn') : t('common.opponent')}
             </div>
           </div>
         </div>
@@ -463,7 +464,7 @@ export const PvPGameBoard: React.FC<PvPGameBoardProps> = ({ onGameEnd }) => {
                 }`}
                 onClick={targetingMode === 'attack' ? handleDirectAttack : undefined}
               >
-                {targetingMode === 'attack' ? '⚔️ Ataque Direto' : 'Vazio'}
+                {targetingMode === 'attack' ? `⚔️ ${t('game.directAttack')}` : t('common.empty')}
               </div>
               ) : (
               opponentPlayer.field.map(card => (
@@ -508,7 +509,7 @@ export const PvPGameBoard: React.FC<PvPGameBoardProps> = ({ onGameEnd }) => {
         {/* Turn & Phase Indicator */}
         <div className="flex items-center justify-center gap-3 sm:gap-6 text-xs sm:text-base">
           <div className="bg-gray-700 px-4 py-2 rounded-lg">
-            Fase: {gameState.phase}
+            {t('game.phase')}: {gameState.phase}
           </div>
           <div className={`px-4 py-2 rounded-lg bg-gray-700 ${getTimerColor()}`}>
             ⏱️ {formatTimer(turnTimeRemaining)}
@@ -520,7 +521,7 @@ export const PvPGameBoard: React.FC<PvPGameBoardProps> = ({ onGameEnd }) => {
           <div className="flex justify-center gap-3 min-h-[140px]">
             {myPlayer.field.length === 0 ? (
               <div className="w-24 h-32 border-2 border-dashed border-gray-600 rounded-lg flex items-center justify-center text-gray-600">
-                Vazio
+                {t('common.empty')}
               </div>
             ) : (
               myPlayer.field.map(card => (
@@ -606,7 +607,7 @@ export const PvPGameBoard: React.FC<PvPGameBoardProps> = ({ onGameEnd }) => {
           <div className="flex justify-center gap-4 mt-3">
             {selectedCard.sacrificeRequired > 0 && (
               <span className="text-gray-400 self-center">
-                Sacrifícios: {selectedSacrifices.length}/{selectedCard.sacrificeRequired}
+                {t('game.sacrificesCount', { current: selectedSacrifices.length, required: selectedCard.sacrificeRequired })}
               </span>
             )}
             <button
@@ -614,7 +615,7 @@ export const PvPGameBoard: React.FC<PvPGameBoardProps> = ({ onGameEnd }) => {
               disabled={selectedSacrifices.length !== selectedCard.sacrificeRequired}
               className="px-6 py-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg font-bold disabled:opacity-50 disabled:cursor-not-allowed hover:from-green-600 hover:to-emerald-600 transition-all"
             >
-              Invocar {selectedCard.name}
+              {t('game.summonCard', { cardName: selectedCard.name })}
             </button>
             <button
               onClick={() => {
@@ -623,7 +624,7 @@ export const PvPGameBoard: React.FC<PvPGameBoardProps> = ({ onGameEnd }) => {
               }}
               className="px-4 py-2 bg-gray-600 rounded-lg hover:bg-gray-500 transition-all"
             >
-              Cancelar
+              {t('common.cancel')}
             </button>
           </div>
         )}
@@ -635,7 +636,7 @@ export const PvPGameBoard: React.FC<PvPGameBoardProps> = ({ onGameEnd }) => {
                 onClick={endPhase}
                 className="px-6 py-2 bg-gradient-to-r from-orange-500 to-red-500 rounded-lg font-bold hover:from-orange-600 hover:to-red-600 transition-all"
               >
-                ⚔️ Ir para Batalha
+                ⚔️ {t('game.goToBattle')}
               </button>
             )}
             {isMyTurn() && !selectedCard && !targetingMode && gameState.phase === 'BATTLE' && (
@@ -643,7 +644,7 @@ export const PvPGameBoard: React.FC<PvPGameBoardProps> = ({ onGameEnd }) => {
                 onClick={endPhase}
                 className="px-6 py-2 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-lg font-bold hover:from-blue-600 hover:to-indigo-600 transition-all"
               >
-                ➡️ Encerrar Turno
+                ➡️ {t('game.endTurn')}
               </button>
             )}
             {/* Surrender button available even when it's opponent's turn */}
@@ -652,7 +653,7 @@ export const PvPGameBoard: React.FC<PvPGameBoardProps> = ({ onGameEnd }) => {
                 onClick={surrender}
                 className="px-4 py-2 bg-gray-600 rounded-lg hover:bg-gray-500 transition-all"
               >
-                🏳️ Desistir
+                🏳️ {t('game.surrender')}
               </button>
             )}
             {/* {!targetingMode && !selectedCard && (

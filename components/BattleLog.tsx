@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { GameLogEntry } from '../types';
+import { t } from '../utils/i18n';
 
 interface BattleLogProps {
   logs: GameLogEntry[];
@@ -31,8 +32,8 @@ export const BattleLog: React.FC<BattleLogProps> = ({ logs, isOpen: externalOpen
         {/* Log Panel */}
         <div className="w-80 h-[60vh] bg-slate-900/95 border-2 border-white/20 shadow-[0_0_50px_rgba(0,0,0,0.5)] backdrop-blur-md flex flex-col rounded-l-none rounded-r-none">
           <div className="p-4 border-b border-white/10 bg-black/40 flex justify-between items-center">
-            <h3 className="font-black text-xl text-yellow-500 uppercase tracking-tighter italic">Log de Batalha</h3>
-            <span className="text-xs font-bold text-slate-500">{logs.length} eventos</span>
+            <h3 className="font-black text-xl text-yellow-500 uppercase tracking-tighter italic">{t('battleLog.title')}</h3>
+            <span className="text-xs font-bold text-slate-500">{t('battleLog.eventsCount', { count: logs.length })}</span>
           </div>
           
           <div className="flex-1 overflow-y-auto p-4 scrollbar-hide flex flex-col-reverse gap-y-3">
@@ -55,7 +56,7 @@ export const BattleLog: React.FC<BattleLogProps> = ({ logs, isOpen: externalOpen
             ))}
             {logs.length === 0 && (
               <div className="h-full flex items-center justify-center text-slate-600 font-black italic text-center p-8">
-                Nenhuma ação registrada ainda...
+                {t('battleLog.noActions')}
               </div>
             )}
           </div>

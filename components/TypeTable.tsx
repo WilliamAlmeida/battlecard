@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ElementType } from '../types';
 import { GameRules } from '../utils/gameRules';
+import { t } from '../utils/i18n';
 
 interface TypeTableProps {
   isOpen?: boolean;
@@ -63,15 +64,15 @@ export const TypeTable: React.FC<TypeTableProps> = ({ isOpen: externalOpen, onTo
   return (
     <div className={`fixed right-0 top-[175px] sm:top-[215px] z-[34] transition-all duration-300 ${isOpen ? 'translate-x-0' : 'translate-x-[calc(100%-56px)]'} ${isOpen ? '' : 'pointer-events-none'}`}>
       <div className="flex items-start">
-        <button onClick={toggle} className="bg-slate-800 border-2 border-r-0 border-white/20 p-4 rounded-l-2xl shadow-2xl hover:bg-slate-700 transition-colors pointer-events-auto" aria-label="Abrir tabela">
+        <button onClick={toggle} className="bg-slate-800 border-2 border-r-0 border-white/20 p-4 rounded-l-2xl shadow-2xl hover:bg-slate-700 transition-colors pointer-events-auto" aria-label={t('typeTable.openTable')}>
           <span className="sm:text-2xl">{isOpen ? '👉' : '📊'}</span>
         </button>
 
         <div className="w-80 sm:w-[70vw] h-[60vh] sm:h-auto bg-slate-900/95 border-2 border-white/20 shadow-[0_0_50px_rgba(0,0,0,0.5)] backdrop-blur-md flex flex-col rounded-l-none rounded-r-lg p-2 overflow-hidden">
           <div className="flex items-center justify-between px-4 border-b border-white/5">
-            <div className="font-black text-lg text-slate-100">Tabela de Efeitos</div>
+            <div className="font-black text-lg text-slate-100">{t('typeTable.title')}</div>
             <div className="flex items-center gap-2">
-              <div className="text-sm text-slate-300 mr-2">Multiplicadores: <span className="font-semibold text-emerald-300">x1.5</span> / <span className="font-semibold text-amber-300">x0.5</span> / <span className="font-semibold text-red-300">x0</span></div>
+              <div className="text-sm text-slate-300 mr-2">{t('typeTable.multipliers')} <span className="font-semibold text-emerald-300">x1.5</span> / <span className="font-semibold text-amber-300">x0.5</span> / <span className="font-semibold text-red-300">x0</span></div>
             </div>
           </div>
 
@@ -79,7 +80,7 @@ export const TypeTable: React.FC<TypeTableProps> = ({ isOpen: externalOpen, onTo
             <table className="w-full text-sm table-auto border-collapse">
               <thead className="sticky top-0 bg-slate-900/95 z-10">
                 <tr>
-                  <th className="p-2 text-left font-bold text-slate-200">Atk \ Def</th>
+                  <th className="p-2 text-left font-bold text-slate-200">{t('typeTable.atkVsDef')}</th>
                   {Object.values(ElementType).map((def) => (
                     <th key={def} className="p-2 text-center font-semibold">
                       <div className={`inline-flex items-center justify-center gap-2 px-2 py-1 rounded ${getTypeColor(def as ElementType)}`}>

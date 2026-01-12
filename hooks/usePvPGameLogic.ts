@@ -16,6 +16,8 @@ import {
   ActionRejectedPayload,
 } from '../services/pvpTypes';
 import { soundService } from '../services/soundService';
+import { formatAbilityMessage } from '../utils/abilityMessages';
+import { t } from '../utils/i18n';
 
 export type PvPConnectionState = 'disconnected' | 'connecting' | 'connected' | 'in-queue' | 'in-game';
 
@@ -95,7 +97,7 @@ export function usePvPGameLogic() {
     try {
       await gameSessionService.connect();
     } catch (err) {
-      setError('Failed to connect to server');
+      setError(t('pvp.connectionFailed'));
       setConnectionState('disconnected');
     }
   }, []);
@@ -111,7 +113,7 @@ export function usePvPGameLogic() {
 
   const joinQueue = useCallback((deck: Card[]) => {
     if (connectionState !== 'connected') {
-      setError('Not connected to server');
+      setError(t('pvp.notConnected'));
       return;
     }
 
@@ -350,14 +352,35 @@ export function usePvPGameLogic() {
       gameSessionService.on(ServerEvent.ABILITY_TRIGGERED, (data: unknown) => {
         try {
           const ev = data as { playerId: 'player1' | 'player2'; cardUniqueId: string; abilityId?: string; message: string; type: string };
-          // show a floating effect near the card that triggered the ability
+          
+          // Find the card to get its name for formatting
+          let cardName: string | undefined;
+          if (gameSessionService.currentGameState) {
+            const state = gameSessionService.currentGameState;
+            const card = [...state.player1.field, ...state.player2.field].find(c => c.uniqueId === ev.cardUniqueId);
+            cardName = card?.name;
+          }
+          
+          // Format message using client-side formatter (supports i18n)
+          const formatted = formatAbilityMessage({
+            abilityId: ev.abilityId,
+            cardName,
+            // Server can send additional context in the future
+          });
+          
           const id = `${ev.cardUniqueId}-${Date.now()}`;
-          const text = ev.abilityId ? ev.abilityId : ev.message;
-          setFloatingEffects(prev => [...prev, { id, text: ev.message, color: 'yellow', animation: 'up', targetId: ev.cardUniqueId }]);
+          setFloatingEffects(prev => [...prev, { 
+            id, 
+            text: formatted.text, 
+            color: formatted.color, 
+            animation: formatted.animation, 
+            targetId: ev.cardUniqueId,
+            stat: formatted.stat
+          }]);
           // auto-remove
           setTimeout(() => setFloatingEffects(prev => prev.filter(f => f.id !== id)), 1200);
         } catch (e) {
-          // ignore
+          console.warn('[usePvPGameLogic] Failed to format ability message:', e);
         }
       })
     );
