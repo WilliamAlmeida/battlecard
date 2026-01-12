@@ -291,8 +291,8 @@ export const useGameLogic = () => {
   const executeAttack = useCallback(async (attackerId: string, targetId: string | null, ownerId: 'player' | 'npc') => {
     if (gameStateRef.current.isAnimating) return;
 
-    // Não permitir atacar no primeiro turno quem iniciou o jogo
-    if (gameStateRef.current.turnCount === 1 && gameStateRef.current.currentTurnPlayer === ownerId) {
+    // Não permitir atacar no primeiro turno quem iniciou o jogo (starter)
+    if (gameStateRef.current.turnCount === 1 && ownerId === gameStateRef.current.starter) {
       addLog('Quem começou o jogo não pode atacar no primeiro turno.');
       return;
     }

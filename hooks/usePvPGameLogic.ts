@@ -72,6 +72,8 @@ export function usePvPGameLogic() {
   const queueTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const turnTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const reconnectTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  // Prevent duplicate auto-pass on first-turn starter
+  const autoPassRef = useRef<{ turnNumber: number; player: string } | null>(null);
 
   // ==================== CONNECTION ====================
 
@@ -168,28 +170,7 @@ export function usePvPGameLogic() {
   }, []);
 
   const endPhase = useCallback(() => {
-    if (!gameState) {
-      gameSessionService.endPhase();
-      return;
-    }
-
-    // Send endPhase to server. If this is turn 1 and we are the starting player,
-    // the PvE client auto-passes when entering BATTLE. To mimic that behavior in PvP
-    // we optimistically send a second endPhase shortly after to advance the turn.
-    const amStarterOnFirstTurn = gameState.turnNumber === 1 && gameSessionService.playerRole === gameState.currentTurn && gameState.phase === 'MAIN';
-
     gameSessionService.endPhase();
-
-    if (amStarterOnFirstTurn) {
-      // small delay to allow server to process phase change to BATTLE first
-      setTimeout(() => {
-        try {
-          gameSessionService.endPhase();
-        } catch (e) {
-          console.warn('[usePvPGameLogic] second endPhase failed', e);
-        }
-      }, 150);
-    }
   }, []);
 
   const surrender = useCallback(() => {
@@ -237,7 +218,8 @@ export function usePvPGameLogic() {
   const canAttack = useCallback((card: Card) => {
     if (!gameState || !isMyTurn()) return false;
     if (gameState.phase !== 'BATTLE') return false;
-    if (gameState.turnNumber === 1) return false;
+    // Apenas player1 não pode atacar no turno 1 (quem começou)
+    if (gameState.turnNumber === 1 && gameSessionService.playerRole === 'player1') return false;
     if (card.hasAttacked) return false;
     return true;
   }, [gameState, isMyTurn]);
@@ -316,10 +298,31 @@ export function usePvPGameLogic() {
       gameSessionService.on(ServerEvent.GAME_STATE, (data: unknown) => {
         const state = data as PvPGameState;
         setGameState(state);
-        
+
         // Update turn timer
         const elapsed = (Date.now() - state.turnStartedAt) / 1000;
         setTurnTimeRemaining(Math.max(0, state.turnTimeoutSeconds - elapsed));
+
+        // Auto-pass logic for starter on first turn: if the server transitioned
+        // to BATTLE on turn 1 and the current turn is the starter (who can't
+        // attack), and we are that player, send a single endPhase. Use a ref
+        // to ensure we only do this once per turn/player to avoid loops.
+        try {
+          if (
+            state.phase === 'BATTLE' &&
+            state.turnNumber === 1 &&
+            state.currentTurn === gameSessionService.starterRole &&
+            gameSessionService.playerRole === state.currentTurn
+          ) {
+            const already = autoPassRef.current;
+            if (!already || already.turnNumber !== state.turnNumber || already.player !== state.currentTurn) {
+              gameSessionService.endPhase();
+              autoPassRef.current = { turnNumber: state.turnNumber, player: state.currentTurn };
+            }
+          }
+        } catch (e) {
+          console.warn('[usePvPGameLogic] auto-pass check failed', e);
+        }
       })
     );
 

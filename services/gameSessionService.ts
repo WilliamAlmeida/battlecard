@@ -60,6 +60,8 @@ class GameSessionService {
   stats: PvPStats | null = null;
   gameId: string | null = null;
   playerRole: 'player1' | 'player2' | null = null;
+  // Which player starts the match (derived from MatchFoundPayload.startsFirst)
+  starterRole: 'player1' | 'player2' | null = null;
   currentGameState: PvPGameState | null = null;
 
   constructor() {
@@ -204,6 +206,8 @@ class GameSessionService {
           const match = payload as MatchFoundPayload;
           this.gameId = match.gameId;
           this.playerRole = match.youAre;
+          // Determine starter role
+          this.starterRole = match.startsFirst ? match.youAre : (match.youAre === 'player1' ? 'player2' : 'player1');
           console.log('[PvP] Match found! Playing as:', match.youAre);
           break;
         }
@@ -214,6 +218,7 @@ class GameSessionService {
           // Then clear local session state
           this.gameId = null;
           this.playerRole = null;
+          this.starterRole = null;
           this.currentGameState = null;
           return; // already emitted
         }
