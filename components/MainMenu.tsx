@@ -501,28 +501,30 @@ export const MainMenu: React.FC<MainMenuProps> = ({
   return (
     <div className="fixed inset-0 bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 z-50 overflow-y-auto select-none">
       {/* Language Selector - Top Right */}
-      <div className="absolute top-4 right-4 flex gap-2 z-10">
+      <div className="absolute top-0 sm:top-4 right-0 sm:right-4 flex flex-col gap-2 z-10">
         <button
           onClick={() => handleLanguageChange('en')}
-          className={`px-3 py-2 rounded-lg font-bold text-sm transition-all flex items-center gap-1 ${
+          className={`px-3 py-2 rounded-bl-lg sm:rounded-lg font-bold text-sm transition-all flex items-center gap-1 ${
             currentLocale === 'en' 
               ? 'bg-yellow-500 text-black' 
               : 'bg-slate-700 hover:bg-slate-600 text-white'
           }`}
           title="English"
         >
-          <span className="inline-flex sm:hidden">🇺🇸</span> EN
+          <span className="inline-flex sm:hidden">🇺🇸</span>
+          <span className="hidden sm:inline-flex">EN</span>
         </button>
         <button
           onClick={() => handleLanguageChange('pt-BR')}
-          className={`px-3 py-2 rounded-lg font-bold text-sm transition-all flex items-center gap-1 ${
+          className={`px-3 py-2 rounded-l-lg sm:rounded-lg font-bold text-sm transition-all flex items-center gap-1 ${
             currentLocale === 'pt-BR' 
               ? 'bg-yellow-500 text-black' 
               : 'bg-slate-700 hover:bg-slate-600 text-white'
           }`}
           title="Português (Brasil)"
         >
-          <span className="inline-flex sm:hidden">🇧🇷</span> PT
+          <span className="inline-flex sm:hidden">🇧🇷</span>
+          <span className="hidden sm:inline-flex">PT</span>
         </button>
       </div>
       
