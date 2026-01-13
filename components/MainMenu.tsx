@@ -511,7 +511,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
           }`}
           title="English"
         >
-          🇺🇸 EN
+          <span className="hidden sm:inline-flex">🇺🇸</span> EN
         </button>
         <button
           onClick={() => handleLanguageChange('pt-BR')}
@@ -522,7 +522,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
           }`}
           title="Português (Brasil)"
         >
-          🇧🇷 PT
+          <span className="hidden sm:inline-flex">🇧🇷</span> PT
         </button>
       </div>
       
